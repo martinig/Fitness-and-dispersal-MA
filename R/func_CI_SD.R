@@ -11,5 +11,5 @@ ci_to_sd <-function(upper, lower, n){
 }
 
 # testing code for ci_to_sd
-#ci_to_sd(upper = 0.5, lower = 0.4, n = 10)
-
+ci_to_sd(upper = 0.5, lower = 0.4, n = 10)
+ci_to_sd(upper = 1, lower = -2, n = 100)
