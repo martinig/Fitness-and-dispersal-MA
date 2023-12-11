@@ -38,10 +38,9 @@ url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtF
 
 # Read the Google Sheet into a dataframe
 Species_info <- read_sheet(url) %>%
-	slice(-1:-7) %>%
-  #mutate(animal=species) %>%
-    slice(210:225) %>%
-  select(c("reference", "paperID", "common name", "species"))
+	filter(!composite_variable=="Y", !obsID=="TBD") %>%
+    #slice(210:250) %>%
+  select(c("reference", "paperID", "common_name", "species"))
 
 ```
 
@@ -53,10 +52,19 @@ length(unique(Species_info$species)) #354
 unique(Species_info$species) #needs cleaning
 table(Species_info$species)
 
-Species_info$species <- gsub("_"," ", Species_info$species) #get rid of the underscores
+#Species_info$species <- gsub("_"," ", Species_info$species) #get rid of the underscores
 
 # Make a table of how many words each name has:
 table((lengths(gregexpr("\\W+", Species_info$species)) + 1)) #20 records with >2 words species names (subspecies etc.)
+ 
+ # Count the number of words in the 'species' column
+word_counts <- lengths(gregexpr("\\S+", Species_info$species))
+
+# Identify records with more than two words
+more_than_two_words <- Species_info[word_counts > 2, ]
+
+# Display the result
+print(more_than_two_words)
  
 taxa <- tnrs_match_names(unique(Species_info$species)) #fails due to non-recognizable names
 
@@ -64,8 +72,19 @@ taxa <- tnrs_match_names(unique(Species_info$species)) #fails due to non-recogni
 Species_info <- Species_info %>%
   mutate(animal = 
   	case_when(species == "Spermophilus parryii plesius" ~ "Spermophilus parryii",
-  		species == "Strix occidentalis lucida" ~ "Strix occidentalis",
+  		species %in% c("Strix occidentalis lucida", "Strix occidentalis caurina")  ~ "Strix occidentalis",
   		species == "Canis lupus arctos" ~ "Canis lupus",
+  		species == "Lagopus lagopus scoticus" ~ "Lagopus lagopus",
+  		species == "Aegolius funereus L." ~ "Aegolius funereus",
+  		species == "Branta bernicla nigricans" ~ "Branta bernicla",
+  		species == "Vulpes macrotis mutica" ~ "Vulpes macrotis",
+  		species == "Panthera tigris tigris" ~ "Panthera tigris",
+  		species == "Gorilla beringei beringei" ~ "Gorilla beringei",
+  		species == "Macaca mulatta tcheliensis" ~ "Macaca mulatta",
+  		species == "Gorilla gorilla gorilla" ~ "Gorilla gorilla",
+  		species == "Calidris alpina schinzii" ~ "Calidris alpina",
+  		species == "Homo sapiens sapiens" ~ "Homo sapiens",
+  		species == "Thryomanes bewickii, Junco hyemalis, Pipilo maculatus, Melospiza melodia" ~ "Passeriformes", #went with higher level
   		TRUE ~ species ))
 
 #NA -> drop rows with "NA" as species name
@@ -77,9 +96,9 @@ length(unique(Species_info$animal)) #344
 taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine
 names(taxa)
 synonyms(taxa) ##list of all synonyms
-taxa$unique_name - main TOL names
-table(taxa$approximate_match) ##11 approximate matches
-table(taxa$flags) # flags 8 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
+taxa$unique_name # main TOL names
+table(taxa$approximate_match) ##1 approximate matches
+table(taxa$flags) # flags 18 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
 
 mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400
 #[/v3/tree_of_life/induced_subtree] Error: node_id 'ott768010' was not found!list(ott1014334 = "pruned_ott_id", ott3899190 = "pruned_ott_id", ott3904118 = "pruned_ott_id", ott4279984 = "pruned_ott_id", ott5147008 = "pruned_ott_id", ott768010 = "pruned_ott_id")
