@@ -6,8 +6,10 @@ ci_to_sd <-function(upper, lower, n){
     # lower: lower limit of CI
     # n: sample size
     # return: SD
-    # SD = (upper - lower) / (2 * qt(0.975, n-1))
-    return((upper - lower) / (2 * qt(0.975, n-1)))
+    # SE= (upper - lower) / (2 * qt(0.975, n-1))
+    se <- (upper - lower) / (2 * qt(0.975, n-1))
+    sd <- se*sqrt(n)
+    return(sd)
 }
 
 # testing code for ci_to_sd

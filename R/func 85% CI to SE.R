@@ -6,9 +6,8 @@ ci85_to_se <-function(upper, lower, n){
     # lower: lower limit of CI
     # n: sample size
     # return: SE
-    sd_value<-(upper - lower) / (2 * qt(0.925, n-1))
-    se_result<-sd_value/sqrt(n)
-    return(se_result)
+    se_value<-(upper - lower) / (2 * qt(0.925, n-1))
+    return(se_value)
 }
 
 upper_ci <- 0.83  # Replace with your upper CI value
