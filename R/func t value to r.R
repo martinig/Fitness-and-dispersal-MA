@@ -17,7 +17,7 @@ t_vals <- function(t, n1, n2){ # n2 = higher/larger group
   r_b #r_b = r
 }
 ​
-t =
+​t = 
 N =
 
 #adjusting for continuous n and assumed balanced design
