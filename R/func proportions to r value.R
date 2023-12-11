@@ -36,7 +36,6 @@ p2=0.4840764331
 result <- calculate_smd(p1, p2, n1, n2) #also gives me a warning message
 print(result) #-0.201187
 
-What to do for example 3?
 
 
 
