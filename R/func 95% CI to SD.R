@@ -1,5 +1,5 @@
-# conversion CI to SD 
-# we need a function to convert CI to SD using t distribution
+# conversion CI to SD
+# I need a function to convert CI to SD using t distribution
 
 ci_to_sd <-function(upper, lower, n){
     # upper: upper limit of CI
@@ -11,5 +11,5 @@ ci_to_sd <-function(upper, lower, n){
 }
 
 # testing code for ci_to_sd
-ci_to_sd(upper = 0.5, lower = 0.4, n = 10)
-ci_to_sd(upper = 1, lower = -2, n = 100)
+ci_to_sd(upper = 2.91, lower = 1.02, n = 4)
+ci_to_sd(upper = 0.961315, lower = 0.7528937, n = 8)
