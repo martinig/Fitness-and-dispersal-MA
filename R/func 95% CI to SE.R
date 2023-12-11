@@ -11,9 +11,9 @@ ci_to_se <-function(upper, lower, n){
     return(se_result)
 }
 
-upper_ci = 0.35 # Replace with your upper CI value
-lower_ci = -0.17 # Replace with your lower CI value
-sample_size = 2773  # Replace with your sample size
+upper_ci = 1.67 # Replace with your upper CI value
+lower_ci = 0.679 # Replace with your lower CI value
+sample_size = 124  # Replace with your sample size
 
 se_result <- ci_to_se(upper_ci, lower_ci, sample_size)
 se_result
