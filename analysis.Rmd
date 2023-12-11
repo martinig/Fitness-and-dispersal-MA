@@ -17,6 +17,6 @@ url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtF
 
 # Read the Google Sheet into a dataframe
 df <- read_sheet(url) %>%
-	slice(-1:-7)
+	filter(!composite_variable=="Y", !obsID=="TBD")
 
 head(df)
