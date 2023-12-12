@@ -47,7 +47,9 @@ url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtF
 Species_info <- read_sheet(url) %>%
 	filter(!composite_variable=="Y", !obsID=="TBD") %>%
     #slice(210:250) %>%
-  select(c("reference", "paperID", "common_name", "species"))
+  select(c("reference", "paperID", "common_name", "species")) %>%
+    mutate(species = case_when(species == "Thryomanes bewickii, Junco hyemalis, Pipilo maculatus, Melospiza melodia" ~ "Passeriformes", #went with one of the species that is not in the tree yet
+  		TRUE ~ species))
 
 ```
 
@@ -77,146 +79,87 @@ taxa <- tnrs_match_names(unique(Species_info$species)) #fails due to non-recogni
 
 # Fix obviously incompatible names (subspecies, name variants):
 Species_info <- Species_info %>%
-  mutate(animal = 
-  	case_when(species == "Spermophilus parryii plesius" ~ "Spermophilus parryii",
-  		species %in% c("Strix occidentalis lucida", "Strix occidentalis caurina")  ~ "Strix occidentalis",
-  		species == "Canis lupus arctos" ~ "Canis lupus",
-  		species == "Lagopus lagopus scoticus" ~ "Lagopus lagopus",
-  		species == "Aegolius funereus L." ~ "Aegolius funereus",
-  		species == "Branta bernicla nigricans" ~ "Branta bernicla",
+  mutate(
+  animal = 
+  	case_when(
+  		#species == "Spermophilus parryii plesius" ~ "Spermophilus parryii",
+  		#species %in% c("Strix occidentalis lucida", "Strix occidentalis caurina")  ~ "Strix occidentalis",
+  		#species == "Canis lupus arabs" ~ "Canis lupus",
+  		#species == "Lagopus lagopus scoticus" ~ "Lagopus lagopus",
+  		#species == "Branta bernicla nigricans" ~ "Branta bernicla",
   		species == "Vulpes macrotis mutica" ~ "Vulpes macrotis",
-  		species == "Panthera tigris tigris" ~ "Panthera tigris",
-  		species == "Gorilla beringei beringei" ~ "Gorilla beringei",
+  		#species == "Panthera tigris tigris" ~ "Panthera tigris",
+  		#species == "Gorilla beringei beringei" ~ "Gorilla beringei",
   		species == "Macaca mulatta tcheliensis" ~ "Macaca mulatta",
-  		species == "Gorilla gorilla gorilla" ~ "Gorilla gorilla",
+  		#species == "Gorilla gorilla gorilla" ~ "Gorilla gorilla",
   		species == "Calidris alpina schinzii" ~ "Calidris alpina",
-  		species == "Homo sapiens sapiens" ~ "Homo sapiens",
-  		species == "Thryomanes bewickii, Junco hyemalis, Pipilo maculatus, Melospiza melodia" ~ "Passeriformes", #went with higher level
-  		TRUE ~ species ))
+  		#species == "Homo sapiens sapiens" ~ "Homo sapiens",
+  		species == "Passeriformes" ~ "Junco hyemalis", #went with one of the species that is not in the tree yet
+  		TRUE ~ species))
 
 #NA -> drop rows with "NA" as species name
 Species_info <- Species_info[Species_info$animal != "NA", ]
 
 table(Species_info$animal, useNA = "always") #no NA
-length(unique(Species_info$animal)) #145
+length(unique(Species_info$animal)) #148
 
 taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine
 names(taxa)
 synonyms(taxa) ##list of all synonyms
 taxa$unique_name # main TOL names
-table(taxa$approximate_match) ##1 approximate matches
-table(taxa$flags) # flags 18 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
+table(taxa$approximate_match) ##2 approximate matches
+taxa %>% filter(approximate_match==TRUE)
+table(taxa$flags) # flags 26 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
 
 mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") 
 #this will fail with: Error: HTTP failure: 400
 
-#[/v3/tree_of_life/induced_subtree] Error: node_id 'ott768010' was not found!list(ott1014334 = "pruned_ott_id", ott3899190 = "pruned_ott_id", ott3904118 = "pruned_ott_id", ott4279984 = "pruned_ott_id", ott5147008 = "pruned_ott_id", ott768010 = "pruned_ott_id")
- 
-taxa[taxa[["ott_id"]] == "768010", ] #Peringia ulvae - "unplaced_inherited"
-Species_info$species_name[Species_info$species_name == "Peringia ulvae"] <- "Peringia"
-#taxa[taxa[["ott_id"]] == "987626", ] # Peringia - still "unplaced", replace with related "Hydrobia acuta":
-Species_info$species_name[Species_info$species_name == "Peringia"] <- "Hydrobia acuta"
-
-taxa[taxa[["ott_id"]] == "1014334", ] #Euoniticellus intermedius - "incertae_sedis_inherited"
-Species_info$species_name[Species_info$species_name == "Euoniticellus intermedius"] <- "Euoniticellus"
-taxa[taxa[["ott_id"]] == "328990", ] # Euoniticellus - still "incertae_sedis", replace with "Anoplodrepanus""
-Species_info$species_name[Species_info$species_name == "Euoniticellus"] <- "Anoplodrepanus reconditus"
-
-taxa[taxa[["ott_id"]] == "3899190", ] #Chrysanthemum x morifolium - "hybrid"
-Species_info$species_name[Species_info$species_name == "Chrysanthemum morifolium"] <- "Chrysanthemum indicum"
-
-taxa[taxa[["ott_id"]] == "3904118", ] #Fragaria x ananassa - "hybrid" (Fragaria chiloensis x Fragaria virginiana) 
-Species_info$species_name[Species_info$species_name == "Fragaria ananassa"] <- "Fragaria chiloensis"
-
-taxa[taxa[["ott_id"]] == "4279984", ] #Poecilopsis gracilis - "hidden, sibling_higher"
-#"Poecilopsis gracilis" -> Poecilopsis (genus-rank name) fix:
-Species_info$species_name[Species_info$species_name == "Poecilopsis gracilis"] <- "Poecilopsis catemaco"
-#taxa[taxa[["ott_id"]] == "4279975", ] # Poecilopsis - "barren, merged", replace with ""
-#Species_info$species_name[Species_info$species_name == "Poecilopsis"] <- "Neoheterandria"
-
-taxa[taxa[["ott_id"]] == "5147008", ] #Populus x beijingensis  - "hybrid": P. beijingensis (P. nigra var. italica × P. cathayana)
-Species_info$species_name[Species_info$species_name == "Populus beijingensis"] <- "Populus cathayana"
-
-#"Ludwigia hexapetala" gets recognised as a subspecies Ludwigia_grandiflora_subsp._hexapetala
-Species_info$species_name[Species_info$species_name == "Ludwigia hexapetala"] <- "Ludwigia grandiflora"
-
 
 ## re-run taxa matching and tree retrieval:
 taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine
-table(taxa$approximate_match) #12 approximate matches
-table(taxa$flags) # flags 2 names with problems (incertae_sedis_inherited) - will need fixing
+table(taxa$approximate_match) #2 approximate matches
+table(taxa$flags) #flags 26 things - infraspecific and sibling_higher
 mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this now works fine
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
-#mytree$tip.label
+
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node
+
+mytree$tip.label
 
 ## Tree tip labels need some cleaning:
 mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments
 mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores
 mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace
 
+mytree$tip.label
+
+#this lets me check which species names don't match up
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 130 names are matching -  got quite a few left to fix
+sort(setdiff(unique(Species_info$species), as.character(mytree$tip.label))) ## names from species column not matching with tip label
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species))) ## names from tip.label not matching in animal column
+
+#need to fix any of the substitutions AND labels that are matched, but incorrectly
+
 ## Reverse substitutions of species names in the tree tip labels:
-mytree$tip.label[mytree$tip.label == "Hydrobia acuta"] <- "Peringia ulvae"
-mytree$tip.label[mytree$tip.label == "Anoplodrepanus reconditus"] <- "Euoniticellus intermedius"
-mytree$tip.label[mytree$tip.label == "Chrysanthemum indicum"] <- "Chrysanthemum morifolium"
-mytree$tip.label[mytree$tip.label == "Fragaria chiloensis"] <- "Fragaria ananassa" 
-mytree$tip.label[mytree$tip.label == "Poecilopsis catemaco"] <- "Poecilopsis gracilis"
-mytree$tip.label[mytree$tip.label == "Populus cathayana"] <- "Populus beijingensis"
-mytree$tip.label[mytree$tip.label == "Ludwigia grandiflora"] <- "Ludwigia hexapetala"
-mytree$tip.label[mytree$tip.label == "Pinus cubensis"] <- "Pinus caribaea" 
-mytree$tip.label[mytree$tip.label == "Cerasina luteola"] <- "Racesina luteola"
-mytree$tip.label[mytree$tip.label == "Chrysanthemum boreale"] <- "Chrysanthemum nankingense"
-mytree$tip.label[mytree$tip.label == "Cyprinodon"] <- "Cyprinodon variegatus"
-
+#mytree$tip.label[mytree$tip.label == "Strix occidentalis"] <- "Strix occidentalis lucida & S. o. caurina"
+#mytree$tip.label[mytree$tip.label == "Branta bernicla"] <- "Branta bernicla nigricans" 
+#mytree$tip.label[mytree$tip.label == "Vulpes macrotis"] <- "Vulpes macrotis mutica" 
+#mytree$tip.label[mytree$tip.label == "Gorilla beringei"] <- "Gorilla beringei beringei" 
+mytree$tip.label[mytree$tip.label == "Macaca mulatta"] <- "Macaca mulatta tcheliensis" 
+#mytree$tip.label[mytree$tip.label == "Gorilla gorilla"] <- "Gorilla gorilla gorilla" 
+mytree$tip.label[mytree$tip.label == "Calidris alpina"] <- "Calidris alpina schinzii" 
+#mytree$tip.label[mytree$tip.label == "Homo sapiens"] <- "Homo sapiens sapiens" 
+mytree$tip.label[mytree$tip.label == "Junco hyemalis"] <- "Passeriformes"
+mytree$tip.label[mytree$tip.label == "Canis lupus arctos"] <- "Canis lupus arabs"
+		
 ## Other substitutions of species names made in the tree tip labels:
-mytree$tip.label[mytree$tip.label == "Taraxacum adiantifrons"] <- "Taraxacum hemicyclum"
-mytree$tip.label[mytree$tip.label == "Trichogramma bezdencovii"] <- "Trichogramma telengai"
-mytree$tip.label[mytree$tip.label == "Pan"] <- "Pan troglodytes"
-mytree$tip.label[mytree$tip.label == "Vulpes lagopus"] <- "Alopex lagopus"
-mytree$tip.label[mytree$tip.label == "Pelophylax lessonae"] <- "Rana lessonae"
-mytree$tip.label[mytree$tip.label == "Diodella teres"] <- "Diodia teres" 
-mytree$tip.label[mytree$tip.label == "Solidago canadensis"] <- "Solidago altissima"
-mytree$tip.label[mytree$tip.label == "Radix balthica"] <- "Ampullaceana balthica"
-mytree$tip.label[mytree$tip.label == "Magallana gigas"] <- "Crassostrea gigas"
-mytree$tip.label[mytree$tip.label == "Derocephalus angusticollis"] <- "Telostylinus angusticollis" 
-mytree$tip.label[mytree$tip.label == "Carinascincus metallicus"] <- "Niveoscincus metallicus" 
-mytree$tip.label[mytree$tip.label == "Pecari tajacu"] <- "Dicotyles tajacu" 
-mytree$tip.label[mytree$tip.label == "Palaemon pugio"] <- "Palaemonetes pugio" 
+mytree$tip.label[mytree$tip.label == "Urocitellus parryii plesius"] <- "Spermophilus parryii plesius"
 
-## Reverse substitutions of species names in the species list:
-Species_info$species_name[Species_info$species_name == "Hydrobia acuta"] <- "Peringia ulvae"
-Species_info$species_name[Species_info$species_name == "Anoplodrepanus reconditus"] <- "Euoniticellus intermedius"
-Species_info$species_name[Species_info$species_name == "Chrysanthemum indicum"] <- "Chrysanthemum morifolium"
-Species_info$species_name[Species_info$species_name == "Fragaria chiloensis"] <- "Fragaria ananassa" 
-Species_info$species_name[Species_info$species_name == "Poecilopsis catemaco"] <- "Poecilopsis gracilis"
-Species_info$species_name[Species_info$species_name == "Populus cathayana"] <- "Populus beijingensis"
-Species_info$species_name[Species_info$species_name == "Ludwigia grandiflora"] <- "Ludwigia hexapetala"
-Species_info$species_name[Species_info$species_name == "Pinus cubensis"] <- "Pinus caribaea" 
-Species_info$species_name[Species_info$species_name == "Cerasina luteola"] <- "Racesina luteola" 
-Species_info$species_name[Species_info$species_name == "Chrysanthemum boreale"] <- "Chrysanthemum nankingense" 
-Species_info$species_name[Species_info$species_name == "Cyprinodon"] <- "Cyprinodon variegatus"
+#check matching records again
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 135 names are matching - not yet all fixed 
 
-#Fix more names in the species list:
-Species_info$species_name[Species_info$species_name == "Strongylocentrotus franciscanus"] <- "Mesocentrotus franciscanus"
-Species_info$species_name[Species_info$species_name == "Mytilus chilensis"] <- "Mytilus edulis"
-Species_info$species_name[Species_info$species_name == "Stagastes partitus"] <- "Stegastes partitus"
-Species_info$species_name[Species_info$species_name == "Populus pseudo-simonii"] <- "Populus pseudosimonii"
-Species_info$species_name[Species_info$species_name == "Channa naculata"] <- "Channa maculata"
-Species_info$species_name[Species_info$species_name == "Bythotrephes longima"] <- "Bythotrephes longimanus"
-Species_info$species_name[Species_info$species_name == "Brachyraphis roseni"] <- "Brachyrhaphis roseni"
-Species_info$species_name[Species_info$species_name == "Biomphalaria galbrata"] <- "Biomphalaria glabrata"
-Species_info$species_name[Species_info$species_name == "Brachyraphis rhabdophora"] <- "Brachyrhaphis rhabdophora"
-Species_info$species_name[Species_info$species_name == "Dicotyles tajacus"] <- "Dicotyles tajacu"
-Species_info$species_name[Species_info$species_name == "Poecilopsis catemaco"] <- "Poeciliopsis catemaco"
-Species_info$species_name[Species_info$species_name == "Poeciolopsis occidentalis"] <- "Poeciliopsis occidentalis"
-Species_info$species_name[Species_info$species_name == "Niveoscincus ocellatus"] <- "Carinascincus ocellatus"
-Species_info$species_name[Species_info$species_name == "Polygonum dropiper"] <- "Persicaria hydropiper"
-Species_info$species_name[Species_info$species_name == "Polygonum persicaria"] <- "Persicaria glabra"
-Species_info$species_name[Species_info$species_name == "Priapichthys festae"] <- "Pseudopoecilia festae"
-
-sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_name))) ## 335 names are matching - all fixed 
-sort(setdiff(unique(Species_info$species_name), as.character(mytree$tip.label))) ## names not matching - not in tip.label
-sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_name))) ## names not matching - not in species_name
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
 str(mytree) #335 tips
