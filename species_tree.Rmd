@@ -11,13 +11,11 @@ options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran
 
 #to install ggtree and ggtreeExtra for the first time
 #if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
+#    install.packages("BiocManager")
 #BiocManager::install("ggtree")
 
 #if (!requireNamespace("BiocManager", quietly=TRUE))
-    install.packages("BiocManager")
-
+#    install.packages("BiocManager")
 #BiocManager::install("ggtreeExtra")
 
 packages=c("googlesheets4", "tidyverse", "rotl", "dplyr", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") 
@@ -57,14 +55,14 @@ Species_info <- read_sheet(url) %>%
 ```{r make tree}
 
 #str(Species_info)
-length(unique(Species_info$species)) #354
+length(unique(Species_info$species)) #148
 unique(Species_info$species) #needs cleaning
 table(Species_info$species)
 
 #Species_info$species <- gsub("_"," ", Species_info$species) #get rid of the underscores
 
 # Make a table of how many words each name has:
-table((lengths(gregexpr("\\W+", Species_info$species)) + 1)) #20 records with >2 words species names (subspecies etc.)
+table((lengths(gregexpr("\\W+", Species_info$species)) + 1)) #34 records with >2 words species names (subspecies etc.)
  
  # Count the number of words in the 'species' column
 word_counts <- lengths(gregexpr("\\S+", Species_info$species))
@@ -100,7 +98,7 @@ Species_info <- Species_info %>%
 Species_info <- Species_info[Species_info$animal != "NA", ]
 
 table(Species_info$animal, useNA = "always") #no NA
-length(unique(Species_info$animal)) #344
+length(unique(Species_info$animal)) #145
 
 taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine
 names(taxa)
@@ -109,7 +107,9 @@ taxa$unique_name # main TOL names
 table(taxa$approximate_match) ##1 approximate matches
 table(taxa$flags) # flags 18 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
 
-mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") 
+#this will fail with: Error: HTTP failure: 400
+
 #[/v3/tree_of_life/induced_subtree] Error: node_id 'ott768010' was not found!list(ott1014334 = "pruned_ott_id", ott3899190 = "pruned_ott_id", ott3904118 = "pruned_ott_id", ott4279984 = "pruned_ott_id", ott5147008 = "pruned_ott_id", ott768010 = "pruned_ott_id")
  
 taxa[taxa[["ott_id"]] == "768010", ] #Peringia ulvae - "unplaced_inherited"
@@ -229,54 +229,56 @@ write.csv(Species_info, file = "Species_info.csv")
 ```
 
 ```{r plot tree}
-# #count of papers per species name:
-# sample_data <- count(Species_info,species_name)
-# 
-# # sample_data$species_name %in% mytree$tip.label
-# # mytree$tip.label %in% sample_data$species_name
-# 
-# ggtree(mytree, layout="circular") +                    
-#   geom_tiplab(                             # adds name of sample to tip of its branch 
-#     color = 'black',                       
-#     offset = 1,
-#     size = 1,
-#     geom = "text",
-#     align = TRUE) 
-# 
-# p <- ggtree(mytree, layout = "circular", branch.length = 'none') %<+% sample_data + # %<+% adds dataframe with sample data to tree 
-#   new_scale_color() +                             # allows to add an additional color scheme for another variable
-#     geom_tippoint(
-#       mapping = aes(color = n),  
-#       size = 1) +
-#   scale_colour_gradient(low = "yellow", high = "red") +
-#   geom_tiplab(                             # adds name of sample to tip of its branch 
-#     color = 'black',                       
-#     offset = 1,
-#     size = 1,
-#     geom = "text",
-#     align = TRUE) 
-#   
-# 
-# #ggtree(mytree, layout="circular", branch.length = "none") # simple circular tree with all tips aligned
-# #ggtree(mytree, layout="fan", open.angle=10, yscale = "none")
-# 
-# # ggsave("species_tree_circular_v0.pdf", width = 12, height = 10, scale = 10)
-# 
-# p
+
+# count of papers per species name:
+sample_data <- count(Species_info,animal)
+ 
+sample_data$animal %in% mytree$tip.label
+mytree$tip.label %in% sample_data$animal
+ 
+ggtree(mytree, layout="circular") +                    
+   geom_tiplab(                             # adds name of sample to tip of its branch 
+     color = 'black',                       
+     offset = 1,
+     size = 1,
+     geom = "text",
+     align = TRUE) 
+ 
+ggtree(mytree, layout = "circular", branch.length = 'none') %<+% sample_data + # %<+% adds dataframe with sample data to tree 
+   new_scale_color() +                             # allows to add an additional color scheme for another variable
+     geom_tippoint(
+       mapping = aes(color = n),  
+       size = 1) +
+   scale_colour_gradient(low = "yellow", high = "red") +
+   geom_tiplab(                             # adds name of sample to tip of its branch 
+     color = 'black',                       
+     offset = 1,
+     size = 1,
+     geom = "text",
+     align = TRUE) 
+   
+ 
+ggtree(mytree, layout="circular", branch.length = "none") # simple circular tree with all tips aligned
+ggtree(mytree, layout="fan", open.angle=10, yscale = "none")
+ 
+ggsave("species_tree_circular_v0.pdf", width = 12, height = 10, scale = 10)
+ 
+p
 ```
 
 ```{r plot tree}
 
-sample_data <- count(Species_info, species_name)
+sample_data <- count(Species_info, animal)
 sample_data <- as.data.frame(sample_data)
-sample_data2 <-mutate(sample_data, tip.label = species_name)
+sample_data2 <-mutate(sample_data, tip.label = animal)
 mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)
-# summary(sample_data2$tip.label)
-# sample_data2$count <- as.numeric(sample_data2$count)
+ summary(sample_data2$tip.label)
+ sample_data2$count <- as.numeric(sample_data2$count)
 sample_data3 <- left_join(sample_data2, Species_info[,c("species_name","broad_taxa")], by = "species_name")
-sample_data4 <- distinct(sample_data3, species_name, .keep_all = TRUE)
-# is.na(sample_data4)
-sample_data4$species_name<- as.factor(sample_data4$species_name)
+sample_data4 <- distinct(sample_data3, animal, .keep_all = TRUE)
+ is.na(sample_data4)
+ 
+sample_data4$animal <- as.factor(sample_data4$animal)
 sample_data4$tip.label <- as.factor(sample_data4$tip.label)
 sample_data4$broad_taxa<- as.factor(sample_data4$broad_taxa)
 
