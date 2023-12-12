@@ -161,6 +161,14 @@ mytree$tip.label[mytree$tip.label == "Urocitellus parryii plesius"] <- "Spermoph
 sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 135 names are matching - not yet all fixed 
 
 
+
+
+
+
+
+
+
+
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
 str(mytree) #335 tips
 
