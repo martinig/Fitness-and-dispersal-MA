@@ -2,10 +2,9 @@
 # Zr - correlation
 # there is always n
 
-effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, 
-                        est , se, p_val, direction, method) # 12 arguments
-  {
-  
+effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
+                        est , se, p_val, direction, method){
+
   if(method == "mean_method"){
   
     h <- n/n1 + n/n2
@@ -102,12 +101,22 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n,
     r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
     r <- r_b #r_b = r 
     
-  }else if(method == "t_method"){
+  }else if(method == "t_method1"){
     
+
     p <- n1/n # prop for n1
     q <- n2/n # prop for n2
-    #t <- est/se
-    r_pb <- est/sqrt(est^2+ n -2)
+    r_pb <- est/sqrt(est^2 + n - 2)
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
+    r <- r_b #r_b = r
+    
+  }else if(method == "t_method2"){
+    
+    n1 <- n/2
+    n2 <- n/2
+    p <- n1/n # prop for n1
+    q <- n2/n # prop for n2
+    r_pb <- est/sqrt(est^2 + n - 2)
     r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
     r <- r_b #r_b = r
     
@@ -115,7 +124,6 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n,
     
     p <- n1/n # prop for n1
     q <- n2/n # prop for n2
-    #t <- est/se
     r_pb <- sqrt(est)/sqrt(est + n -2)
     r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
     r_b = r_b*(direction)
@@ -137,7 +145,7 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n,
     p <- n1/n # prop for n1
     q <- n2/n # prop for n2
     t <- qt(1 - p_val, n - 2)
-    r_pb <- t/sqrt(t^2 + n12 -2)
+    r_pb <- t/sqrt(t^2 + n -2)
     r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
     r_b <- r_b*(direction)
     r <- r_b
@@ -149,7 +157,7 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n,
     p <- n1/n # prop for n1
     q <- n2/n # prop for n2
     t <- qt(1 - p_val, n - 2)
-    r_pb <- t/sqrt(t^2 + n12 -2)
+    r_pb <- t/sqrt(t^2 + n -2)
     r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
     r_b <- r_b*(direction)
     r <- r_b
@@ -162,80 +170,86 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n,
     
     r <- 2*sin((pi/6)*est)
     
-  }esle {
-    # ask April - estimate always have just n not n1 and n2
+  }else if(method == "estimate_method1"){
     
-    n1 <- n/2
-    n2 <- n/2
-    #h <- n12/n1 + n12/n2
-    p <- n1/n12 # prop for n1
-    q <- n2/n12 # prop for n2
+    p <- n1/n # prop for n1
+    q <- n2/n # prop for n2
     t <- est/se
     r_pb <- t/sqrt(t^2+ n -2)
     r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
     r <- r_b #r_b = r
   
-    }
+  }else if(method == "estimate_method2"){
+    
+    n1 <- n/2
+    n2 <- n/2
+    p <- n1/n # prop for n1
+    q <- n2/n # prop for n2
+    t <- est/se
+    r_pb <- t/sqrt(t^2+ n -2)
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
+    r <- r_b #r_b = r
+  
+  } 
 
   Zr <- atanh(r) # r = correlation
   VZr <- 1 /(n - 3)
   
-  invisible(data.frame(yi = Zr , vi = VZr))
+  data.frame(yi = Zr , vi = VZr)
   
 }
 
+# pacakges
 
+library(tidyverse)
+library(here)
 
+## test
 
+dat <- read.csv(here("data", "aim 1 data for shinichi.csv"), )
 
-# try to use pmap
-# 
-# # Load the purrr package
-# library(purrr)
-# 
-# # Define a function that adds two numbers
-# add_func <- function(x, y) {
-#   return(x + y)
-# }
-# 
-# # Define a list of two vectors
-# list1 <- list(c(1, 2, 3), c(4, 5, 6))
-# 
-# # Use pmap to apply the function over the list
-# result <- pmap(list1, add_func)
-# 
-# # Print the result
-# print(result)
+dim(dat)
+head(dat)
 
-# or mapply
-# 
-# add_func <- function(x, y) {
-#   return(x + y)
-# }
-# 
-# # Define two vectors
-# vec1 <- c(1, 2, 3)
-# vec2 <- c(4, 5, 6)
-# 
-# # Use mapply to apply the function over the vectors
-# result <- mapply(add_func, vec1, vec2)
-# 
-# # Print the result
-# print(result)
+# fixing data a bit
 
-# t_method: must have df (typically n-2)
+dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)
 
-## count_method: when there is the mean, but no error
-## mean_method: mean and sd
+# use mapply to apply the above fundion effect_size to the data frame
+effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, 
+                      dat$variance_group_1, dat$variance_group_2, 
+                      dat$n_group_1, dat$n_group_2, dat$n, 
+                       dat$effect_size_value, dat$effect_size_variance, 
+                       dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)
 
-# F_method1: sample size for each group (chi-square here too)
-# F_method2: sample size overall only
-# percent_method1: no error around percentage
-# percent_method2: percentage has error
-# proportion_method1: no error around proportion
-# proportion_method2: proportion has error
-# correlation_method1: pearson's correlation or unspecified correlation type
-# correlation_method2: spearman rank correlation
-# p_method1: sample size for each group must have direction
-# p_method2: sample size overall only must have direction
-# estimate_method1: linear regression with estimate and SE
+effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
+                      dat$variance_group_1, dat$variance_group_2, 
+                      dat$n_group_1, dat$n_group_2, dat$n, 
+                       dat$effect_size_value, dat$effect_size_variance, 
+                       dat$effect_size_p_value_numeric, dat$direction, dat$function_needed), 
+                       effect_size)                    
+
+# dat$Zr <- unlist(effect1[1,])
+# dat$VZr <- unlist(effect1[2,])
+
+dat <- rbind(dat, effect2)
+
+hist(dat$yi)
+hist(log(dat$vi))
+
+# meta-analysis
+
+library(metafor)
+library(orchaRd)
+mod <- rma.mv(yi = yi, V = vi, 
+              data = dat, 
+              random = list(~ 1 | X,
+                           ~ 1 | paperID),
+                              test = "t")
+
+i2_ml(mod)                              
+
+summary(mod)
+
+orchard_plot(mod, xlab = "Effect Size: Zr", group = "paperID")
+funnel(mod, yaxis = "seinv")
