@@ -184,6 +184,10 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n,
   
 }
 
+
+
+
+
 # try to use pmap
 # 
 # # Load the purrr package
