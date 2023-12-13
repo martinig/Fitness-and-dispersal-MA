@@ -4,8 +4,8 @@
 		fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year") ~ "survival", 
     		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4") ~ "offspring survival", 
     		fitness_metric %in% c("lifespan", "age at death")  ~ "longevity",    		
-    		fitness_metric %in% c("lifetime n of pups reared to weaning", "n pups reared to weaning", "number of fledglings", "annual number of fledglings", "number of offspring recruited", "number of daughters reaching sexual maturity", "n of yearling daughters")  ~ "lifetime reproductive success", #number of weaned offspring produced over lifetime - include recruitment here
-    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability")  ~ "lifetime breeding success", #Number of offspring produced over a lifetime - grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch) together
+    		fitness_metric %in% c("lifetime n of pups reared to weaning", "n pups reared to weaning", "number of fledglings", "annual number of fledglings", "number of offspring recruited", "number of daughters reaching sexual maturity", "n of yearling daughters", "number of fledglings per breeding attempt")  ~ "lifetime reproductive success", #number of weaned offspring produced over lifetime - include recruitment here
+    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)")  ~ "lifetime breeding success", #Number of offspring produced over a lifetime - grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch) together
   		TRUE ~ fitness_metric))	summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
