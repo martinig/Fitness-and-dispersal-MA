@@ -7,13 +7,12 @@ ci_to_se <-function(upper, lower, n){
     # n: sample size
     # return: SE
     se_value<-(upper - lower) / (2 * qt(0.975, n-1))
-    #se_result<-sd_value/sqrt(n)
     return(se_value)
 }
 
-upper_ci = 2.34 # Replace with your upper CI value
-lower_ci = 0.27 # Replace with your lower CI value
-sample_size = 49  # Replace with your sample size
+upper_ci = 0.35 # Replace with your upper CI value
+lower_ci = 0.17 # Replace with your lower CI value
+sample_size = 2773  # Replace with your sample size
 
 se_result <- ci_to_se(upper_ci, lower_ci, sample_size)
 se_result

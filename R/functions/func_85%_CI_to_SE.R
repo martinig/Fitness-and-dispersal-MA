@@ -10,8 +10,8 @@ ci85_to_se <-function(upper, lower, n){
     return(se_value)
 }
 
-upper_ci <- 0.83  # Replace with your upper CI value
-lower_ci <- 0.28  # Replace with your lower CI value
+upper_ci <- 0.29  # Replace with your upper CI value
+lower_ci <- 0.07  # Replace with your lower CI value
 sample_size <- 104  # Replace with your sample size
 
 se_result <- ci85_to_se(upper_ci, lower_ci, sample_size)
