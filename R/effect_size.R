@@ -216,11 +216,11 @@ head(dat)
 dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)
 
 # use mapply to apply the above fundion effect_size to the data frame
-effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, 
-                      dat$variance_group_1, dat$variance_group_2, 
-                      dat$n_group_1, dat$n_group_2, dat$n, 
-                       dat$effect_size_value, dat$effect_size_variance, 
-                       dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)
+# effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, 
+#                       dat$variance_group_1, dat$variance_group_2, 
+#                       dat$n_group_1, dat$n_group_2, dat$n, 
+#                        dat$effect_size_value, dat$effect_size_variance, 
+#                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)
 
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                       dat$variance_group_1, dat$variance_group_2, 
@@ -232,12 +232,14 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
 # dat$Zr <- unlist(effect1[1,])
 # dat$VZr <- unlist(effect1[2,])
 
+# merging two data frames
 dat <- rbind(dat, effect2)
 
+# visualsing 
 hist(dat$yi)
 hist(log(dat$vi))
 
-# meta-analysis
+# meta-analysis - basic model
 
 library(metafor)
 library(orchaRd)
