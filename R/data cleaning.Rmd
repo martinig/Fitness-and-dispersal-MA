@@ -2,29 +2,39 @@
 	mutate(fitness_metric_clean = as.factor(
 		case_when(
 		
+		#reproduction of some sort
+		fitness_metric %in% c("probability of reproducing", "probability of conception",  "percent males bred", "reproduced")  ~ "reproductive", 
+		
 		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged
-    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings" )  ~ "lifetime breeding success", 
+    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)")  ~ "lifetime breeding success", 
 	    		
 		#how the offspring themselves survive (NOTE: LRS is the number of offspring that survive to a set point)
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer", "offspring survival to 7 days", "offspring survival to 30 days", "offspring survival (father)", "offspring survival (mother)") ~ "offspring survival", 
+    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer", "offspring survival to 7 days", "offspring survival to 30 days", "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "proportion of offspring surviving to 15", "number of surviving offspring per year", "produced offspring that survived to weaning", "number of recruits per birth", "n of juveniles alive in late summer per individual") ~ "offspring survival", 
     	
-		#Number of offspring produced over a lifetime that survive until weaning or recruitment  (when they are "added" to a population)
-    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "recruitment proability", "number of yearlings at emigration", "at least one fledgling", "at least one pup recruited", "at least one young fledged", "total number of offspring fledged", "total number of recruits", "total recruits across lifetime", "percent of clutch fledged", "number of weaned offspring", "number of offspring surviving to subadult", "number of offspring surviving to 30 days", "number of offspring surviving")  ~ "lifetime reproductive success", 
+		#Number of offspring produced over a lifetime that survive until weaning or fledging
+    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)")  ~ "lifetime reproductive success", 
+    		
+	#number of offspring that survive until recruitment  (when they are "added" to a population)
+	#"number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult", "number of offspring surviving to 30 days", "number of offspring surviving", 
+
     		
     		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity
-    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "inclusive fitness",  
+    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  
 
-    		
     		#time between birth and death or a set point (defined by authors)
-   			fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)") ~ "survival", 	
+   			fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment") ~ "survival", 	
+   			
    			#offspring that go on to reproduce themselves
-    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success") ~ "offspring reproduction", 
+    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "number of fledglings that survived to breed") ~ "offspring reproduction", 
 
     			fitness_metric %in% c("inclusive fitness (direct + indirect)")  ~ "inclusive fitness",  
-    		      		
+    		
+    		#survive to reproduce
+    		fitness_metric %in% c("reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)", "reproductive success (she survived and hatched at least one egg)")  ~ "reproductive success",  
+
   		TRUE ~ fitness_metric)))
   		
   		#"number of fledglings that survived to breed" # CHECK if this is for a record where they actually bred or just survive to sexual maturity? 	summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
-				#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/aim 1 data for shinichi.csv")	
+				#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")	
