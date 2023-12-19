@@ -42,4 +42,8 @@
   			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
-				#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")	
+	#run losia's tree to get the species names here
+
+Species_info<-Species_info%>%group_by(refern)
+
+df_species<-left_join(df, (Species_info %>% select(reference, paperID, animal)), by="paperID")			#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")	
