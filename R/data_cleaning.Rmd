@@ -42,4 +42,11 @@
   			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
-				#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")	
+	#run losia's tree to get the species names here
+
+taxa<-Species_info%>%group_by(reference, paperID) %>%filter(row_number()==1) %>% select(reference, paperID, animal)
+
+df_species<-left_join(df, taxa, by="reference")		
+head(df_species)	
+
+df_species%>%filter(species=="Vulpes macrotis mutica")	#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")	
