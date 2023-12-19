@@ -36,7 +36,8 @@
 
     			#fitness_metric %in% c("inclusive fitness (direct + indirect)")  ~ "inclusive fitness",  
     		
-  		TRUE ~ fitness_metric)))
+  		TRUE ~ fitness_metric)),
+  		ageclass=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "adult")))
   			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
