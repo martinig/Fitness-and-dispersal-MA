@@ -201,6 +201,10 @@ sample_data <- count(Species_info,species)
 sample_data$species %in% mytree$tip.label
 mytree$tip.label %in% sample_data$species
  
+ ggtree(mytree, layout="circular") +                    
+   geom_tiplab( ) 
+ 
+ 
 ggtree(mytree, layout="circular") +                    
    geom_tiplab(                             # adds name of sample to tip of its branch 
      color = 'black',                       
@@ -272,3 +276,11 @@ count(sample_data4, species)
 ##need to manually change log axis back to original numbers
 
 ```
+#next step is to add the sample size first
+#make the text italics
+#can add four main silhouttes - mammals, birds, fish, insects (four colours)
+
+#can create a new column to pull the higher levels for each species -> need to assign to higher group
+#there is a website with a database for silhouettes -> can get them for free online
+#https://www.google.ca/search?source=hp&ei=y822X-3WI9Tk-gSz2o_QBw&q=free+animal+silhouettes+linked+for+R&btnK=Google+Search&oq=game+store+calgary&gs_lcp=CgZwc3ktYWIQAzIFCAAQyQMyAggAMgIIADIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOggIABCxAxCDAToFCAAQsQM6CwguELEDEMcBEKMCOgUIABCSAzoFCC4QsQM6CggAELEDEIMBEAo6AgguOggILhDHARCjAjoICAAQsQMQyQM6DgguELEDEIMBEMcBEKMCOggILhCxAxCTAjoQCC4QsQMQgwEQxwEQowIQCjoECAAQCjoICC4QxwEQrwFKBQgHEgExSgUICRIBMUoHCAoSAzEwMFDcF1jHJGDmJmgAcAB4AIABrwGIAesNkgEEMTMuNZgBAKABAaoBB2d3cy13aXo&sclient=psy-ab&ved=0ahUKEwit6L7tsY_tAhVUsp4KHTPtA3oQ4dUDCAk&uact=5#:~:text=PhyloPic,www.phylopic.org
+# r package: https://cran.r-project.org/web/packages/rphylopic/index.html
