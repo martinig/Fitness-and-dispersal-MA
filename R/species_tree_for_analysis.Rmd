@@ -1,0 +1,290 @@
+#code to creat a taxonomic tree
+#last edtied Dec 12, 2023 by A. R. Martinig
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror
+
+#load libraries
+
+#to install ggtree and ggtreeExtra for the first time
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("ggtree")
+
+#if (!requireNamespace("BiocManager", quietly=TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("ggtreeExtra")
+
+packages=c("googlesheets4", "tidyverse", "rotl", "dplyr", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") 
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Packages loading
+lapply(packages, library, character.only = TRUE)
+
+select<-dplyr::select
+
+
+
+```
+
+## R Markdown
+
+```{r load data}
+
+
+# Specify the URL of your Google Sheet
+url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtFm2e0BZ5WBkE/edit#gid=1046848762"
+
+# Read the Google Sheet into a dataframe
+Species_info <- read_sheet(url) %>%
+	filter(!composite_variable=="Y", !obsID=="TBD") %>%
+  select(c("reference", "paperID", "common_name", "species")) %>%
+    mutate(species = 
+    	case_when(
+    		species == "Thryomanes bewickii, Junco hyemalis, Pipilo maculatus, Melospiza melodia" ~ "Passeriformes", #went with one of the species that is not in the tree yet
+    		species %in% c("Canis lupus", "Canis lupus arabs") ~ "Canis lupus & Canis lupus arabs", 
+    		species %in% c("Lagopus lagopus", "Lagopus lagopus scoticus")  ~ "Lagopus lagopus & Lagopus lagopus scoticus", 
+    			species %in% c("Panthera tigris", "Panthera tigris tigris")  ~ "Panthera tigris & Panthera tigris tigris", 
+  		TRUE ~ species))
+
+
+```
+
+
+```{r make tree}
+
+#str(Species_info)
+length(unique(Species_info$species)) #145
+unique(Species_info$species) #needs cleaning
+table(Species_info$species)
+
+#Species_info$species <- gsub("_"," ", Species_info$animal) #get rid of the underscores
+
+# Make a table of how many words each name has:
+table((lengths(gregexpr("\\W+", Species_info$species)) + 1)) #28 records with >2 words species names (subspecies etc.)
+ 
+ # Count the number of words in the 'species' column
+word_counts <- lengths(gregexpr("\\S+", Species_info$species))
+
+# Identify records with more than two words
+more_than_two_words <- Species_info[word_counts > 2, ]
+
+# Display the result
+print(more_than_two_words)
+ 
+taxa <- tnrs_match_names(unique(Species_info$species)) #fails due to non-recognizable names
+
+# Fix obviously incompatible names (subspecies, name variants):
+Species_info <- Species_info %>%
+  mutate(
+  animal = 
+  	case_when(
+  		#species == "Spermophilus parryii plesius" ~ "Spermophilus parryii",
+  		#species %in% c("Strix occidentalis lucida", "Strix occidentalis caurina")  ~ "Strix occidentalis",
+  		#species == "Branta bernicla nigricans" ~ "Branta bernicla",
+  		species == "Vulpes macrotis mutica" ~ "Vulpes macrotis",
+  		#species == "Gorilla beringei beringei" ~ "Gorilla beringei",
+  		species == "Macaca mulatta tcheliensis" ~ "Macaca mulatta",
+  		#species == "Gorilla gorilla gorilla" ~ "Gorilla gorilla",
+  		species == "Calidris alpina schinzii" ~ "Calidris alpina",
+  		#species == "Homo sapiens sapiens" ~ "Homo sapiens",
+  		species == "Passeriformes" ~ "Junco hyemalis", #went with one of the species that is not in the tree yet
+  		species == "Canis lupus & Canis lupus arabs" ~ "Canis lupus", 
+    	species == "Lagopus lagopus & Lagopus lagopus scoticus"  ~ "Lagopus lagopus", 
+    	species == "Panthera tigris & Panthera tigris tigris"  ~ "Panthera tigris", 
+  		TRUE ~ species))
+  		
+
+#NA -> drop rows with "NA" as species name
+Species_info <- Species_info[Species_info$animal != "NA", ]
+
+table(Species_info$animal, useNA = "always") #no NA
+length(unique(Species_info$animal)) #145
+
+taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine
+names(taxa)
+synonyms(taxa) ##list of all synonyms
+taxa$unique_name # main TOL names
+table(taxa$approximate_match) ##1 approximate match
+taxa %>% filter(approximate_match==TRUE)
+table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
+
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") 
+#this will fail
+
+
+## re-run taxa matching and tree retrieval:
+#taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine
+#table(taxa$approximate_match) #2 approximate matches
+#table(taxa$flags) #flags 25 things - infraspecific and sibling_higher
+#mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this now works fine
+
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
+
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node
+
+mytree$tip.label
+
+## Tree tip labels need some cleaning:
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace
+
+mytree$tip.label
+
+#this lets me check which species names don't match up
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 129 names are matching -  got quite a few left to fix
+sort(setdiff(unique(Species_info$species), as.character(mytree$tip.label))) ## names from species column not matching with tip label
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species))) ## names from tip.label not matching in animal column
+
+#need to fix any of the substitutions AND labels that are matched, but incorrectly
+
+## Reverse substitutions of species names in the tree tip labels:
+#mytree$tip.label[mytree$tip.label == "Strix occidentalis"] <- "Strix occidentalis lucida & S. o. caurina"
+#mytree$tip.label[mytree$tip.label == "Branta bernicla"] <- "Branta bernicla nigricans" 
+#mytree$tip.label[mytree$tip.label == "Vulpes macrotis"] <- "Vulpes macrotis mutica" 
+#mytree$tip.label[mytree$tip.label == "Gorilla beringei"] <- "Gorilla beringei beringei" 
+mytree$tip.label[mytree$tip.label == "Macaca mulatta"] <- "Macaca mulatta tcheliensis" 
+#mytree$tip.label[mytree$tip.label == "Gorilla gorilla"] <- "Gorilla gorilla gorilla" 
+#mytree$tip.label[mytree$tip.label == "Homo sapiens"] <- "Homo sapiens sapiens" 
+		
+## Other substitutions of species names made in the tree tip labels:
+mytree$tip.label[mytree$tip.label == "Urocitellus parryii plesius"] <- "Spermophilus parryii plesius" #Arctic ground squirrel
+mytree$tip.label[mytree$tip.label == "Urocitellus columbianus"] <- "Spermophilus columbianus" #Columbian ground squirrel
+
+
+mytree$tip.label[mytree$tip.label == "Urocitellus townsendii"] <- "Spermophilus townsendii" #Townsend's Ground Squirrel
+mytree$tip.label[mytree$tip.label == "Mustela putorius furo"] <- "Mustela furo" #ferret
+mytree$tip.label[mytree$tip.label == "Vulpes lagopus"] <- "Alopex lagopus" #arctic fox
+#mytree$tip.label[mytree$tip.label == "Lagopus lagopus scotica"] <- "Lagopus lagopus scoticus" #red grouse
+mytree$tip.label[mytree$tip.label == "Myodes glareolus"] <- "Clethrionomys glareolus" #bank vole
+mytree$tip.label[mytree$tip.label == "Myodes rufocanus"] <- "Clethrionomys rufocanus" #Grey red-backed vole
+mytree$tip.label[mytree$tip.label == "Poecile palustris"] <- "Parus palustris" #marsh tit
+mytree$tip.label[mytree$tip.label == "Setophaga petechia"] <- "Dendroica petechia" #yellow warbler
+
+
+
+#check matching records again
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 145 names are matching - all fixed 
+
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
+str(mytree) #288 tips
+
+write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/species_tree.tre") #save the tree 
+ mytree <- read.tree(file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/species_tree.tre") #if you need to read the tree
+
+write.csv(Species_info, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/species_tree.csv")
+
+head(Species_info)
+
+#these tip labels are only to be used to relabel for the final plot, not for the data that is being shared
+
+mytree$tip.label[mytree$tip.label == "Vulpes macrotis"] <- "Vulpes macrotis mutica" #kit fox
+mytree$tip.label[mytree$tip.label == "Junco hyemalis"] <- "Passeriformes"
+mytree$tip.label[mytree$tip.label == "Canis lupus"] <- "Canis lupus & Canis lupus arabs"
+mytree$tip.label[mytree$tip.label == "Lagopus lagopus"] <- "Lagopus lagopus & Lagopus lagopus scoticus"
+mytree$tip.label[mytree$tip.label == "Panthera tigris"] <- "Panthera tigris & Panthera tigris tigris"
+mytree$tip.label[mytree$tip.label == "Calidris alpina"] <- "Calidris alpina schinzii" 
+
+```
+
+```{r plot tree}
+
+# count of papers per species name:
+sample_data <- count(Species_info,species)
+ 
+sample_data$species %in% mytree$tip.label
+mytree$tip.label %in% sample_data$species
+ 
+ ggtree(mytree, layout="circular") +                    
+   geom_tiplab( ) 
+ 
+ 
+ggtree(mytree, layout="circular") +                    
+   geom_tiplab(                             # adds name of sample to tip of its branch 
+     color = 'black',                       
+     offset = 1,
+     size = 1,
+     geom = "text",
+     align = TRUE) 
+ 
+ggtree(mytree, layout = "circular", branch.length = 'none') %<+% sample_data + # %<+% adds dataframe with sample data to tree 
+   new_scale_color() +                             # allows to add an additional color scheme for another variable
+     geom_tippoint(
+       mapping = aes(color = n),  
+       size = 1) +
+   scale_colour_gradient(low = "yellow", high = "red") +
+   geom_tiplab(                             # adds name of sample to tip of its branch 
+     color = 'black',                       
+     offset = 1,
+     size = 1,
+     geom = "text",
+     align = TRUE) 
+   
+ 
+ggtree(mytree, layout="circular", branch.length = "none") # simple circular tree with all tips aligned
+ggtree(mytree, layout="fan", open.angle=10, yscale = "none")
+ 
+ggsave("species_tree_circular_v0.pdf", width = 12, height = 10, scale = 10)
+ 
+p
+```
+
+```{r plot tree}
+
+sample_data <- count(Species_info, common_name)
+sample_data <- as.data.frame(sample_data)
+sample_data2 <-mutate(sample_data, tip.label = common_name)
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)
+ summary(sample_data2$tip.label)
+ str(sample_data2)
+ 
+ sample_data3<-left_join(sample_data2, Species_info, by= "common_name")
+ sample_data4<-distinct(sample_data3, common_name, .keep_all=TRUE) %>%
+ 	mutate_if(is.character, as.factor)
+ str(sample_data4)
+
+#logging n
+sample_data4$n_logged <- log(sample_data4$n)
+
+#############
+
+#############
+
+
+#losia's code is below
+
+cols <- c("yellow", "violet", "turquoise", "tomato", "thistle", "springgreen", "navy", "orange", "lightgoldenrod", "lightpink", "khaki", "lightslateblue", "red", "seagreen", "plum", "hotpink4", "moccasin", "olivedrab")
+
+tree2 <- ggtree(mytree, layout = "circular", lwd = 0.75) %<+% sample_data4 + aes(col = species)+ theme(legend.position = "bottom") + scale_colour_manual(values = cols, (title = "Broad taxa")) 
+tree2
+
+
+tree3 <- tree2 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = log(n), col = "gray30"), stat = "identity", col = "gray30", orientation = "y", axis.params = list(axis = "x",text.angle = -45, hjust = 0, text.size = 3), grid.params = list(alpha = 0.35),offset = 0.085, pwidth = 0.55, alpha = 0.8) + guides(fill ="none") 
+
+tree3
+
+count(sample_data4, common_name)
+count(sample_data4, species)
+
+## will add silhouettes to most common species
+##need to manually change log axis back to original numbers
+
+```
+#next step is to add the sample size first
+#make the text italics
+#can add four main silhouttes - mammals, birds, fish, insects (four colours)
+
+#can create a new column to pull the higher levels for each species -> need to assign to higher group
+#there is a website with a database for silhouettes -> can get them for free online
+#https://www.google.ca/search?source=hp&ei=y822X-3WI9Tk-gSz2o_QBw&q=free+animal+silhouettes+linked+for+R&btnK=Google+Search&oq=game+store+calgary&gs_lcp=CgZwc3ktYWIQAzIFCAAQyQMyAggAMgIIADIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOggIABCxAxCDAToFCAAQsQM6CwguELEDEMcBEKMCOgUIABCSAzoFCC4QsQM6CggAELEDEIMBEAo6AgguOggILhDHARCjAjoICAAQsQMQyQM6DgguELEDEIMBEMcBEKMCOggILhCxAxCTAjoQCC4QsQMQgwEQxwEQowIQCjoECAAQCjoICC4QxwEQrwFKBQgHEgExSgUICRIBMUoHCAoSAzEwMFDcF1jHJGDmJmgAcAB4AIABrwGIAesNkgEEMTMuNZgBAKABAaoBB2d3cy13aXo&sclient=psy-ab&ved=0ahUKEwit6L7tsY_tAhVUsp4KHTPtA3oQ4dUDCAk&uact=5#:~:text=PhyloPic,www.phylopic.org
+# r package: https://cran.r-project.org/web/packages/rphylopic/index.html
