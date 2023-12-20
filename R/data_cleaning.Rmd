@@ -1,12 +1,12 @@
-#code to prepare the data for analysis#last edited Dec 18, 2023 by A. R. Martinig#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "googlesheets4") #do not put in the showtext package as it messes EVERYTHING up# Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%
-  mutate(publication_year = as.numeric(str_sub(reference, start = -4)),
-    publication_authors = str_squish(str_sub(reference, end = -5))) %>%
+#code to prepare the data for analysis#last edited Dec 20, 2023 by A. R. Martinig#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "googlesheets4") #do not put in the showtext package as it messes EVERYTHING up# Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%
+  #mutate(publication_year = as.numeric(str_sub(reference, start = -4)),
+    #publication_authors = str_squish(str_sub(reference, end = -5))) %>%
 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)	filter(
-		!reference=="Barbraud & Delord 2023", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
+		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
 		!composite_variable=="Y", 
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
-		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%	select(-c(title, DOI, journal, year, region, country, composite_variable, effect_size_p_value, consider_excluding, needs_second_opinion, cross_checked, data_source, comments)) %>%
+		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%	select(-c(title, DOI, journal, year, region, country, composite_variable, effect_size_p_value, exclude, needs_second_opinion, cross_checked, data_source, comments)) %>%
 	mutate(
 	fitness_metric_clean = as.factor(
 		case_when(
@@ -39,7 +39,7 @@
     		
   		TRUE ~ fitness_metric)),
   		
-  		ageclass=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "adult")))
+  		generation=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "adult")))
   		
   			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
@@ -50,7 +50,16 @@ hist(df$publication_year, breaks=50)
 
 taxa<-Species_info%>%group_by(reference, paperID) %>%filter(row_number()==1) %>% select(reference, paperID, animal)
 
-df_species<-left_join(df, taxa, by=c("reference", "paperID"))		
-head(df_species)	
+df_species<-left_join(df, taxa, by=c("reference", "paperID"))
+
+phylogeny <- gsub(" ", "_", df_species$animal)
+length(unique(phylogeny))
+mytips<-mytree$tip.label
+length(unique(mytips))
+
+setdiff(phylogeny, mytips)
+setdiff(mytips, phylogeny)
+
+head(df_species)
 
 df_species%>%filter(species=="Vulpes macrotis mutica")	#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df_species, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")	
