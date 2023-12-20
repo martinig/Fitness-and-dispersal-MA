@@ -1,15 +1,12 @@
 pacman::p_load(tidyverse, # tidy family and related pacakges below
                kableExtra, 
                gridExtra, # may not use this
-               purrr,
-               magrittr, # extending piping
                pander,   # nice tables
                metafor,  # package for meta-analysis
-               MCMCglmm,  # Bayeisan mixed model package
-               plotly,     # interactive plots using ggplot2
+               ape,      # phylogenetic analysis
                MuMIn,  # multi-model inference
                patchwork,   # putting ggplots together - you need to install via devtool
-               here         # making reading files easy
+               here,         # making reading files easy
                orchaRd # plotting orchard plots
 
 )
@@ -24,6 +21,13 @@ dat <- read.csv(here("data", "clean_data.csv"), )
 
 dim(dat)
 head(dat)
+
+tree <- read.tree(here("data", "species_tree.tre"))
+
+cor_tree <- vcv(tree, corr=T)
+
+# check tip labels match with data
+
 
 # fixing data a bit
 
@@ -49,8 +53,18 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
 # merging two data frames
 dat <- cbind(dat, effect2)
 
-
+# renaming X to effectID
 colnames(dat)[colnames(dat) == "X"] <- "effectID"
+
+# creating the phylogeny column
+
+dat$phylogeny <-  gsub(" ", "_", dat$species)
+
+match(unique(dat$phylogeny), tree$tip.label)
+match(tree$tip.label, unique(dat$phylogeny))
+
+intersect(unique(dat$phylogeny), tree$tip.label)
+setdiff(unique(dat$phylogeny), tree$tip.label)
 
 # looking at data
 # which is NA and NaN
