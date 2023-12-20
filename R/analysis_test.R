@@ -17,13 +17,17 @@ source(here("R", "effect_size.R"),chdir = TRUE)
 
 ## test
 
-dat <- read.csv(here("data", "clean_data.csv"), )
+dat <- read.csv(here("data", "clean_data.csv"))
 
 dim(dat)
 head(dat)
 
 tree <- read.tree(here("data", "species_tree.tre"))
 
+# adding branche length
+tree <- compute.brlen(tree)
+
+# turning into correlation matrix
 cor_tree <- vcv(tree, corr=T)
 
 # check tip labels match with data
@@ -31,7 +35,7 @@ cor_tree <- vcv(tree, corr=T)
 
 # fixing data a bit
 
-dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)
+#dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)
 
 # use mapply to apply the above fundion effect_size to the data frame
 # effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, 
@@ -44,7 +48,7 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
                          dat$variance_group_1, dat$variance_group_2, 
                          dat$n_group_1, dat$n_group_2, dat$n, 
                          dat$effect_size_value, dat$effect_size_variance, 
-                         dat$effect_size_p_value_numeric, dat$direction, dat$function_needed), 
+                         dat$effect_size_p_value_numeric, dat$direction_change, dat$function_needed), 
                     effect_size)                    
 
 # dat$Zr <- unlist(effect1[1,])
@@ -53,12 +57,13 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
 # merging two data frames
 dat <- cbind(dat, effect2)
 
+
 # renaming X to effectID
 colnames(dat)[colnames(dat) == "X"] <- "effectID"
 
 # creating the phylogeny column
 
-dat$phylogeny <-  gsub(" ", "_", dat$species)
+dat$phylogeny <-  gsub(" ", "_", dat$animal)
 
 match(unique(dat$phylogeny), tree$tip.label)
 match(tree$tip.label, unique(dat$phylogeny))
@@ -67,8 +72,10 @@ intersect(unique(dat$phylogeny), tree$tip.label)
 setdiff(unique(dat$phylogeny), tree$tip.label)
 
 # looking at data
+dat$yi
+
 # which is NA and NaN
-which(is.na(dat$yi)) 
+#which(is.na(dat$yi)) 
 
 
 # visualsing 
@@ -79,8 +86,11 @@ hist(log(dat$vi))
 
 mod <- rma.mv(yi = yi, V = vi, 
               data = dat, 
-              random = list(~ 1 | effectID,
-                            ~ 1 | paperID),
+              random = list(
+                            ~ 1 | effectID,
+                            ~ 1 | paperID,
+                            ~ 1 | animal,
+                            ~ 1 | phylogeny),
               test = "t")
 
 i2_ml(mod)                              
@@ -89,6 +99,6 @@ summary(mod)
 
 orchard_plot(mod, xlab = "Effect Size: Zr", group = "paperID")
 funnel(mod, yaxis = "seinv")
-
+funnel(mod)
 
 

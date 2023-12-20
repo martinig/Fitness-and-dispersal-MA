@@ -191,11 +191,19 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
     r <- r_b #r_b = r
   
   } 
-
-  Zr <- atanh(r) # r = correlation
+  
+    if(r >= 1){
+    # if over 1, we use 0.99 
+    Zr <- atanh(0.99)
+    }else if(r <= -1){
+    Zr <- atanh(-0.99) # r = correlation
+    } else {
+    Zr <- atanh(r) # r = correlation
+    } 
+  
   VZr <- 1 /(n - 3)
   
-  data.frame(yi = Zr , vi = VZr)
+  data.frame(ri = r, yi = Zr , vi = VZr)
   
 }
 
@@ -255,3 +263,19 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
 # 
 # orchard_plot(mod, xlab = "Effect Size: Zr", group = "paperID")
 # funnel(mod, yaxis = "seinv")
+
+mean_d <- function(m1, m2, sd1, sd2, n1, n2, n){
+  h <- n/n1 + n/n2
+  p <- n1/n # prop for n1
+  q <- n2/n # prop for n2
+  s_pool <- sqrt( ((n1-1)*sd1^2 + (n2-1)*sd2^2) / (n - 2) )
+  j <- 1 - (3 / (4*n - 9))
+  d <- ((m2 - m1) / s_pool) * j
+  r_pb <-  d / sqrt(d^2 + h)
+  r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))
+  r <- r_b #r_b = r  
+  r
+}
+ 
+# test
+mean_d(-0.22893447,	0.27006809, 0,	0.08170346, 50, 25, 75)
