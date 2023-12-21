@@ -144,7 +144,7 @@ mod3 <- rma.mv(yi = yi, V = vi,
                  ~ 1 | paperID,
                  ~ 1 | animal),
                #              ~ 1 | phylogeny),
-               #R= list(phylogeny = cor_tree),
+               #R= list(phylogeny = cor_tree), # phylogenetic tree
                test = "t",
                sparse = TRUE)
 summary(mod3)
