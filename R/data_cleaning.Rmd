@@ -22,7 +22,7 @@
 
     		
 		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days") ~ "offspring survival", 
+    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits") ~ "offspring survival", 
     	
     		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity
     		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  
@@ -41,170 +41,18 @@
     		
   		TRUE ~ fitness_metric)),
   		
-  		higher_level_fitness = as.factor(
+  		fitness_higher_level = as.factor(
 		case_when(
 				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",
 				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",
 				fitness_metric_clean %in% c ("inclusive fitness (direct + indirect)") ~ "other",
 				TRUE ~ fitness_metric_clean)),
 
-  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "my offspring's fitness", "my fitness")),
+  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),
   		
   		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%
   	select(-c(title, DOI, journal, year, region, country, composite_variable, effect_size_p_value, exclude, needs_second_opinion, cross_checked, data_source, comments))
-  		
-(df%>%select(reference, species_cleaned)) 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  	
-#first pass through the data, split it into smaller batches because it often encounters errors
-  	
-# Split the data into batches (adjust batch_size accordingly)
-batch_size <- 5
-batches <- split(df, ceiling(seq_along(df$species_cleaned) / batch_size))
-
-# Initialize an empty list to store results
-result_list <- list()
-
-# Process each batch
-for (batch in batches) {
-  # Extract species_cleaned from the current batch
-  current_species <- as.character(unique(batch$species_cleaned))
-  
-  # Look up taxonomy using taxize
-  classification_results <- tax_name(current_species, db = "ncbi", get = "class")
-  
-  # Append the results to the list
-  result_list <- append(result_list, list(classification_results))
-}
-
-# Merge the results back
-first_pass <- do.call(rbind, result_list) %>% group_by(query) %>% filter(row_number()==1)
-
-# Merge the final result with the original data
-df2 <- left_join(df, first_pass, by = c("species_cleaned"="query")) %>% select(-db)
-
-first_pass #capture 63 species
-nrow(df2)
-df2%>%filter(is.na(class)) #281 NAs
-
-
-#because there are a lot of NAs, I run it again using a uncleaned species column, this solves nearly all issues
-
-# isolate the data that has NAs for class
-batches2 <- split((df2%>%filter(is.na(class))), ceiling(seq_along((df2%>%filter(is.na(class)))$species) / batch_size))
-
-#rerun the same code as you used above
-# Initialize an empty list to store results
-result_list2 <- list()
-
-# Process each batch
-for (batch in batches2) {
-  # Extract species_cleaned from the current batch
-  current_species2 <- as.character(unique(batch$species))
-  
-  # Look up taxonomy using taxize
-  classification_results2 <- tax_name(current_species, db = "ncbi", get = "class")
-  
-  # Append the results to the list
-  result_list2 <- append(result_list2, list(classification_results2))
-}
-
-# Merge the results back
-second_pass <- do.call(rbind, result_list2)  %>% group_by(query) %>% filter(row_number()==1)
-
-# Merge the final result with the original data
-df3 <- left_join(df2, second_pass,  by = c("species"="query")) %>% mutate(class = coalesce(class.y, class.x)) %>% select(-c(class.x, class.y, db))
-
-second_pass #capture 9 more species
-nrow(df3)
-df3%>%filter(is.na(class)) #281 NAs
-
-
-
-#because there are a lot of NAs, I run it again using a uncleaned species column, this solves nearly all issues
-
-# isolate the data that has NAs for class
-batches3 <- split((df3%>%filter(is.na(class))), ceiling(seq_along((df3%>%filter(is.na(class)))$species_cleaned) / batch_size))
-
-#rerun the same code as you used above
-# Initialize an empty list to store results
-result_list3 <- list()
-
-# Process each batch
-for (batch in batches3) {
-  # Extract species_cleaned from the current batch
-  current_species3 <- as.character(unique(batch$species_cleaned))
-  
-  # Look up taxonomy using taxize
-  classification_results3 <- tax_name(current_species, db = "ncbi", get = "class")
-  
-  # Append the results to the list
-  result_list3 <- append(result_list3, list(classification_results2))
-}
-
-# Merge the results back
-third_pass <- do.call(rbind, result_list3)  %>% group_by(query) %>% filter(row_number()==1)
-
-# Merge the final result with the original data
-df4 <- left_join(df3, third_pass,  by = c("species_cleaned"="query")) %>% mutate(class = coalesce(class.y, class.x)) %>% select(-c(class.x, class.y, db))
-
-third_pass #capture 9 more species
-nrow(df4)
-df4%>%filter(is.na(class)) #281 NAs
-
-
-
-
-
-
-
-%>% 
-	mutate(class=ifelse(species %in% c("Calidris alpina schinzii", "Cyanocorax morio", "Otus flammeolus"), "Aves",
-				species %in% c("Homo sapiens sapiens", "Canis lupus arabs", "Spermophilus parryii plesius"), "Mammalia", NA)
-
-final_df%>%filter(is.na(class))
-
-  			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
+  		  			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
 
