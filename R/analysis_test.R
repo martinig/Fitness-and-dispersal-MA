@@ -63,7 +63,7 @@ colnames(dat)[colnames(dat) == "X"] <- "effectID"
 
 # creating the phylogeny column
 
-dat$phylogeny <-  gsub(" ", "_", dat$animal)
+dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)
 
 match(unique(dat$phylogeny), tree$tip.label)
 match(tree$tip.label, unique(dat$phylogeny))
@@ -94,19 +94,36 @@ mod <- rma.mv(yi = yi, V = vi,
               random = list(
                             ~ 1 | effectID,
                             ~ 1 | paperID,
-                            ~ 1 | animal),
-              #              ~ 1 | phylogeny),
+                            ~ 1 | species_cleaned,
+                           ~ 1 | phylogeny),
+              R= list(phylogeny = cor_tree),
+              test = "t",
+              sparse = TRUE)
+
+summary(mod)
+
+round(i2_ml(mod),2)   
+
+# phylogeney accounts nothing (0) so we can take it out
+mod1 <- rma.mv(yi = yi, V = vi,
+              mod = ~ 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+               # ~ 1 | phylogeny),
               #R= list(phylogeny = cor_tree),
               test = "t",
               sparse = TRUE)
 
-i2_ml(mod)                              
+summary(mod1)
 
-summary(mod)
+round(i2_ml(mod1),2)   
 
-orchard_plot(mod, xlab = "Effect Size: Zr", group = "paperID")
-funnel(mod, yaxis = "seinv")
-funnel(mod)
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
+funnel(mod1, yaxis = "seinv")
+funnel(mod1)
 
 # TOOD
 # Moderators:
@@ -125,12 +142,14 @@ mod2 <- rma.mv(yi = yi, V = vi,
               random = list(
                 ~ 1 | effectID,
                 ~ 1 | paperID,
-                ~ 1 | animal),
+                ~ 1 | species_cleaned),
               #              ~ 1 | phylogeny),
               #R= list(phylogeny = cor_tree),
               test = "t",
               sparse = TRUE)
 summary(mod2)
+
+r2_ml(mod2)
 
 orchard_plot(mod2, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -142,45 +161,138 @@ mod3 <- rma.mv(yi = yi, V = vi,
                random = list(
                  ~ 1 | effectID,
                  ~ 1 | paperID,
-                 ~ 1 | animal),
+                 ~ 1 | species_cleaned),
                #              ~ 1 | phylogeny),
                #R= list(phylogeny = cor_tree), # phylogenetic tree
                test = "t",
                sparse = TRUE)
 summary(mod3)
 
+r2_ml(mod3)
+
 orchard_plot(mod3, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 
-# generation
+# ageclass
 mod4 <- rma.mv(yi = yi, V = vi,
-               mod = ~ ageclass - 1,
+               mod = ~ age_class - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
                  ~ 1 | paperID,
-                 ~ 1 | animal),
+                 ~ 1 | species_cleaned),
                #              ~ 1 | phylogeny),
                #R= list(phylogeny = cor_tree),
                test = "t",
                sparse = TRUE)
 summary(mod4)
+r2_ml(mod4)
 
-orchard_plot(mod4, mod = "ageclass", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
-# fitness_metric_clean
+orchard_plot(mod4, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
+# generation
 mod5 <- rma.mv(yi = yi, V = vi,
-               mod = ~ fitness_metric_clean - 1,
+               mod = ~ generation - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
                  ~ 1 | paperID,
-                 ~ 1 | animal),
+                 ~ 1 | species_cleaned),
                #              ~ 1 | phylogeny),
                #R= list(phylogeny = cor_tree),
                test = "t",
                sparse = TRUE)
 summary(mod5)
+r2_ml(mod5)
 
-orchard_plot(mod5, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+mod5c <- rma.mv(yi = yi, V = vi,
+               mod = ~ generation - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               #              ~ 1 | phylogeny),
+               #R= list(phylogeny = cor_tree),
+               test = "t",
+               sparse = TRUE)
+summary(mod5c)
+
+orchard_plot(mod5, mod = "generation", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+
+# fitness_metric_clean
+
+mod6 <- rma.mv(yi = yi, V = vi,
+               mod = ~ fitness_metric_clean - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+                # ~ 1 | phylogeny),
+              # R= list(phylogeny = cor_tree),
+               test = "t",
+               sparse = TRUE)
+summary(mod6)
+r2_ml(mod6)
+
+orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+
+# fitness_metric_clean
+
+mod7 <- rma.mv(yi = yi, V = vi,
+               mod = ~ higher_level_fitness - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               # ~ 1 | phylogeny),
+               # R= list(phylogeny = cor_tree),
+               test = "t",
+               sparse = TRUE)
+summary(mod7)
+
+orchard_plot(mod7, mod = "higher_level_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+
+# dispersal_type
+mod8 <- rma.mv(yi = yi, V = vi,
+               mod = ~ dispersal_type - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               # ~ 1 | phylogeny),
+               # R= list(phylogeny = cor_tree),
+               test = "t",
+               sparse = TRUE)
+summary(mod8)
+r2_ml(mod8)
+
+orchard_plot(mod8, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+# dispersal_phase
+
+mod9 <- rma.mv(yi = yi, V = vi,
+               mod = ~ dispersal_phase - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               # ~ 1 | phylogeny),
+               # R= list(phylogeny = cor_tree),
+               test = "t",
+               sparse = TRUE)
+summary(mod9)
+r2_ml(mod9)
+
+orchard_plot(mod9, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+# it would be interesting to see what are these studies with Zr > 0.95 and < -0.95
