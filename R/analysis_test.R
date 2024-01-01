@@ -208,7 +208,7 @@ r2_ml(mod5)
 
 
 mod5c <- rma.mv(yi = yi, V = vi,
-               mod = ~ generation - 1,
+               mod = ~ whose_fitness - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
@@ -245,7 +245,7 @@ orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group
 # fitness_metric_clean
 
 mod7 <- rma.mv(yi = yi, V = vi,
-               mod = ~ higher_level_fitness - 1,
+               mod = ~ fitness_higher_level - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
@@ -296,3 +296,32 @@ r2_ml(mod9)
 orchard_plot(mod9, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
 # it would be interesting to see what are these studies with Zr > 0.95 and < -0.95
+
+
+# dispersal_phase
+
+mod10 <- rma.mv(yi = yi, V = vi,
+               mod = ~ species_class - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               # ~ 1 | phylogeny),
+               # R= list(phylogeny = cor_tree),
+               test = "t",
+               sparse = TRUE)
+summary(mod10)
+r2_ml(mod10)
+
+orchard_plot(mod10, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
+####################
+# publication bias
+####################
+
+
+
+
+
+
