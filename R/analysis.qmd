@@ -367,5 +367,3 @@ round(i2_ml(mod),2)
 
 ## Publication bias
 
-
-
