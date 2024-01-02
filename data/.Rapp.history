@@ -1,0 +1,28 @@
+#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "maps", "ggplot2", "ggmap") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
+locations <- read.csv("clean_data.csv", header=T) %>% slice(1:10) %>% group_by(paperID) %>% mutate(total_records=n()) #
+locations
+# Function to geocode locations#
+geocode_locations <- function(location, country) {#
+  result <- try(geocode(paste(location, country), source = "dsk"), silent = TRUE)#
+  if (class(result) == "try-error") {#
+    return(c(NA, NA))#
+  } else {#
+    return(c(result$lon, result$lat))#
+  }#
+}
+locations$lonlat <- mapply(geocode_locations, locations$region, locations$country)
+install.packages("geonames")#
+library(geonames)
+revious information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "maps", "ggplot2", "ggmap", "geonames") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
+locations <- read.csv("clean_data.csv", header=T) %>% slice(1:10) %>% group_by(paperID) %>% mutate(total_records=n()) #
+locations
+# Function to geocode locations using GeoNames#
+geocode_locations <- function(location, country) {#
+  result <- try(geonames(location, q = country), silent = TRUE)#
+  if (class(result) == "try-error" || is.null(result$lat)) {#
+    return(c(NA, NA))#
+  } else {#
+    return(c(result$lng, result$lat))#
+  }#
+}
+locations$lonlat <- mapply(geocode_locations, locations$region, locations$country)
