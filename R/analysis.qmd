@@ -329,7 +329,8 @@ VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
 ## Meta-analysis
 
 ```{r}
-
+#| eval: false
+#| 
 # takes a while to run
 mod <- rma.mv(yi = yi, 
               V = VCV,
@@ -360,6 +361,10 @@ round(i2_ml(mod),2)
 
 
 ## Uni-moderator eta-regression models
+
+```{r}
+
+```
 
 
 ## Multi-moderator-regression model
