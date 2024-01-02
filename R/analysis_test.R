@@ -86,11 +86,20 @@ dat$yi
 hist(dat$yi)
 hist(log(dat$vi))
 
-# meta-analysis - basic model
 
-mod <- rma.mv(yi = yi, V = vi,
+# creating VCV
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+
+# shared_group
+
+# meta-analysis - basic model
+###########
+# do not run.....
+##########
+mod <- rma.mv(yi = yi, 
+              V = VCV,
               mod = ~ 1,
-              data = dat, 
+              data = dat,
               random = list(
                             ~ 1 | effectID,
                             ~ 1 | paperID,
@@ -100,12 +109,20 @@ mod <- rma.mv(yi = yi, V = vi,
               test = "t",
               sparse = TRUE)
 
+# saving the runs
+saveRDS(mod, here("Rdata", "mod.RDS"))
+
+# getting saved Rdata
+mod <- readRDS(here("Rdata", "mod.RDS"))
+
 summary(mod)
 
 round(i2_ml(mod),2)   
 
+
 # phylogeney accounts nothing (0) so we can take it out
-mod1 <- rma.mv(yi = yi, V = vi,
+mod1 <- rma.mv(yi = yi, 
+               V = VCV,
               mod = ~ 1,
               data = dat, 
               random = list(
@@ -122,8 +139,9 @@ summary(mod1)
 round(i2_ml(mod1),2)   
 
 orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
-funnel(mod1, yaxis = "seinv")
-funnel(mod1)
+
+#funnel(mod1, yaxis = "seinv")
+#funnel(mod1)
 
 # TOOD
 # Moderators:
@@ -132,11 +150,13 @@ funnel(mod1)
 # dispersal_type
 # dispersal_phase
 # age_class
-# generation
+# generation - whose_fitness
 # fitness_metric_clean
+# other things.... 
 
 # sex
-mod2 <- rma.mv(yi = yi, V = vi,
+mod2 <- rma.mv(yi = yi, 
+               V = VCV,
               mod = ~ sex - 1,
               data = dat, 
               random = list(
@@ -155,7 +175,8 @@ orchard_plot(mod2, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", bra
 
 # study_type
 
-mod3 <- rma.mv(yi = yi, V = vi,
+mod3 <- rma.mv(yi = yi,  
+               V = VCV,
                mod = ~ study_type - 1,
                data = dat, 
                random = list(
@@ -174,7 +195,8 @@ orchard_plot(mod3, mod = "study_type", xlab = "Effect Size: Zr", group = "paperI
 
 
 # ageclass
-mod4 <- rma.mv(yi = yi, V = vi,
+mod4 <- rma.mv(yi = yi,
+               V = VCV,
                mod = ~ age_class - 1,
                data = dat, 
                random = list(
@@ -192,8 +214,9 @@ r2_ml(mod4)
 orchard_plot(mod4, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 # generation
-mod5 <- rma.mv(yi = yi, V = vi,
-               mod = ~ generation - 1,
+mod5 <- rma.mv(yi = yi,
+               V = VCV,
+               mod = ~ whose_fitness - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
@@ -207,7 +230,8 @@ summary(mod5)
 r2_ml(mod5)
 
 
-mod5c <- rma.mv(yi = yi, V = vi,
+mod5c <- rma.mv(yi = yi, 
+                V = VCV,
                mod = ~ whose_fitness - 1,
                data = dat, 
                random = list(
@@ -220,12 +244,13 @@ mod5c <- rma.mv(yi = yi, V = vi,
                sparse = TRUE)
 summary(mod5c)
 
-orchard_plot(mod5, mod = "generation", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+orchard_plot(mod5, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 
 # fitness_metric_clean
 
-mod6 <- rma.mv(yi = yi, V = vi,
+mod6 <- rma.mv(yi = yi, 
+               V = VCV,
                mod = ~ fitness_metric_clean - 1,
                data = dat, 
                random = list(
@@ -244,7 +269,8 @@ orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group
 
 # fitness_metric_clean
 
-mod7 <- rma.mv(yi = yi, V = vi,
+mod7 <- rma.mv(yi = yi, 
+               V = VCV,
                mod = ~ fitness_higher_level - 1,
                data = dat, 
                random = list(
@@ -261,7 +287,8 @@ orchard_plot(mod7, mod = "higher_level_fitness", xlab = "Effect Size: Zr", group
 
 
 # dispersal_type
-mod8 <- rma.mv(yi = yi, V = vi,
+mod8 <- rma.mv(yi = yi, 
+               V = VCV,
                mod = ~ dispersal_type - 1,
                data = dat, 
                random = list(
@@ -300,7 +327,8 @@ orchard_plot(mod9, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "p
 
 # dispersal_phase
 
-mod10 <- rma.mv(yi = yi, V = vi,
+mod10 <- rma.mv(yi = yi, 
+                V = VCV,
                mod = ~ species_class - 1,
                data = dat, 
                random = list(
@@ -316,12 +344,203 @@ r2_ml(mod10)
 
 orchard_plot(mod10, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
+##############
+# Mulit-moderator models 
+##############
+# TODO - should we do this at all
+
 ####################
 # publication bias
 ####################
 
+funnel(mod1, 
+       yaxis="seinv",
+       # = "rstudent",
+       xlab = "Standarized residuals",
+       ylab = "Precision (inverse of SE)",
+       ylim = c(0.001, 16),
+       xlim = c(-10,15),
+       digits=c(0,1)
+)
+
+# funnel(mod1, 
+#        #yaxis="seinv",
+#        # = "rstudent",
+#        xlab = "Standarized residuals",
+#        ylab = "Precision (inverse of SE)",
+#        ylim = c(0.001, 16),
+#        xlim = c(-10,15),
+#        digits=c(0,1)
+# )
 
 
+## Egger regression: uni-moderator
+
+# write conditional statement here
+
+# if each group n is avaiable - assume n/2
+dat$effectN <- ifelse(is.na(dat$n_group_1), (dat$n/2)*2/dat$n,  
+                      (dat$n_group_1 * dat$n_group_2) / (dat$n_group_1 + dat$n_group_2))
+  
+dat$sqeffectN <- sqrt(dat$effectN)
+
+mod_egger <- rma.mv(yi = yi, 
+                    V = VCV,
+                mod = ~ sqeffectN,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                # ~ 1 | phylogeny),
+                # R= list(phylogeny = cor_tree),
+                test = "t",
+                sparse = TRUE)
+summary(mod_egger)
+
+round(r2_ml(mod_egger)*100, 2)
+
+small <- bubble_plot(mod_egger,
+                     mod = "sqeffectN",
+                     group = "paperID",
+                     xlab = "sqrt(Effective N)",
+                     ylab = "Effect Size: Zr",
+                     g = TRUE)
+
+small
+
+## Decline effect: uni-moderator
+
+# creating publication year from "reference"
+dat$year <- with(dat, substr(reference, nchar(reference)-4, nchar(reference)))
+dat$year <- as.integer(ifelse(dat$year == "2017a" | dat$year == "2017b", 2017, dat$year))
+# decline effect
+mod_dec <- rma.mv(yi = yi, V = vi,
+                     mod = ~ year,
+                     data = dat, 
+                     random = list(
+                       ~ 1 | effectID,
+                       ~ 1 | paperID,
+                       ~ 1 | species_cleaned),
+                     # ~ 1 | phylogeny),
+                     # R= list(phylogeny = cor_tree),
+                     test = "t",
+                     sparse = TRUE)
+summary(mod_dec)
+
+round(r2_ml(mod_dec)*100, 2)
+
+decline <- bubble_plot(mod_dec,
+                       mod = "year",
+                       group = "paperID",
+                       xlab = "Publication year",
+                       ylab = "Effect Size: Zr",
+                       g = TRUE)
+decline
+
+## All together
+
+mod_comb <- rma.mv(yi = yi, 
+                   V = VCV,
+                   mod = ~ year + sqeffectN,
+                   data = dat, 
+                   random = list(
+                     ~ 1 | effectID,
+                     ~ 1 | paperID,
+                     ~ 1 | species_cleaned),
+                   # ~ 1 | phylogeny),
+                   # R= list(phylogeny = cor_tree),
+                   test = "t",
+                   sparse = TRUE)
+                   
+summary(mod_comb)
+
+round(r2_ml(mod_comb)*100, 2)
+
+# small-study
+bubble_plot(mod_egger,
+            mod = "sqeffectN",
+            group = "paperID",
+            xlab = "sqrt(Effective N)",
+            ylab = "Effect Size: Zr",
+            g = TRUE)
+
+# decline
+bubble_plot(mod_comb,
+            mod = "year",
+            group = "paperID",
+            xlab = "Publication year",
+            ylab = "Effect Size: Zr",
+            g = TRUE)
+
+
+
+## Leave-1study-out (sensitivity analysis)
+
+dat <- dat %>%
+  mutate(leave_out = referece)
+
+dat$leave_out <- as.factor(dat$leave_out)
+
+
+LeaveOneOut_effectsize <- list()
+for (i in 1:length(levels(dat$leave_out))) {
+  temp_dat <- dat %>%
+    filter(leave_out != levels(dat$leave_out)[i])
+  
+  VCV_leaveout <- vcalc(vi = temp_dat$Vd, cluster = temp_dat$shared_group, rho = 0.5)
+  
+  LeaveOneOut_effectsize[[i]] <-  rma.mv(yi = yi,
+                                         V = VCV_leaveout, 
+                                         random = list(
+                                           ~ 1 | effectID,
+                                           ~ 1 | paperID,
+                                           ~ 1 | species_cleaned),
+                                         # ~ 1 | phylogeny),
+                                         # R= list(phylogeny = cor_tree),
+                                         test = "t",
+                                         sparse = TRUE,
+                                         data = temp_dat[temp_dat$leave_out != levels(temp_dat$leave_out)[i], ])
+}
+
+# writing function for extracting est, ci.lb, and ci.ub from all models
+est.func <- function(model) {
+  df <- data.frame(est = model$b, lower = model$ci.lb, upper = model$ci.ub)
+  return(df)
+}
+
+# using dplyr to form data frame
+MA_oneout <- lapply(LeaveOneOut_effectsize,function(x) est.func(x)) %>%
+  bind_rows %>%
+  mutate(left_out = levels(dat$leave_out))
+
+
+# telling ggplot to stop reordering factors
+MA_oneout$left_out <- as.factor(MA_oneout$left_out)
+MA_oneout$left_out <- factor(MA_oneout$left_out, levels = MA_oneout$left_out)
+
+# saving the runs
+saveRDS(MA_oneout, here("Rdata", "MA_oneout.RDS"))
+
+
+
+MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS"))
+
+# plotting
+leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) +
+  geom_hline(yintercept = mod_ma2$ci.lb, lty = 3, lwd = 0.75, colour = "black") +
+  geom_hline(yintercept = mod_ma2$b, lty = 1, lwd = 0.75, colour = "black") + 
+  geom_hline(yintercept = mod_ma2$ci.ub,
+             lty = 3, lwd = 0.75, colour = "black") + 
+  geom_pointrange(aes(x = left_out, y = est,
+                      ymin = lower, ymax = upper)) + 
+  xlab("Study left out") + 
+  ylab("Zr (effect size), 95% CI") +
+  coord_flip() + 
+  theme(panel.grid.minor = element_blank()) + theme_bw() + theme(panel.grid.major = element_blank()) +
+  theme(panel.grid.minor.x = element_blank()) + theme(axis.text.y = element_text(size = 6))
+
+leaveoneout
 
 
 
