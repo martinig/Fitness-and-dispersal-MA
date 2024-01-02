@@ -283,7 +283,7 @@ mod7 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod7)
 
-orchard_plot(mod7, mod = "higher_level_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+orchard_plot(mod7, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
 
 # dispersal_type
@@ -478,7 +478,7 @@ bubble_plot(mod_comb,
 ## Leave-1study-out (sensitivity analysis)
 
 dat <- dat %>%
-  mutate(leave_out = referece)
+  mutate(leave_out = reference)
 
 dat$leave_out <- as.factor(dat$leave_out)
 
@@ -488,7 +488,7 @@ for (i in 1:length(levels(dat$leave_out))) {
   temp_dat <- dat %>%
     filter(leave_out != levels(dat$leave_out)[i])
   
-  VCV_leaveout <- vcalc(vi = temp_dat$Vd, cluster = temp_dat$shared_group, rho = 0.5)
+  VCV_leaveout <- vcalc(vi = temp_dat$vi, cluster = temp_dat$shared_group, rho = 0.5)
   
   LeaveOneOut_effectsize[[i]] <-  rma.mv(yi = yi,
                                          V = VCV_leaveout, 
