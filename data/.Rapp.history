@@ -1,28 +1,504 @@
-#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "maps", "ggplot2", "ggmap") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-locations <- read.csv("clean_data.csv", header=T) %>% slice(1:10) %>% group_by(paperID) %>% mutate(total_records=n()) #
-locations
-# Function to geocode locations#
-geocode_locations <- function(location, country) {#
-  result <- try(geocode(paste(location, country), source = "dsk"), silent = TRUE)#
-  if (class(result) == "try-error") {#
-    return(c(NA, NA))#
-  } else {#
-    return(c(result$lon, result$lat))#
-  }#
-}
-locations$lonlat <- mapply(geocode_locations, locations$region, locations$country)
-install.packages("geonames")#
-library(geonames)
-revious information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "maps", "ggplot2", "ggmap", "geonames") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-locations <- read.csv("clean_data.csv", header=T) %>% slice(1:10) %>% group_by(paperID) %>% mutate(total_records=n()) #
-locations
-# Function to geocode locations using GeoNames#
-geocode_locations <- function(location, country) {#
-  result <- try(geonames(location, q = country), silent = TRUE)#
-  if (class(result) == "try-error" || is.null(result$lat)) {#
-    return(c(NA, NA))#
-  } else {#
-    return(c(result$lng, result$lat))#
-  }#
-}
-locations$lonlat <- mapply(geocode_locations, locations$region, locations$country)
+pacman::p_load(tidyverse, # tidy family and related pacakges below#
+               kableExtra, #
+               gridExtra, # may not use this#
+               pander,   # nice tables#
+               metafor,  # package for meta-analysis#
+               ape,      # phylogenetic analysis#
+               MuMIn,  # multi-model inference#
+               patchwork,   # putting ggplots together - you need to install via devtool#
+               here         # making reading files easy#
+				orchaRd 	#to make the orchard plots#
+)#
+##set wd to the folder with all your csv's in it#
+setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")#
+#
+## test#
+#
+dat <- read.csv("clean_data.csv")#
+#
+dim(dat)#
+head(dat)#
+#
+tree <- read.tree("species_tree.tre")#
+#
+# adding branch length#
+tree <- compute.brlen(tree)#
+#
+# turning into correlation matrix#
+cor_tree <- vcv(tree, corr=T)#
+#
+# check tip labels match with data#
+# fixing data a bit#
+#
+#dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)#
+#
+# use mapply to apply the above fundion effect_size to the data frame#
+# effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, #
+#                       dat$variance_group_1, dat$variance_group_2, #
+#                       dat$n_group_1, dat$n_group_2, dat$n, #
+#                        dat$effect_size_value, dat$effect_size_variance, #
+#                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)#
+#
+effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, #
+                         dat$variance_group_1, dat$variance_group_2, #
+                         dat$n_group_1, dat$n_group_2, dat$n, #
+                         dat$effect_size_value, dat$effect_size_variance, #
+                         dat$effect_size_p_value_numeric, dat$direction_change, dat$function_needed), #
+                    effect_size)                    #
+#
+# dat$Zr <- unlist(effect1[1,])#
+# dat$VZr <- unlist(effect1[2,])#
+#
+# merging two data frames#
+dat <- cbind(dat, effect2)#
+# renaming X to effectID#
+colnames(dat)[colnames(dat) == "X"] <- "effectID"#
+#
+# creating the phylogeny column#
+#
+dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)#
+#
+match(unique(dat$phylogeny), tree$tip.label)#
+match(tree$tip.label, unique(dat$phylogeny))#
+#
+intersect(unique(dat$phylogeny), tree$tip.label)#
+setdiff(unique(dat$phylogeny), tree$tip.label)#
+#
+####
+match(unique(dat$phylogeny), tree$tip.label)#
+sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))#
+#
+# looking at data#
+dat$yi#
+#
+# which is NA and NaN#
+#which(is.na(dat$yi)) #
+# visualsing #
+hist(dat$yi)#
+hist(log(dat$vi))#
+# creating VCV#
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)#
+#
+# shared_group
+pacman::p_load(tidyverse, # tidy family and related pacakges below#
+               kableExtra, #
+               gridExtra, # may not use this#
+               pander,   # nice tables#
+               metafor,  # package for meta-analysis#
+               ape,      # phylogenetic analysis#
+               MuMIn,  # multi-model inference#
+               patchwork,   # putting ggplots together - you need to install via devtool#
+               here,         # making reading files easy#
+				orchaRd 	#to make the orchard plots#
+)#
+##set wd to the folder with all your csv's in it#
+setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")#
+#
+## test#
+#
+dat <- read.csv("clean_data.csv")#
+#
+dim(dat)#
+head(dat)#
+#
+tree <- read.tree("species_tree.tre")#
+#
+# adding branch length#
+tree <- compute.brlen(tree)#
+#
+# turning into correlation matrix#
+cor_tree <- vcv(tree, corr=T)#
+#
+# check tip labels match with data#
+# fixing data a bit#
+#
+#dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)#
+#
+# use mapply to apply the above fundion effect_size to the data frame#
+# effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, #
+#                       dat$variance_group_1, dat$variance_group_2, #
+#                       dat$n_group_1, dat$n_group_2, dat$n, #
+#                        dat$effect_size_value, dat$effect_size_variance, #
+#                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)#
+#
+effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, #
+                         dat$variance_group_1, dat$variance_group_2, #
+                         dat$n_group_1, dat$n_group_2, dat$n, #
+                         dat$effect_size_value, dat$effect_size_variance, #
+                         dat$effect_size_p_value_numeric, dat$direction_change, dat$function_needed), #
+                    effect_size)                    #
+#
+# dat$Zr <- unlist(effect1[1,])#
+# dat$VZr <- unlist(effect1[2,])#
+#
+# merging two data frames#
+dat <- cbind(dat, effect2)#
+# renaming X to effectID#
+colnames(dat)[colnames(dat) == "X"] <- "effectID"#
+#
+# creating the phylogeny column#
+#
+dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)#
+#
+match(unique(dat$phylogeny), tree$tip.label)#
+match(tree$tip.label, unique(dat$phylogeny))#
+#
+intersect(unique(dat$phylogeny), tree$tip.label)#
+setdiff(unique(dat$phylogeny), tree$tip.label)#
+#
+####
+match(unique(dat$phylogeny), tree$tip.label)#
+sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))#
+#
+# looking at data#
+dat$yi#
+#
+# which is NA and NaN#
+#which(is.na(dat$yi)) #
+# visualsing #
+hist(dat$yi)#
+hist(log(dat$vi))#
+# creating VCV#
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+# function to calculate effect sizes#
+# Zr - correlation#
+# there is always n#
+#
+effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments#
+                        est , se, p_val, direction, method){#
+#
+  if(method == "mean_method"){#
+    h <- n/n1 + n/n2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    s_pool <- sqrt( ((n1-1)*sd1^2 + (n2-1)*sd2^2) / (n - 2) )#
+    j <- 1 - (3 / (4*n - 9))#
+    d <- ((m2 - m1) / s_pool) * j#
+    r_pb <-  d / sqrt(d^2 + h)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r    #
+  }else if(method == "count_method"){#
+    h <- n/n1 + n/n2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    s1 <- sqrt(m1)#
+    s2 <- sqrt(m2)#
+    s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )#
+    j <- 1 - (3 / (4*n - 9))#
+    d <- ((m2 - m1) / s_pool) * j#
+    r_pb <-  d / sqrt(d^2 + h)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r     #
+  }else if(method == "percent_method1"){#
+    h <- n/n1 + n/n2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    m1 <- m1/100#
+    m2 <- m2/100#
+    s1 <- 1/sqrt(8)#
+    s2 <- 1/sqrt(8)#
+    m1 <- asin(sqrt(m1/100))#
+    m2 <- asin(sqrt(m2/100))#
+    s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )#
+    j <- 1 - (3 / (4*n - 9))#
+    d <- ((m2 - m1) / s_pool) * j#
+    r_pb <-  d / sqrt(d^2 + h)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r #
+  }else if(method == "percent_method2"){#
+    h <- n/n1 + n/n2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    m1 <- m1/100#
+    m2 <- m2/100#
+    sd1 <- sd1/100#
+    sd2 <- sd2/100#
+    s1 <- 1/sqrt(sd1^2/(4*m1*(1-m1)))#
+    s2 <- 1/sqrt(sd2^2/(4*m2*(1-m2)))#
+    m1 <- asin(sqrt(m1/100))#
+    m2 <- asin(sqrt(m2/100))#
+    s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )#
+    j <- 1 - (3 / (4*n - 9))#
+    d <- ((m2 - m1) / s_pool) * j#
+    r_pb <-  d / sqrt(d^2 + h)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r #
+  }else if(method == "proportion_method1"){#
+    h <- n/n1 + n/n2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    s1 <- 1/sqrt(8)#
+    s2 <- 1/sqrt(8)#
+    m1 <- asin(sqrt(m1))#
+    m2 <- asin(sqrt(m2))#
+    s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )#
+    j <- 1 - (3 / (4*n - 9))#
+    d <- ((m2 - m1) / s_pool) * j#
+    r_pb <-  d / sqrt(d^2 + h)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r #
+  }else if(method == "proportion_method2"){#
+    h <- n/n1 + n/n2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    s1 <- 1/sqrt(sd1^2/(4*m1*(1-m1)))#
+    s2 <- 1/sqrt(sd2^2/(4*m2*(1-m2)))#
+    m1 <- asin(sqrt(m1/100))#
+    m2 <- asin(sqrt(m2/100))#
+    s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )#
+    j <- 1 - (3 / (4*n - 9))#
+    d <- ((m2 - m1) / s_pool) * j#
+    r_pb <-  d / sqrt(d^2 + h)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r #
+  }else if(method == "t_method1"){#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    r_pb <- est/sqrt(est^2 + n - 2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r#
+  }else if(method == "t_method2"){#
+    n1 <- n/2#
+    n2 <- n/2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    r_pb <- est/sqrt(est^2 + n - 2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r#
+  }else if(method == "F_method1"){#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    r_pb <- sqrt(est)/sqrt(est + n -2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r_b = r_b*(direction)#
+    r <- r_b#
+  }else if(method == "F_method2"){#
+    n1 <- n/2#
+    n2 <- n/2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    r_pb <- sqrt(est)/sqrt(est + n -2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r_b = r_b*(direction)#
+    r <- r_b#
+  }else if(method == "p_method1"){#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    t <- qt(1 - p_val, n - 2)#
+    r_pb <- t/sqrt(t^2 + n -2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r_b <- r_b*(direction)#
+    r <- r_b#
+  }else if(method == "p_method2"){#
+    n1 <- n/2#
+    n2 <- n/2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    t <- qt(1 - p_val, n - 2)#
+    r_pb <- t/sqrt(t^2 + n -2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r_b <- r_b*(direction)#
+    r <- r_b#
+  }else if(method == "correlation_method1"){#
+    r <- est#
+  }else if(method == "correlation_method2"){#
+    r <- 2*sin((pi/6)*est)#
+  }else if(method == "estimate_method1"){#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    t <- est/se#
+    r_pb <- t/sqrt(t^2+ n -2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r#
+  }else if(method == "estimate_method2"){#
+    n1 <- n/2#
+    n2 <- n/2#
+    p <- n1/n # prop for n1#
+    q <- n2/n # prop for n2#
+    t <- est/se#
+    r_pb <- t/sqrt(t^2+ n -2)#
+    r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+    r <- r_b #r_b = r#
+  } #
+    if(r >= 1){#
+    # if over 1, we use 0.99 #
+    Zr <- atanh(0.99)#
+    }else if(r <= -1){#
+    Zr <- atanh(-0.99) # r = correlation#
+    } else {#
+    Zr <- atanh(r) # r = correlation#
+    } #
+  VZr <- 1 /(n - 3)#
+  data.frame(ri = r, yi = Zr , vi = VZr)#
+}#
+#
+# # pacakges#
+# #
+# library(tidyverse)#
+# library(here)#
+# #
+# ## test#
+# #
+# dat <- read.csv(here("data", "aim 1 data for shinichi.csv"), )#
+# #
+# dim(dat)#
+# head(dat)#
+# #
+# # fixing data a bit#
+# #
+# dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)#
+# #
+# # use mapply to apply the above fundion effect_size to the data frame#
+# # effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, #
+# #                       dat$variance_group_1, dat$variance_group_2, #
+# #                       dat$n_group_1, dat$n_group_2, dat$n, #
+# #                        dat$effect_size_value, dat$effect_size_variance, #
+# #                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)#
+# #
+# effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, #
+#                       dat$variance_group_1, dat$variance_group_2, #
+#                       dat$n_group_1, dat$n_group_2, dat$n, #
+#                        dat$effect_size_value, dat$effect_size_variance, #
+#                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed), #
+#                        effect_size)                    #
+# #
+# # dat$Zr <- unlist(effect1[1,])#
+# # dat$VZr <- unlist(effect1[2,])#
+# #
+# # merging two data frames#
+# dat <- rbind(dat, effect2)#
+# #
+# # visualsing #
+# hist(dat$yi)#
+# hist(log(dat$vi))#
+# #
+# # meta-analysis - basic model#
+# #
+# library(metafor)#
+# library(orchaRd)#
+# mod <- rma.mv(yi = yi, V = vi, #
+#               data = dat, #
+#               random = list(~ 1 | X,#
+#                            ~ 1 | paperID),#
+#                               test = "t")#
+# #
+# i2_ml(mod)                              #
+# #
+# summary(mod)#
+# #
+# orchard_plot(mod, xlab = "Effect Size: Zr", group = "paperID")#
+# funnel(mod, yaxis = "seinv")#
+#
+mean_d <- function(m1, m2, sd1, sd2, n1, n2, n){#
+  h <- n/n1 + n/n2#
+  p <- n1/n # prop for n1#
+  q <- n2/n # prop for n2#
+  s_pool <- sqrt( ((n1-1)*sd1^2 + (n2-1)*sd2^2) / (n - 2) )#
+  j <- 1 - (3 / (4*n - 9))#
+  d <- ((m2 - m1) / s_pool) * j#
+  r_pb <-  d / sqrt(d^2 + h)#
+  r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+  r <- r_b #r_b = r  #
+  r#
+}#
+# test#
+mean_d(-0.22893447,	0.27006809, 0,	0.08170346, 50, 25, 75)
+pacman::p_load(tidyverse, # tidy family and related pacakges below#
+               kableExtra, #
+               gridExtra, # may not use this#
+               pander,   # nice tables#
+               metafor,  # package for meta-analysis#
+               ape,      # phylogenetic analysis#
+               MuMIn,  # multi-model inference#
+               patchwork,   # putting ggplots together - you need to install via devtool#
+               here,         # making reading files easy#
+				orchaRd 	#to make the orchard plots#
+)#
+##set wd to the folder with all your csv's in it#
+setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")#
+#
+## test#
+#
+dat <- read.csv("clean_data.csv")#
+#
+dim(dat)#
+head(dat)#
+#
+tree <- read.tree("species_tree.tre")#
+#
+# adding branch length#
+tree <- compute.brlen(tree)#
+#
+# turning into correlation matrix#
+cor_tree <- vcv(tree, corr=T)#
+#
+# check tip labels match with data#
+# fixing data a bit#
+#
+#dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)#
+#
+# use mapply to apply the above fundion effect_size to the data frame#
+# effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, #
+#                       dat$variance_group_1, dat$variance_group_2, #
+#                       dat$n_group_1, dat$n_group_2, dat$n, #
+#                        dat$effect_size_value, dat$effect_size_variance, #
+#                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)#
+#
+effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, #
+                         dat$variance_group_1, dat$variance_group_2, #
+                         dat$n_group_1, dat$n_group_2, dat$n, #
+                         dat$effect_size_value, dat$effect_size_variance, #
+                         dat$effect_size_p_value_numeric, dat$direction_change, dat$function_needed), #
+                    effect_size)                    #
+#
+# dat$Zr <- unlist(effect1[1,])#
+# dat$VZr <- unlist(effect1[2,])#
+#
+# merging two data frames#
+dat <- cbind(dat, effect2)#
+# renaming X to effectID#
+colnames(dat)[colnames(dat) == "X"] <- "effectID"#
+#
+# creating the phylogeny column#
+#
+dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)#
+#
+match(unique(dat$phylogeny), tree$tip.label)#
+match(tree$tip.label, unique(dat$phylogeny))#
+#
+intersect(unique(dat$phylogeny), tree$tip.label)#
+setdiff(unique(dat$phylogeny), tree$tip.label)#
+#
+####
+match(unique(dat$phylogeny), tree$tip.label)#
+sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))#
+#
+# looking at data#
+dat$yi#
+#
+# which is NA and NaN#
+#which(is.na(dat$yi)) #
+# visualsing #
+hist(dat$yi)#
+hist(log(dat$vi))#
+# creating VCV#
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+unts nothing (0) so we can take it out#
+mod1 <- rma.mv(yi = yi, #
+               V = VCV,#
+              mod = ~ 1,#
+              data = dat, #
+              random = list(#
+                ~ 1 | effectID,#
+                ~ 1 | paperID,#
+                ~ 1 | species_cleaned),#
+               # ~ 1 | phylogeny),#
+              #R= list(phylogeny = cor_tree),#
+              test = "t",#
+              sparse = TRUE)
+round(i2_ml(mod1),2)
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")+xlim(-0.5,0.5)
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")+xlim=c(-0.5,0.5)
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")+xlim(c(-0.5,0.5))
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")+ylim(c(-0.5,0.5))
