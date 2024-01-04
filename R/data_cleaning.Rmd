@@ -1,4 +1,4 @@
-#code to prepare the data for analysis#last edited Jan 3, 2024 by A. R. Martinig#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "taxize", "rentrez") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(
+#code to prepare the data for analysis#last edited Jan 4, 2024 by A. R. Martinig#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "taxize", "rentrez") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(
 		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
 		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)
 		!obsID=="TBD", 
@@ -28,7 +28,7 @@
 
     		
 		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits") ~ "offspring survival", 
+    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits", "reproductive success (yearlings raised in first year)") ~ "offspring survival", 
     	
     		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity
     		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  
@@ -42,8 +42,6 @@
    			
    			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)
     			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", 
-
-    			fitness_metric %in% c("inclusive fitness (direct + indirect)", "direct fitness", "indirect fitness")  ~ "inclusive fitness (direct + indirect)",  
     		
   		TRUE ~ fitness_metric)),
   		
@@ -51,7 +49,6 @@
 		case_when(
 				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",
 				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",
-				fitness_metric_clean %in% c ("inclusive fitness (direct + indirect)") ~ "other",
 				TRUE ~ fitness_metric_clean)),
 
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),
@@ -61,6 +58,7 @@
   		  			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
+table(df$fitness_higher_level)
 
 hist(df$publication_year, breaks=50)
 
