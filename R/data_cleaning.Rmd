@@ -55,7 +55,7 @@
   		
   		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%
   	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, cross_checked, data_source, comments))
-  		  			 summary(df)	table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
+  		  			 summary(df)		table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
 table(df$fitness_higher_level)
@@ -63,7 +63,21 @@ table(df$fitness_higher_level)
 hist(df$publication_year, breaks=50)
 
 head(df)
-	#export google sheet to CSV to make it easier to work with (it is a pain because it has different file formats for numeric columns, like "lists")write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")
+	
+nrow(df) #648 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #195 studies		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #139 species		
+	
+test<-df %>% group_by(paperID) %>% filter(row_number()==1)	
+table(test$species_class)	
+test%>%filter(species_class=="Actinopterygii") %>% select(species_class, common_name, species_cleaned)
+test%>%filter(species_class=="Arachnida") %>% select(species_class, common_name, species_cleaned)
+test%>%filter(species_class=="Insecta") %>% select(species_class, common_name, species_cleaned)
+test%>%filter(species_class=="Reptilia") %>% select(species_class, common_name, species_cleaned)
+test%>%filter(species_class=="Mammalia") %>% select(species_class, common_name, species_cleaned)
+test%>%filter(species_class=="Aves") %>% select(species_class, common_name, species_cleaned)
+	
+	write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")
 		
 
 

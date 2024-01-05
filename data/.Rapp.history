@@ -1,202 +1,3 @@
-#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "taxize", "rentrez") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(#
-		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
-		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)#
-		!obsID=="TBD", #
-		!n_group_1 %in% c(0, 1), #
-		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%#
-	mutate(#
-		publication_year =str_sub(reference, start = -4),#
-		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),#
-		publication_year=as.numeric(publication_year),#
-    	publication_authors = as.factor(str_squish(str_sub(reference, end = -5))),#
-    	publication_authors = as.factor(case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"Germain et al.", TRUE~ publication_authors)),    	#
-    	age_class_clean=as.factor(#
-    		case_when(age_class %in% c("A", "YA", "Y") ~ "adult",#
-    			age_class %in% c("JYA", "JA", "JY") ~ "mix",#
-    			age_class=="J" ~ "juvenile",#
-    			TRUE ~ age_class)),#
-    	fitness_metric_clean = as.factor(#
-			case_when(#
-		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged	#
-    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)", "probability of reproducing", "probability of conception",  "percent males bred", "reproduced", "reproductive", "litter size", "hatching success (at least one egg hatched)", "first egg stage (laid an egg)", "emerged pups sired per month", "eggs per individual", "clutch volume (instead of size)", "brood size at hatching", "breeding probability (not defined)", "birth rate", "annual number of offspring", "percentage of females known to nest successfully", "reproductive effort (see comments)", "reproductive success", "reproductive success (she survived and hatched at least one egg)", "reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)",  "gain breeding position (survivors only)", "did not lose whole clutch", "male paternity loss/extrapair young in the nest (yes/no)")  ~ "lifetime breeding success", #
-		#number of offspring produced over a lifetime that survive until weaning or fledging (i.e., still dependent on parents)#
-    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)", "produced offspring that survived to weaning", "fledging probablity", "daily nest survival (at least one chick fledged)", "breeding success (ratio of chicks fledged to number of eggs laid)", "breeding performance (all eggs fledged or partial clutch fledged)", "number fledged per laid egg")  ~ "lifetime reproductive success", #
-		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)#
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits") ~ "offspring survival", #
-    		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity#
-    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  #
-#
-			#Time between first and last reproductive attempt OR number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime) - grouped these together#
-    		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  #
-    		#time between birth and death or a set point (defined by authors)#
-   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	#
-   			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)#
-    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", #
-#
-    			#fitness_metric %in% c("inclusive fitness (direct + indirect)", "direct fitness", "indirect fitness")  ~ "inclusive fitness (direct + indirect)",  #
-  		TRUE ~ fitness_metric)),#
-  		fitness_higher_level = as.factor(#
-		case_when(#
-				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",#
-				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",#
-				fitness_metric_clean %in% c ("inclusive fitness (direct + indirect)") ~ "other",#
-				TRUE ~ fitness_metric_clean)),#
-#
-  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),#
-  		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%#
-  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, cross_checked, data_source, comments))#
-summary(df)
-table(df$fitness_metric_clean)
-df%>%filter(fitness_metric_clean=="inclusive fitness (direct + indirect)")
-# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(#
-		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
-		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)#
-		!obsID=="TBD", #
-		!n_group_1 %in% c(0, 1), #
-		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%#
-	mutate(#
-		publication_year =str_sub(reference, start = -4),#
-		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),#
-		publication_year=as.numeric(publication_year),#
-    	publication_authors = as.factor(str_squish(str_sub(reference, end = -5))),#
-    	publication_authors = as.factor(case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"Germain et al.", TRUE~ publication_authors)),    	#
-    	age_class_clean=as.factor(#
-    		case_when(age_class %in% c("A", "YA", "Y") ~ "adult",#
-    			age_class %in% c("JYA", "JA", "JY") ~ "mix",#
-    			age_class=="J" ~ "juvenile",#
-    			TRUE ~ age_class)),#
-    	fitness_metric_clean = as.factor(#
-			case_when(#
-		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged	#
-    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)", "probability of reproducing", "probability of conception",  "percent males bred", "reproduced", "reproductive", "litter size", "hatching success (at least one egg hatched)", "first egg stage (laid an egg)", "emerged pups sired per month", "eggs per individual", "clutch volume (instead of size)", "brood size at hatching", "breeding probability (not defined)", "birth rate", "annual number of offspring", "percentage of females known to nest successfully", "reproductive effort (see comments)", "reproductive success", "reproductive success (she survived and hatched at least one egg)", "reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)",  "gain breeding position (survivors only)", "did not lose whole clutch", "male paternity loss/extrapair young in the nest (yes/no)")  ~ "lifetime breeding success", #
-		#number of offspring produced over a lifetime that survive until weaning or fledging (i.e., still dependent on parents)#
-    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)", "produced offspring that survived to weaning", "fledging probablity", "daily nest survival (at least one chick fledged)", "breeding success (ratio of chicks fledged to number of eggs laid)", "breeding performance (all eggs fledged or partial clutch fledged)", "number fledged per laid egg")  ~ "lifetime reproductive success", #
-		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)#
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits") ~ "offspring survival", #
-    		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity#
-    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  #
-#
-			#Time between first and last reproductive attempt OR number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime) - grouped these together#
-    		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  #
-    		#time between birth and death or a set point (defined by authors)#
-   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	#
-   			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)#
-    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", #
-#
-    			fitness_metric %in% c("inclusive fitness (direct + indirect)", "indirect fitness")  ~ "inclusive fitness",  #
-  		TRUE ~ fitness_metric)),#
-  		fitness_higher_level = as.factor(#
-		case_when(#
-				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",#
-				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",#
-				fitness_metric_clean %in% c ("inclusive fitness") ~ "other",#
-				TRUE ~ fitness_metric_clean)),#
-#
-  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),#
-  		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%#
-  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, cross_checked, data_source, comments))#
-summary(df)
-#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "taxize", "rentrez") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(#
-		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
-		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)#
-		!obsID=="TBD", #
-		!n_group_1 %in% c(0, 1), #
-		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%#
-	mutate(#
-		publication_year =str_sub(reference, start = -4),#
-		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),#
-		publication_year=as.numeric(publication_year),#
-    	publication_authors = as.factor(str_squish(str_sub(reference, end = -5))),#
-    	publication_authors = as.factor(case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"Germain et al.", TRUE~ publication_authors)),    	#
-    	age_class_clean=as.factor(#
-    		case_when(age_class %in% c("A", "YA", "Y") ~ "adult",#
-    			age_class %in% c("JYA", "JA", "JY") ~ "mix",#
-    			age_class=="J" ~ "juvenile",#
-    			TRUE ~ age_class)),#
-    	fitness_metric_clean = as.factor(#
-			case_when(#
-		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged	#
-    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)", "probability of reproducing", "probability of conception",  "percent males bred", "reproduced", "reproductive", "litter size", "hatching success (at least one egg hatched)", "first egg stage (laid an egg)", "emerged pups sired per month", "eggs per individual", "clutch volume (instead of size)", "brood size at hatching", "breeding probability (not defined)", "birth rate", "annual number of offspring", "percentage of females known to nest successfully", "reproductive effort (see comments)", "reproductive success", "reproductive success (she survived and hatched at least one egg)", "reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)",  "gain breeding position (survivors only)", "did not lose whole clutch", "male paternity loss/extrapair young in the nest (yes/no)")  ~ "lifetime breeding success", #
-		#number of offspring produced over a lifetime that survive until weaning or fledging (i.e., still dependent on parents)#
-    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)", "produced offspring that survived to weaning", "fledging probablity", "daily nest survival (at least one chick fledged)", "breeding success (ratio of chicks fledged to number of eggs laid)", "breeding performance (all eggs fledged or partial clutch fledged)", "number fledged per laid egg")  ~ "lifetime reproductive success", #
-		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)#
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits") ~ "offspring survival", #
-    		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity#
-    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  #
-#
-			#Time between first and last reproductive attempt OR number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime) - grouped these together#
-    		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  #
-    		#time between birth and death or a set point (defined by authors)#
-   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	#
-   			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)#
-    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", #
-#
-    			fitness_metric %in% c("inclusive fitness (direct + indirect)", "indirect fitness")  ~ "inclusive fitness",  #
-  		TRUE ~ fitness_metric)),#
-  		fitness_higher_level = as.factor(#
-		case_when(#
-				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",#
-				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",#
-				fitness_metric_clean %in% c ("inclusive fitness") ~ "other",#
-				TRUE ~ fitness_metric_clean)),#
-#
-  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),#
-  		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%#
-  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, cross_checked, data_source, comments))#
-summary(df)
-df%>%filter(fitness_higher_level=="other")
-#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "taxize", "rentrez") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(#
-		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
-		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)#
-		!obsID=="TBD", #
-		!n_group_1 %in% c(0, 1), #
-		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%#
-	mutate(#
-		publication_year =str_sub(reference, start = -4),#
-		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),#
-		publication_year=as.numeric(publication_year),#
-    	publication_authors = as.factor(str_squish(str_sub(reference, end = -5))),#
-    	publication_authors = as.factor(case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"Germain et al.", TRUE~ publication_authors)),    	#
-    	age_class_clean=as.factor(#
-    		case_when(age_class %in% c("A", "YA", "Y") ~ "adult",#
-    			age_class %in% c("JYA", "JA", "JY") ~ "mix",#
-    			age_class=="J" ~ "juvenile",#
-    			TRUE ~ age_class)),#
-    	fitness_metric_clean = as.factor(#
-			case_when(#
-		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged	#
-    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)", "probability of reproducing", "probability of conception",  "percent males bred", "reproduced", "reproductive", "litter size", "hatching success (at least one egg hatched)", "first egg stage (laid an egg)", "emerged pups sired per month", "eggs per individual", "clutch volume (instead of size)", "brood size at hatching", "breeding probability (not defined)", "birth rate", "annual number of offspring", "percentage of females known to nest successfully", "reproductive effort (see comments)", "reproductive success", "reproductive success (she survived and hatched at least one egg)", "reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)",  "gain breeding position (survivors only)", "did not lose whole clutch", "male paternity loss/extrapair young in the nest (yes/no)")  ~ "lifetime breeding success", #
-		#number of offspring produced over a lifetime that survive until weaning or fledging (i.e., still dependent on parents)#
-    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)", "produced offspring that survived to weaning", "fledging probablity", "daily nest survival (at least one chick fledged)", "breeding success (ratio of chicks fledged to number of eggs laid)", "breeding performance (all eggs fledged or partial clutch fledged)", "number fledged per laid egg")  ~ "lifetime reproductive success", #
-		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)#
-    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits", "reproductive success (yearlings raised in first year)") ~ "offspring survival", #
-    		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity#
-    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  #
-#
-			#Time between first and last reproductive attempt OR number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime) - grouped these together#
-    		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  #
-    		#time between birth and death or a set point (defined by authors)#
-   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	#
-   			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)#
-    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", #
-  		TRUE ~ fitness_metric)),#
-  		fitness_higher_level = as.factor(#
-		case_when(#
-				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",#
-				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",#
-				TRUE ~ fitness_metric_clean)),#
-#
-  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),#
-  		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%#
-  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, cross_checked, data_source, comments))#
-summary(df)
-table(df$fitness_metric_clean)
-table(df$fitness_higher_level)
-hist(df$publication_year, breaks=50)
-write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")
 # function to calculate effect sizes#
 # Zr - correlation#
 # there is always n#
@@ -486,53 +287,6 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, #
                          dat$n_group_1, dat$n_group_2, dat$n, #
                          dat$effect_size_value, dat$effect_size_variance, #
                          dat$effect_size_p_value_numeric, dat$direction_change, dat$function_needed), #
-                    effect_size)
-pacman::p_load(tidyverse, # tidy family and related pacakges below#
-               kableExtra, #
-               gridExtra, # may not use this#
-               pander,   # nice tables#
-               metafor,  # package for meta-analysis#
-               ape,      # phylogenetic analysis#
-               MuMIn,  # multi-model inference#
-               patchwork,   # putting ggplots together - you need to install via devtool#
-               here,         # making reading files easy#
-				orchaRd 	#to make the orchard plots#
-)#
-##set wd to the folder with all your csv's in it#
-setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")#
-#
-## test#
-#
-dat <- read.csv("clean_data.csv")#
-#
-dim(dat)#
-head(dat)#
-#
-tree <- read.tree("species_tree.tre")#
-#
-# adding branch length#
-tree <- compute.brlen(tree)#
-#
-# turning into correlation matrix#
-cor_tree <- vcv(tree, corr=T)#
-#
-# check tip labels match with data#
-# fixing data a bit#
-#
-#dat$direction <- ifelse(grepl("negative", dat$effect_size_direction), -1, 1)#
-#
-# use mapply to apply the above fundion effect_size to the data frame#
-# effect1 <- mapply(effect_size, dat$mean_group_1, dat$mean_group_2, #
-#                       dat$variance_group_1, dat$variance_group_2, #
-#                       dat$n_group_1, dat$n_group_2, dat$n, #
-#                        dat$effect_size_value, dat$effect_size_variance, #
-#                        dat$effect_size_p_value_numeric, dat$direction, dat$function_needed)#
-#
-effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, #
-                         dat$variance_group_1, dat$variance_group_2, #
-                         dat$n_group_1, dat$n_group_2, dat$n, #
-                         dat$effect_size_value, dat$effect_size_variance, #
-                         dat$effect_size_p_value_numeric, dat$direction_change, dat$function_needed), #
                     effect_size)                    #
 #
 # dat$Zr <- unlist(effect1[1,])#
@@ -566,7 +320,9 @@ dat$yi#
 hist(dat$yi)#
 hist(log(dat$vi))#
 # creating VCV#
-VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)#
+#
+# shared_group
 # phylogeney accounts nothing (0) so we can take it out#
 mod1 <- rma.mv(yi = yi, #
                V = VCV,#
@@ -583,195 +339,4 @@ mod1 <- rma.mv(yi = yi, #
 #
 summary(mod1)#
 #
-round(i2_ml(mod1),2)   #
-#
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")#
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")+ylim(c(-0.5,0.5))
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
-# sex#
-mod2 <- rma.mv(yi = yi, #
-               V = VCV,#
-              mod = ~ sex - 1,#
-              data = dat, #
-              random = list(#
-                ~ 1 | effectID,#
-                ~ 1 | paperID,#
-                ~ 1 | species_cleaned),#
-              #              ~ 1 | phylogeny),#
-              #R= list(phylogeny = cor_tree),#
-              test = "t",#
-              sparse = TRUE)#
-summary(mod2)#
-#
-r2_ml(mod2)#
-#
-orchard_plot(mod2, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-mod3 <- rma.mv(yi = yi,  #
-               V = VCV,#
-               mod = ~ study_type - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               #              ~ 1 | phylogeny),#
-               #R= list(phylogeny = cor_tree), # phylogenetic tree#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod3)#
-#
-r2_ml(mod3)#
-#
-orchard_plot(mod3, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-# ageclass#
-mod4 <- rma.mv(yi = yi,#
-               V = VCV,#
-               mod = ~ age_class - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               #              ~ 1 | phylogeny),#
-               #R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod4)#
-r2_ml(mod4)#
-orchard_plot(mod4, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-# ageclass clean#
-mod4b <- rma.mv(yi = yi,#
-               V = VCV,#
-               mod = ~ age_class_clean - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               #              ~ 1 | phylogeny),#
-               #R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod4b)#
-r2_ml(mod4b)#
-orchard_plot(mod4b, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-mod5 <- rma.mv(yi = yi,#
-               V = VCV,#
-               mod = ~ whose_fitness - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               #              ~ 1 | phylogeny),#
-               #R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod5)#
-r2_ml(mod5)#
-#
-orchard_plot(mod5, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-mod6 <- rma.mv(yi = yi, #
-               V = VCV,#
-               mod = ~ fitness_metric_clean - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-                # ~ 1 | phylogeny),#
-              # R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod6)#
-r2_ml(mod6)#
-#
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-orchard_plot(mod9, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-orchard_plot(mod7, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-mod7
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 30)
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 15)
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 20)
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-orchard_plot(mod6, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 20)
-mod7 <- rma.mv(yi = yi, #
-               V = VCV,#
-               mod = ~ fitness_higher_level - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               # ~ 1 | phylogeny),#
-               # R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod7)#
-#
-orchard_plot(mod7, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-# dispersal_type#
-mod8 <- rma.mv(yi = yi, #
-               V = VCV,#
-               mod = ~ dispersal_type - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               # ~ 1 | phylogeny),#
-               # R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod8)#
-r2_ml(mod8)#
-#
-orchard_plot(mod8, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-mod9 <- rma.mv(yi = yi, V = vi,#
-               mod = ~ dispersal_phase - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               # ~ 1 | phylogeny),#
-               # R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod9)#
-r2_ml(mod9)#
-#
-orchard_plot(mod9, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-mod10 <- rma.mv(yi = yi, #
-                V = VCV,#
-               mod = ~ species_class - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               # ~ 1 | phylogeny),#
-               # R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod10)#
-r2_ml(mod10)#
-#
-orchard_plot(mod10, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-names(dat)
-mod11 <- rma.mv(yi = yi, #
-                V = VCV,#
-               mod = ~ fitness_main_focus - 1,#
-               data = dat, #
-               random = list(#
-                 ~ 1 | effectID,#
-                 ~ 1 | paperID,#
-                 ~ 1 | species_cleaned),#
-               # ~ 1 | phylogeny),#
-               # R= list(phylogeny = cor_tree),#
-               test = "t",#
-               sparse = TRUE)#
-summary(mod11)#
-r2_ml(mod11)
-orchard_plot(mod11, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+round(i2_ml(mod1),2)
