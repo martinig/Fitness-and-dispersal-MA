@@ -57,9 +57,10 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
 # merging two data frames
 dat <- cbind(dat, effect2)
 
-
 # renaming X to effectID
 colnames(dat)[colnames(dat) == "X"] <- "effectID"
+
+dat_short <- dat %>% filter(yi < 0.5, yi > - 0.5) 
 
 # creating the phylogeny column
 
@@ -74,6 +75,8 @@ setdiff(unique(dat$phylogeny), tree$tip.label)
 ###
 match(unique(dat$phylogeny), tree$tip.label)
 sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))
+
+
 
 # looking at data
 dat$yi
@@ -90,8 +93,9 @@ hist(log(dat$vi))
 # creating VCV
 VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
 
-#VCV <- nearPD(VCV)$mat
-# shared_group
+VCV <- nearPD(VCV)$mat
+
+#shared_group
 
 # meta-analysis - basic model
 ###########
@@ -140,6 +144,33 @@ summary(mod1)
 round(i2_ml(mod1),2)   
 
 orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
+
+#####
+# VCV_s <- vcalc(vi = dat_short$vi, 
+#                cluster = dat_short$shared_group, rho = 0.5)
+# 
+# VCV_s <- nearPD(VCV_s)$mat
+# 
+# 
+# mod1s <- rma.mv(yi = yi, 
+#                V = VCV_s,
+#                mod = ~ 1,
+#                data = dat_short, 
+#                random = list(
+#                  ~ 1 | effectID,
+#                  ~ 1 | paperID,
+#                  ~ 1 | species_cleaned),
+#                # ~ 1 | phylogeny),
+#                #R= list(phylogeny = cor_tree),
+#                test = "t",
+#                sparse = TRUE)
+# 
+# summary(mod1s)
+# 
+# round(i2_ml(mod1s),2)   
+# 
+# orchard_plot(mod1s, xlab = "Effect Size: Zr", group = "paperID")
+
 
 #funnel(mod1, yaxis = "seinv")
 #funnel(mod1)
