@@ -90,6 +90,7 @@ hist(log(dat$vi))
 # creating VCV
 VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
 
+#VCV <- nearPD(VCV)$mat
 # shared_group
 
 # meta-analysis - basic model
@@ -105,7 +106,7 @@ mod <- rma.mv(yi = yi,
                             ~ 1 | paperID,
                             ~ 1 | species_cleaned,
                            ~ 1 | phylogeny),
-              R= list(phylogeny = cor_tree),
+              R = list(phylogeny = cor_tree),
               test = "t",
               sparse = TRUE)
 
@@ -343,6 +344,69 @@ summary(mod10)
 r2_ml(mod10)
 
 orchard_plot(mod10, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
+
+# 
+
+
+##########
+# functions for absolute values
+
+
+# folded mean
+folded_mu <-function(mean, variance){
+  mu <- mean
+  sigma <- sqrt(variance)
+  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
+  fold_mu
+} 
+
+# folded variance
+folded_v <-function(mean, variance){
+  mu <- mean
+  sigma <- sqrt(variance)
+  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
+  fold_se <- sqrt(mu^2 + sigma^2 - fold_mu^2)
+  # adding se to make bigger mean
+  fold_v <-fold_se^2
+  fold_v
+} 
+
+
+# absolute values
+dat <- dat %>% mutate(
+  abs_yi = abs(yi), # we use this one (conservative)
+  abs_yi2 = folded_mu(yi, vi), # alternative way
+  abs_vi = folded_v(yi, vi))
+
+
+##
+# creating VCV
+VCV_abs <- vcalc(vi = dat$abs_vi, cluster = dat$shared_group, rho = 0.5)
+VCV_abs <- nearPD(VCV_abs)$mat
+
+# fitness_main_focus
+
+# need to look at absoulte values
+
+mod11 <- rma.mv(yi = abs_yi2, 
+                V = VCV_abs,
+                mod = ~ fitness_main_focus - 1,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                # ~ 1 | phylogeny),
+                # R= list(phylogeny = cor_tree),
+                test = "t",
+                sparse = TRUE)
+summary(mod11)
+r2_ml(mod11)
+
+orchard_plot(mod11, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
+
 
 ##############
 # Mulit-moderator models 
