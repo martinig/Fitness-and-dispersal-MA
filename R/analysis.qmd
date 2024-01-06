@@ -376,9 +376,11 @@ all_models <- function(model, mod = " ", type = "normal") {
 
 
   run_rma1 <- function(name) {
-      VCV1 <- vcalc(vi = dat2$vi,
-             cluster = dat2$species,
-             rho = 0.5)
+      
+    # variance covarinace matrix for sampling errors
+    VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+    VCV1 <- nearPD(VCV1)$mat
+    
       
     rma.mv(yi, V = VCV1,
                    mods = ~relevel(dat2[[mod]], ref = name),
@@ -388,28 +390,32 @@ all_models <- function(model, mod = " ", type = "normal") {
                        ~1|obs_id),
                      R = list(phylogeny = cor_tree),
                      data = dat2,
+                     test = "t",
+                     sparse = TRUE,
                      control = list(optimizer = "Nelder-Mead"))
    }
 
     run_rma2 <- function(name) {
     
-            VCVa <- vcalc(abs_vi, species, 
-                    rho = 0.5, data = dat2)
+            # variance covarinace matrix for sampling errors
+            VCVa <- vcalc(vi = dat2$vi_abs, cluster = dat$shared_group, rho = 0.5)
+            VCVa <- nearPD(VCVa)$mat
                
-               rma.mv(abs_yi, V = VCVa,
+               rma.mv(abs_yi2, V = VCVa,
                mods = ~relevel(dat2[[mod]], ref = name),
-                     random = list(
-                       ~1|species,
-                       ~1|phylogeny,
-                       ~1|obs_id),
-                     R = list(phylogeny = cor_tree),
+                      random = list(
+                            ~ 1 | effectID,
+                            ~ 1 | paperID,
+                            ~ 1 | species_cleaned),
                      data = dat2,
+                     test = "t",
+                     sparse = TRUE,
                      control = list(optimizer = "Nelder-Mead"))
    }
 
 # results of meta-regression including all contrast results; taking the last level out ([-length(level_names)])
 # this does not work for hetero model?
-if (type == "homo"){
+if (type == "normal"){
 
     model_all <- purrr::map(level_names[-length(level_names)], run_rma1)
 
@@ -513,6 +519,9 @@ VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
 
 ## Meta-analysis
 
+
+## Phylogenetic mulitlevle model
+
 ```{r}
 #| eval: false
 #| 
@@ -544,16 +553,34 @@ summary(mod)
 round(i2_ml(mod),2)   
 ```
 
-
-## Uni-moderator eta-regression models
+## Reducted mulitlevle model
 
 ```{r}
 
 ```
 
 
-## Multi-moderator-regression model
+## Uni-moderator eta-regression models
 
+
+!!! - model comparision we should use ML!!!
+
+```{r}
+
+```
+
+
+
+## Multi-moderator-regression model
+```{r}
+
+
+# use "ML" for model selection
+
+
+
+```
+ 
 
 ## Publication bias
 
