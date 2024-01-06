@@ -95,7 +95,6 @@ VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
 
 VCV <- nearPD(VCV)$mat
 
-#shared_group
 
 # meta-analysis - basic model
 ###########
@@ -377,7 +376,6 @@ r2_ml(mod10)
 orchard_plot(mod10, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
 
-# 
 
 
 ##########
@@ -678,6 +676,7 @@ MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS"))
 
 # plotting
 leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) +
+
   geom_hline(yintercept = mod_ma2$ci.lb, lty = 3, lwd = 0.75, colour = "black") +
   geom_hline(yintercept = mod_ma2$b, lty = 1, lwd = 0.75, colour = "black") + 
   geom_hline(yintercept = mod_ma2$ci.ub,

@@ -468,7 +468,6 @@ folded_v <-function(mean, variance){
   fold_v
 } 
 
-
 ```
 
 ### Preparing data: obtaining effect sizes etc. 
@@ -522,6 +521,9 @@ VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
 
 
 ## Phylogenetic mulitlevle model
+::: {.panel-tabset}
+
+## All random effects (5)
 
 ```{r}
 #| eval: false
@@ -566,9 +568,65 @@ round(i2_ml(mod),2)
 
 !!! - model comparision we should use ML!!!
 
+## Reduced random effects (3)
+
+```{r}
+# phylogeney accounts nothing (0) so we can take it out
+mod1 <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+               # ~ 1 | phylogeny),
+              #R= list(phylogeny = cor_tree),
+              test = "t",
+              sparse = TRUE)
+
+summary(mod1)
+
+round(i2_ml(mod1),2)   
+
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
+```
+
+:::
+
+## Uni-moderator eta-regression models
+
+::: {.panel-tabset}
+
+## Sex
+
+```{r}
+mod_sex <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ sex - 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              #              ~ 1 | phylogeny),
+              #R= list(phylogeny = cor_tree),
+              test = "t",
+              sparse = TRUE)
+summary(mod_sex)
+
+r2_ml(mod_sex)
+
+orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+```
+
+## Study type
+
+
 ```{r}
 
 ```
+
 
 
 
@@ -582,6 +640,71 @@ round(i2_ml(mod),2)
 
 ```
  
+
+## Age classes
+
+Higher age grouping
+
+```{r}
+
+```
+
+Finer age grouping
+
+```{r}
+
+```
+
+
+## Adult or offspring fitness?
+
+```{r}
+
+```
+
+## 
+
+```{r}
+
+```
+
+## 
+
+```{r}
+
+```
+
+## 
+
+```{r}
+
+```
+
+## 
+
+```{r}
+
+```
+
+## 
+
+```{r}
+
+```
+
+## 
+
+```{r}
+
+```
+
+
+
+::: {.panel-tabset}
+
+
+## Multi-moderator-regression model
+
 
 ## Publication bias
 
