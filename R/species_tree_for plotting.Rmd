@@ -1,24 +1,9 @@
-#code to creat a taxonomic tree
-#last edtied Dec 12, 2023 by A. R. Martinig
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#code to creat a taxonomic tree figure
+#last edtied Jan 8, 2024 by A. R. Martinig
 
 
-options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror
 
-#load libraries
-
-#to install ggtree and ggtreeExtra for the first time
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-#    install.packages("BiocManager")
-#BiocManager::install("ggtree")
-
-#if (!requireNamespace("BiocManager", quietly=TRUE))
-#    install.packages("BiocManager")
-#BiocManager::install("ggtreeExtra")
-
-packages=c("googlesheets4", "tidyverse", "rotl", "dplyr", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") 
+packages=c("rotl", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") 
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
