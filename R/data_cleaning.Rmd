@@ -70,6 +70,7 @@ df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #139 species
 	
 test<-df %>% group_by(paperID) %>% filter(row_number()==1)	
 table(test$species_class)	
+table(test$species_cleaned)
 test%>%filter(species_class=="Actinopterygii") %>% select(species_class, common_name, species_cleaned)
 test%>%filter(species_class=="Arachnida") %>% select(species_class, common_name, species_cleaned)
 test%>%filter(species_class=="Insecta") %>% select(species_class, common_name, species_cleaned)
