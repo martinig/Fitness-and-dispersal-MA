@@ -16,6 +16,7 @@ ggtree(mytree, layout="circular", branch.length = "none")
 
 mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree
 
+
 data_for_tree <- df %>% 
   mutate(
     natal = as.numeric(dispersal_type == "natal"),
@@ -29,13 +30,15 @@ data_for_tree <- df %>%
   mutate(
     tip.label = as.factor(gsub("_", " ", species_cleaned)),
     n_es = sum(n = n()),
-    across(c(natal, breeding, both, survival, reproduction, indirect), ~ ifelse(sum(.) > 1, 1, .), .names = "sum_{.col}") %>%
-    mutate(across(c(natal, breeding, both, survival, reproduction, indirect), as.factor)),
+    across(c(natal, breeding, both, survival, reproduction, indirect), ~ ifelse(sum(.) > 1, 1, .), .names = "sum_{.col}")) %>%  # In some cases, values were repeated, so need to replace values above 1 by '1'
+  mutate(across(all_of(c("natal", "breeding", "both", "survival", "reproduction", "indirect")), as.factor), # convert back to factor for the plot
+    # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
     dispersal_pattern = case_when(
       sum_natal == 1 & sum_breeding == 0 & sum_both == 0 ~ "natal",
       sum_natal == 0 & sum_breeding == 1 & sum_both == 0 ~ "breeding",
       TRUE ~ "both"
     ),
+# If survival, reproduction, or indirect fitness, indicate 'multiple', if only survival, indicate 'survival', otherwise indicate 'reproductive'    
     fitness_measure = case_when(
       sum_survival == 1 & sum_reproduction == 0 & sum_indirect == 0 ~ "survival",
       sum_survival == 0 & sum_reproduction == 1 & sum_indirect == 0 ~ "reproduction",
@@ -47,79 +50,41 @@ data_for_tree <- df %>%
   dplyr::select(tip.label, n_es, dispersal_pattern, fitness_measure) %>%
   distinct()
 
+str(data_for_tree)
+head(data_for_tree)
 
-
-data_for_tree %>% filter(tip.label=="Ctenomys sociabilis")
-es_count %>% filter(tip.label=="Ctenomys sociabilis")
-data_for_tree_plot %>% filter(tip.label=="Ctenomys sociabilis")
-
-
-
+data_for_tree_plot<-left_join(data_for_tree, (df%>%mutate(tip.label = as.factor(gsub("_", " ", species_cleaned)))%>%select(tip.label, species_class)), by ="tip.label") 
+head(data_for_tree_plot)
 
 
 
+p <- ggtree(mytree, layout = "circular", lwd = 0.75) %<+% data_for_tree_plot  # link plot to data
+p # Circular tree
 
+p2 <- p + 
+	geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1, offset = 0.085) + 
+    	scale_fill_manual(values = c("#009E73", "#CC79A7", "black"), , name="Dispersal type")  # Create tiles to indicate which metric was used for this species
+#p2
 
+p3 <- p2 + new_scale_fill() + 
+	geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure), offset = 0.1, width = 1) + 
+	scale_fill_manual(values = c("#E69F00", "#F0E442", "#0072B2"), name="Fitness measure")  # Create tiles to indicate which metric was used for this species
+#p3
 
-
-
- 
- # In some cases, values were repeated, so need to replace '2' values by '1'
-data_for_tree$natal[data_for_tree$natal > 1] <- "1"
-data_for_tree$breeding[data_for_tree$breeding >1] <- "1"
-data_for_tree$both[data_for_tree$both >1] <- "1"
-
- # In some cases, values were repeated, so need to replace '2' values by '1'
-data_for_tree$survival[data_for_tree$survival > 1] <- "1"
-data_for_tree$reproduction[data_for_tree$reproduction >1] <- "1"
-data_for_tree$indirect[data_for_tree$indirect >1] <- "1"
-
-
-data_for_tree$natal = as.factor(data_for_tree$natal)  # convert back to factor for the plot
-data_for_tree$breeding = as.factor(data_for_tree$breeding)
-data_for_tree$both = as.factor(data_for_tree$both)
-
-data_for_tree$survival = as.factor(data_for_tree$survival)  # convert back to factor for the plot
-data_for_tree$reproduction = as.factor(data_for_tree$reproduction)
-data_for_tree$indirect = as.factor(data_for_tree$indirect)
-
-
-
-data_for_tree <- mutate(data_for_tree, dispersal_pattern = ifelse(natal == "1" & breeding =="0" & both == "0", "natal", ifelse(natal == "0" & breeding == "1" & both == "0", "breeding", "both")))  # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
-
-data_for_tree <- mutate(data_for_tree, fitness_measure = ifelse(survival == "1" & reproduction =="0" & indirect == "0", "survival", ifelse(survival == "0" & reproduction == "1" & indirect == "0", "reproduction", ifelse(survival == "0" & reproduction == "0" & indirect == "1", "indirect", "multiple"))))  # If survival, reproduction, or inbreeding, indicate 'multiple', if only survival, indicate 'survival', otherwise indicate 'reproductive'
-
-
-es_count <- Species_info %>%
-	group_by(species_cleaned) %>%
-	mutate(n_es=sum(n=n()), tip.label=species_cleaned) %>%
-	ungroup()  # For the correspondence between tree and data
-es_count <- distinct(es_count)
-
-data_for_tree_plot <- left_join(es_count, data_for_tree, by = "tip.label")  # Join this information to the rest of the data we want to plot
-
-data_for_tree_plot <- data_for_tree_plot %>% dplyr::select(tip.label, n_es, dispersal_pattern, fitness_measure)
-data_for_tree_plot <- distinct(data_for_tree_plot)
-
-p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree
-p <- p %<+% data_for_tree_plot  # link plot to data
-p
-
-p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,
-    offset = 0.085) + scale_fill_manual(values = c("#009E73", "#CC79A7", "black"))  # Create tiles to indicate which metric was used for this species
-p2
-
-p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),
-    offset = 0.1, width = 1) + scale_fill_manual(values = c("#E69F00",
-    "#F0E442", "#0072B2"))  # Create tiles to indicate which metric was used for this species
-p3
-
-data_for_tree_plot$n_es = as.numeric(data_for_tree_plot$n_es)  # Convert to numeric 
-
-p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",
-    text.angle = -90, hjust = 0, text.size = 3), grid.params = list(alpha = 0.35),
-    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes
-
+# Display number of effect sizes and species classes
+p4 <- p3 + 
+	new_scale_fill() + 
+	geom_fruit(geom = geom_bar, mapping = aes(x = n_es, fill=species_class), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x", text.angle = -90, hjust = 0, text.size = 3), grid.params = list(alpha = 0.35), offset = 0.085, pwidth = 0.55, alpha = 0.8) + 
+	scale_fill_manual(values = c("#00BBDB","darkslategray4", "darkorchid", "chartreuse", "gray", "forestgreen"), name = "Class") + #"darkseagreen1", "deeppink", "darkred", "darkolivegreen2","#39568CFF", "darkgoldenrod2"
+	theme(legend.position = "right", 
+		legend.spacing.y = unit(5, "pt"), 
+		legend.box = "vertical", 
+		legend.box.just = "left", 
+		legend.box.spacing = unit(-5, "pt"), 
+		legend.text = element_text(size = 12), 
+		legend.title = element_text(size = 14, face = "bold"), 
+		legend.key.size = unit(20, "pt")) + 
+	guides(fill = guide_legend(order = 1))  
 p4
 
 
