@@ -1,4 +1,3 @@
-
 # function to calculate effect sizes#
 # Zr - correlation#
 # there is always n#
@@ -228,20 +227,22 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments#
 # orchard_plot(mod, xlab = "Effect Size: Zr", group = "paperID")#
 # funnel(mod, yaxis = "seinv")#
 #
-mean_d <- function(m1, m2, sd1, sd2, n1, n2, n){#
-  h <- n/n1 + n/n2#
-  p <- n1/n # prop for n1#
-  q <- n2/n # prop for n2#
-  s_pool <- sqrt( ((n1-1)*sd1^2 + (n2-1)*sd2^2) / (n - 2) )#
-  j <- 1 - (3 / (4*n - 9))#
-  d <- ((m2 - m1) / s_pool) * j#
-  r_pb <-  d / sqrt(d^2 + h)#
-  r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
-  r <- r_b #r_b = r  #
-  r#
-}#
+# mdean_d <- function(m1, m2, sd1, sd2, n1, n2, n){#
+#   h <- n/n1 + n/n2#
+#   p <- n1/n # prop for n1#
+#   q <- n2/n # prop for n2#
+#   s_pool <- sqrt( ((n1-1)*sd1^2 + (n2-1)*sd2^2) / (n - 2) )#
+#   j <- 1 - (3 / (4*n - 9))#
+#   d <- ((m2 - m1) / s_pool) * j#
+#   r_pb <-  d / sqrt(d^2 + h)#
+#   r_b <- r_pb*(sqrt(p*q)/dnorm(qnorm(p)))#
+#   r <- r_b #r_b = r  #
+#   r#
+# }#
 # test#
-mean_d(-0.22893447,	0.27006809, 0,	0.08170346, 50, 25, 75)
+#mean_d(-0.22893447,	0.27006809, 0,	0.08170346, 50, 25, 75)
+run effect_size.R first#
+#
 pacman::p_load(tidyverse, # tidy family and related pacakges below#
                kableExtra, #
                gridExtra, # may not use this#
@@ -321,52 +322,20 @@ dat$yi#
 hist(dat$yi)#
 hist(log(dat$vi))#
 # creating VCV#
-VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)#
-#
-# shared_group
-# phylogeney accounts nothing (0) so we can take it out#
-mod1 <- rma.mv(yi = yi, #
-               V = VCV,#
-              mod = ~ 1,#
-              data = dat, #
-              random = list(#
-                ~ 1 | effectID,#
-                ~ 1 | paperID,#
-                ~ 1 | species_cleaned),#
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+mod11 <- rma.mv(yi = yi, #
+                V = VCV,#
+               mod = ~ fitness_main_focus - 1,#
+               data = dat, #
+               random = list(#
+                 ~ 1 | effectID,#
+                 ~ 1 | paperID,#
+                 ~ 1 | species_cleaned),#
                # ~ 1 | phylogeny),#
-              #R= list(phylogeny = cor_tree),#
-              test = "t",#
-              sparse = TRUE)#
+               # R= list(phylogeny = cor_tree),#
+               test = "t",#
+               sparse = TRUE)#
+summary(mod11)#
+r2_ml(mod11)#
 #
-summary(mod1)#
-#
-round(i2_ml(mod1),2)
-
-#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "maps", "ggplot2", "ggmap") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-locations <- read.csv("clean_data.csv", header=T) %>% slice(1:10) %>% group_by(paperID) %>% mutate(total_records=n()) #
-locations
-# Function to geocode locations#
-geocode_locations <- function(location, country) {#
-  result <- try(geocode(paste(location, country), source = "dsk"), silent = TRUE)#
-  if (class(result) == "try-error") {#
-    return(c(NA, NA))#
-  } else {#
-    return(c(result$lon, result$lat))#
-  }#
-}
-locations$lonlat <- mapply(geocode_locations, locations$region, locations$country)
-install.packages("geonames")#
-library(geonames)
-revious information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "maps", "ggplot2", "ggmap", "geonames") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
-locations <- read.csv("clean_data.csv", header=T) %>% slice(1:10) %>% group_by(paperID) %>% mutate(total_records=n()) #
-locations
-# Function to geocode locations using GeoNames#
-geocode_locations <- function(location, country) {#
-  result <- try(geonames(location, q = country), silent = TRUE)#
-  if (class(result) == "try-error" || is.null(result$lat)) {#
-    return(c(NA, NA))#
-  } else {#
-    return(c(result$lng, result$lat))#
-  }#
-}
-locations$lonlat <- mapply(geocode_locations, locations$region, locations$country)
+orchard_plot(mod11, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)

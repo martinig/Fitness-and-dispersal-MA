@@ -1,0 +1,991 @@
+#code to prepare the data for analysis#last edited Jan 4, 2024 by A. R. Martinig#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load librariespackages=c("tidyverse", "dplyr", "taxize", "rentrez") # Install packages not yet installedinstalled_packages <- packages %in% rownames(installed.packages())if (any(installed_packages == FALSE)) {  install.packages(packages[!installed_packages])}# Packages loadinglapply(packages, library, character.only = TRUE)#
+# Read the Google Sheet into a dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(#
+		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
+		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)#
+		!obsID=="TBD", #
+		!n_group_1 %in% c(0, 1), #
+		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%#
+	mutate(#
+		publication_year =str_sub(reference, start = -4),#
+		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),#
+		publication_year=as.numeric(publication_year),#
+    	publication_authors = as.factor(str_squish(str_sub(reference, end = -5))),#
+    	publication_authors = as.factor(case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"Germain et al.", TRUE~ publication_authors)),    	#
+    	age_class_clean=as.factor(#
+    		case_when(age_class %in% c("A", "YA", "Y") ~ "adult",#
+    			age_class %in% c("JYA", "JA", "JY") ~ "mix",#
+    			age_class=="J" ~ "juvenile",#
+    			TRUE ~ age_class)),#
+    	fitness_metric_clean = as.factor(#
+			case_when(#
+		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged	#
+    		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)", "probability of reproducing", "probability of conception",  "percent males bred", "reproduced", "reproductive", "litter size", "hatching success (at least one egg hatched)", "first egg stage (laid an egg)", "emerged pups sired per month", "eggs per individual", "clutch volume (instead of size)", "brood size at hatching", "breeding probability (not defined)", "birth rate", "annual number of offspring", "percentage of females known to nest successfully", "reproductive effort (see comments)", "reproductive success", "reproductive success (she survived and hatched at least one egg)", "reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)",  "gain breeding position (survivors only)", "did not lose whole clutch", "male paternity loss/extrapair young in the nest (yes/no)")  ~ "lifetime breeding success", #
+		#number of offspring produced over a lifetime that survive until weaning or fledging (i.e., still dependent on parents)#
+    		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)", "produced offspring that survived to weaning", "fledging probablity", "daily nest survival (at least one chick fledged)", "breeding success (ratio of chicks fledged to number of eggs laid)", "breeding performance (all eggs fledged or partial clutch fledged)", "number fledged per laid egg")  ~ "lifetime reproductive success", #
+		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)#
+    		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits", "reproductive success (yearlings raised in first year)") ~ "offspring survival", #
+    		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity#
+    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  #
+#
+			#Time between first and last reproductive attempt OR number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime) - grouped these together#
+    		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  #
+    		#time between birth and death or a set point (defined by authors)#
+   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	#
+   			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)#
+    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", #
+  		TRUE ~ fitness_metric)),#
+  		fitness_higher_level = as.factor(#
+		case_when(#
+				fitness_metric_clean %in% c("survival", "offspring survival") ~ "survival",#
+				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",#
+				TRUE ~ fitness_metric_clean)),#
+#
+  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual")),#
+  		species_cleaned=as.factor(str_replace(species_cleaned, " ", "_"))) %>%#
+  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, cross_checked, data_source, comments))#
+summary(df)#
+table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)#
+table(df$fitness_metric)#
+table(df$fitness_metric_clean)#
+table(df$fitness_higher_level)#
+#
+hist(df$publication_year, breaks=50)#
+#
+head(df)#
+nrow(df) #648 effect sizes#
+df %>% as_tibble() %>% count(paperID) %>% nrow() #195 studies		#
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #139 species		#
+test<-df %>% group_by(paperID) %>% filter(row_number()==1)	#
+table(test$species_class)	#
+table(test$species_cleaned)#
+test%>%filter(species_class=="Actinopterygii") %>% select(species_class, common_name, species_cleaned)#
+test%>%filter(species_class=="Arachnida") %>% select(species_class, common_name, species_cleaned)#
+test%>%filter(species_class=="Insecta") %>% select(species_class, common_name, species_cleaned)#
+test%>%filter(species_class=="Reptilia") %>% select(species_class, common_name, species_cleaned)#
+test%>%filter(species_class=="Mammalia") %>% select(species_class, common_name, species_cleaned)#
+test%>%filter(species_class=="Aves") %>% select(species_class, common_name, species_cleaned)#
+write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")#
+#to check that the taxonomic tree is the same between mytree and what is in my dataset	#
+#phylogeny <- gsub(" ", "_", df$species_cleaned)#
+#length(unique(phylogeny)) #139#
+#mytips<-mytree$tip.label#
+#length(unique(mytips)) #139#
+#
+#setdiff(phylogeny, mytips)#
+#setdiff(mytips, phylogeny)
+packages=c("rotl", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") #
+#
+# Install packages not yet installed#
+installed_packages <- packages %in% rownames(installed.packages())#
+if (any(installed_packages == FALSE)) {#
+  install.packages(packages[!installed_packages])#
+}#
+#
+# Packages loading#
+lapply(packages, library, character.only = TRUE)#
+#
+select<-dplyr::select#
+#read in data and edit as needed#
+Species_info <- df %>%#
+  select(c("reference", "paperID", "common_name", "species", "species_class", "dispersal_type", "fitness_higher_level")) %>%#
+    mutate(species = #
+    	case_when(#
+    		species == "Thryomanes bewickii, Junco hyemalis, Pipilo maculatus, Melospiza melodia" ~ "Passeriformes", #went with one of the species that is not in the tree yet#
+    		species %in% c("Canis lupus", "Canis lupus arabs") ~ "Canis lupus & Canis lupus arabs", #
+    		species %in% c("Lagopus lagopus", "Lagopus lagopus scoticus")  ~ "Lagopus lagopus & Lagopus lagopus scoticus", #
+    			species %in% c("Panthera tigris", "Panthera tigris tigris")  ~ "Panthera tigris & Panthera tigris tigris", #
+  		TRUE ~ species))
+head(Species_info)#
+#str(Species_info)#
+length(unique(Species_info$species)) #139#
+unique(Species_info$species) #needs cleaning#
+table(Species_info$species)#
+#
+#Species_info$species <- gsub("_"," ", Species_info$animal) #get rid of the underscores#
+#
+# Make a table of how many words each name has:#
+table((lengths(gregexpr("\\W+", Species_info$species)) + 1)) #48 records with >2 words species names (subspecies etc.)#
+ # Count the number of words in the 'species' column#
+word_counts <- lengths(gregexpr("\\S+", Species_info$species))#
+#
+# Identify records with more than two words#
+more_than_two_words <- Species_info[word_counts > 2, ]#
+#
+# Display the result#
+print(more_than_two_words)#
+taxa <- tnrs_match_names(unique(Species_info$species)) #fails due to non-recognizable names#
+#
+# Fix obviously incompatible names (subspecies, name variants):#
+Species_info <- Species_info %>%#
+  mutate(#
+  animal = #
+  	case_when(#
+  		species == "Vulpes macrotis mutica" ~ "Vulpes macrotis",#
+  		species == "Macaca mulatta tcheliensis" ~ "Macaca mulatta",#
+  		species == "Calidris alpina schinzii" ~ "Calidris alpina",#
+  		species == "Passeriformes" ~ "Junco hyemalis", #went with one of the species that is not in the tree yet#
+  		species == "Canis lupus & Canis lupus arabs" ~ "Canis lupus", #
+    	species == "Lagopus lagopus & Lagopus lagopus scoticus"  ~ "Lagopus lagopus", #
+    	species == "Panthera tigris & Panthera tigris tigris"  ~ "Panthera tigris", #
+  		TRUE ~ species))#
+#NA -> drop rows with "NA" as species name#
+Species_info <- Species_info[Species_info$animal != "NA", ]#
+#
+table(Species_info$animal, useNA = "always") #no NA#
+length(unique(Species_info$animal)) #139#
+#
+taxa <- tnrs_match_names(unique(Species_info$animal)) #runs fine#
+names(taxa)#
+synonyms(taxa) ##list of all synonyms#
+taxa$unique_name # main TOL names#
+table(taxa$approximate_match) ##1 approximate match#
+taxa %>% filter(approximate_match==TRUE)#
+table(taxa$flags) # flags 21 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #
+#this will fail#
+#
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node#
+#
+mytree$tip.label#
+#
+## Tree tip labels need some cleaning:#
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments#
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores#
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace#
+#
+mytree$tip.label#
+#
+#this lets me check which species names don't match up#
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 124 names are matching -  got quite a few left to fix#
+sort(setdiff(unique(Species_info$species), as.character(mytree$tip.label))) ## names from species column not matching with tip label#
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species))) ## names from tip.label not matching in animal column#
+#
+#need to fix any of the substitutions AND labels that are matched, but incorrectly#
+#
+## Reverse substitutions of species names in the tree tip labels:#
+mytree$tip.label[mytree$tip.label == "Calidris alpina"] <- "Calidris alpina schinzii"#
+mytree$tip.label[mytree$tip.label == "Canis lupus"] <- "Canis lupus & Canis lupus arabs" #
+mytree$tip.label[mytree$tip.label == "Junco hyemalis"] <- "Passeriformes" #
+mytree$tip.label[mytree$tip.label == "Vulpes macrotis"] <- "Vulpes macrotis mutica" #
+mytree$tip.label[mytree$tip.label == "Macaca mulatta"] <- "Macaca mulatta tcheliensis" #
+mytree$tip.label[mytree$tip.label == "Panthera tigris"] <- "Panthera tigris & Panthera tigris tigris" #
+mytree$tip.label[mytree$tip.label == "Lagopus lagopus scoticus"] <- "Lagopus lagopus & Lagopus lagopus scoticus" #red grouse
+## Other substitutions of species names made in the tree tip labels:#
+mytree$tip.label[mytree$tip.label == "Urocitellus parryii plesius"] <- "Spermophilus parryii plesius" #Arctic ground squirrel#
+mytree$tip.label[mytree$tip.label == "Urocitellus columbianus"] <- "Spermophilus columbianus" #Columbian ground squirrel#
+mytree$tip.label[mytree$tip.label == "Urocitellus townsendii"] <- "Spermophilus townsendii" #Townsend's Ground Squirrel#
+mytree$tip.label[mytree$tip.label == "Mustela putorius furo"] <- "Mustela furo" #ferret#
+mytree$tip.label[mytree$tip.label == "Vulpes lagopus"] <- "Alopex lagopus" #arctic fox#
+mytree$tip.label[mytree$tip.label == "Myodes glareolus"] <- "Clethrionomys glareolus" #bank vole#
+mytree$tip.label[mytree$tip.label == "Myodes rufocanus"] <- "Clethrionomys rufocanus" #Grey red-backed vole#
+mytree$tip.label[mytree$tip.label == "Poecile palustris"] <- "Parus palustris" #marsh tit#
+mytree$tip.label[mytree$tip.label == "Setophaga petechia"] <- "Dendroica petechia" #yellow warbler#
+#check matching records again#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 139 names are matching - all fixed
+sort(setdiff(unique(Species_info$species), as.character(mytree$tip.label))) ## names from species column not matching with tip label
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species))) ## names from tip.label not matching in animal column
+mytree$tip.label[mytree$tip.label == "Lagopus lagopus"] <- "Lagopus lagopus & Lagopus lagopus scoticus" #red grouse
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species))) ## 139 names are matching - all fixed
+str(mytree) #276 tips#
+head(Species_info)#
+ head(mytree)#
+#
+ plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
+write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree_plotting.tre") #save the tree
+mytree <- read.tree(file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree_plotting.tre") #if you need to read the tree
+mytree <- read.tree(file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree_plotting.tre") #if you need to read the tree
+ggtree(mytree, layout="circular", branch.length = "none")
+ggtree(mytree, layout="circular") +                    #
+   geom_tiplab( )
+head(Species_info)
+d.tree <- mutate(Species_info, tip.label = species)  # For the correspondence between tree and data
+options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#
+#
+#load libraries#
+#
+packages=c("googlesheets4", "tidyverse", "rotl", "dplyr", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") #
+#
+# Install packages not yet installed#
+installed_packages <- packages %in% rownames(installed.packages())#
+if (any(installed_packages == FALSE)) {#
+  install.packages(packages[!installed_packages])#
+}#
+#
+# Packages loading#
+lapply(packages, library, character.only = TRUE)#
+#
+select<-dplyr::select#
+# Specify the URL of your Google Sheet#
+url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtFm2e0BZ5WBkE/edit#gid=1046848762"#
+#
+# Read the Google Sheet into a dataframe#
+Species_info <- read_sheet(url) %>%#
+	filter(#
+		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
+		!composite_variable=="Y", #
+		!obsID=="TBD", #
+		!n_group_1 %in% c(0, 1), #
+		!n_group_2 %in% c(0, 1)) %>%#
+  select(c("reference", "paperID", "common_name", "species_cleaned"))
+length(unique(Species_info$species_cleaned)) #139#
+unique(Species_info$species_cleaned) #needs cleaning#
+table(Species_info$species_cleaned)#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #
+#
+length(unique(Species_info$species_cleaned)) #139#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine#
+names(taxa)#
+synonyms(taxa) ##list of all synonyms#
+taxa$unique_name # main TOL names#
+table(taxa$approximate_match) ##0 approximate match#
+taxa %>% filter(approximate_match==TRUE)#
+table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing#
+#
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #
+#this will fail#
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+#
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node#
+#
+mytree$tip.label#
+#
+## Tree tip labels need some cleaning:#
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments#
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores#
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace#
+#
+mytree$tip.label#
+#
+#this lets me check which species names don't match up#
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching -  got quite a few left to fix#
+sort(setdiff(unique(Species_info$species_cleaned), as.character(mytree$tip.label))) ## names from species column not matching with tip label#
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## names from tip.label not matching in animal column#
+#
+#check matching records again#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching - all fixed #
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+str(mytree) #276 tips
+mytree$tip.label
+data_for_tree$tip.label
+data_for_tree <- mutate(Species_info, tip.label = species)  # For the correspondence between tree and data
+data_for_tree <- mutate(Species_info, tip.label = species)  # For the correspondence between tree and data
+head(Species_info)
+data_for_tree <- mutate(Species_info, tip.label = species_cleaned)  # For the correspondence between tree and data
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data
+data_for_tree$tip.label
+data_for_tree <- data_for_tree %>%#
+    group_by(tip.label) %>%#
+    mutate(n_es = sum(n = n())) %>%#
+    ungroup()  # Count the number of effect sizes for each species
+data_for_tree
+data_for_tree <- mutate(Species_info, tip.label = species_cleaned)  # For the correspondence between tree and data#
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree
+str(data_for_tree)
+# Read the Google Sheet into a dataframe#
+Species_info <- read_sheet(url) %>%#
+	filter(#
+		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
+		!composite_variable=="Y", #
+		!obsID=="TBD", #
+		!n_group_1 %in% c(0, 1), #
+		!n_group_2 %in% c(0, 1)) %>%#
+  select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type"))
+length(unique(Species_info$species_cleaned)) #139#
+unique(Species_info$species_cleaned) #needs cleaning#
+table(Species_info$species_cleaned)#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #
+#
+length(unique(Species_info$species_cleaned)) #139#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine#
+names(taxa)#
+synonyms(taxa) ##list of all synonyms#
+taxa$unique_name # main TOL names#
+table(taxa$approximate_match) ##0 approximate match#
+taxa %>% filter(approximate_match==TRUE)#
+table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing#
+#
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #
+#this will fail#
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+#
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node#
+#
+mytree$tip.label#
+#
+## Tree tip labels need some cleaning:#
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments#
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores#
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace#
+#
+mytree$tip.label#
+#
+#this lets me check which species names don't match up#
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching -  got quite a few left to fix#
+sort(setdiff(unique(Species_info$species_cleaned), as.character(mytree$tip.label))) ## names from species column not matching with tip label#
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## names from tip.label not matching in animal column#
+#
+#check matching records again#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching - all fixed #
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+str(mytree) #276 tips
+data_for_tree <- mutate(Species_info, tip.label = species_cleaned)  # For the correspondence between tree and data#
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree
+length(unique(Species_info$species_cleaned)) #139#
+unique(Species_info$species_cleaned) #needs cleaning#
+table(Species_info$species_cleaned)#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #
+#
+length(unique(Species_info$species_cleaned)) #139#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine#
+names(taxa)#
+synonyms(taxa) ##list of all synonyms#
+taxa$unique_name # main TOL names#
+table(taxa$approximate_match) ##0 approximate match#
+taxa %>% filter(approximate_match==TRUE)#
+table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing#
+#
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #
+#this will fail#
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+#
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node#
+#
+mytree$tip.label#
+#
+## Tree tip labels need some cleaning:#
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments#
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores#
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace#
+#
+mytree$tip.label#
+#
+#this lets me check which species names don't match up#
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching -  got quite a few left to fix#
+sort(setdiff(unique(Species_info$species_cleaned), as.character(mytree$tip.label))) ## names from species column not matching with tip label#
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## names from tip.label not matching in animal column#
+#
+#check matching records again#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching - all fixed #
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+str(mytree) #276 tips
+head(data_for_tree)
+data_for_tree <- mutate(Species_info, tip.label = species_cleaned)  # For the correspondence between tree and data#
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree
+unique(data_for_tree$dispersal_type)
+"breeding", both = dispersal_type == "B")  # Summarise, for each species, whether they tested initial effects, persistent effects, CTmax, or LT50
+data_for_tree <- data_for_tree %>%#
+    group_by(tip.label) %>%#
+    summarise(natal = dispersal_type == "natal", breeding = dispersal_type ==#
+        "breeding", both = dispersal_type == "B")  # Summarise, for each species, whether they tested initial effects, persistent effects, CTmax, or LT50
+data_for_tree$natal = as.numeric(data_for_tree$natal)  # convert TRUE/FALSE to binary values#
+data_for_tree$breeding = as.numeric(data_for_tree$breeding)  # convert TRUE/FALSE to binary values#
+data_for_tree$both = as.numeric(data_for_tree$both)  #convert TRUE/FALSE to binary values
+data_for_tree <- data_for_tree %>% #
+ 	group_by(tip.label) %>%#
+ 	summarise(natal = sum(natal), breeding = sum(breeding), both = sum(both))
+head(data_for_tree)
+data_for_tree$natal[data_for_tree$natal > 1] <- "1"
+head(data_for_tree)
+data_for_tree$breeding[data_for_tree$breeding >1] <- "1"
+data_for_tree$both[data_for_tree$both >1] <- "1"
+head(data_for_tree)
+data_for_tree$natal = as.factor(data_for_tree$natal)  # convert back to factor for the plot#
+data_for_tree$breeding = as.factor(data_for_tree$breeding)#
+data_for_tree$both = as.factor(data_for_tree$both)
+"0" & both == "0", "natal", ifelse(natal == "0" & breeding == "1" & both == "0", "breeding", "both")))  # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
+data_for_tree <- mutate(data_for_tree, dispersal_pattern = ifelse(natal == "1" & breeding ==#
+    "0" & both == "0", "natal", ifelse(natal == "0" & breeding == "1" & both == "0", "breeding", "both")))  # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
+head(data_for_tree)
+es_count <- Species_info %>%#
+	group_by(tip.label) %>%#
+	mutate(n_es=sum(n=n())) %>%#
+	ungroup()
+es_count <- Species_info %>%#
+	group_by(species_cleaned) %>%#
+	mutate(n_es=sum(n=n())) %>%#
+	ungroup()  # For the correspondence between tree and data
+es_count <- Species_info %>%#
+	group_by(species_cleaned) %>%#
+	mutate(n_es=sum(n=n()), tip.label=species_cleaned) %>%#
+	ungroup()
+head(ex_count)
+head(es_count)
+es_count <- distinct(es_count)
+data_for_tree_plot <- left_join(es_count, data_for_tree, by = "tip.label")  # Join this information to the rest of the data we want to plot
+head(data_for_tree_plot)
+p <- ggtree(tree_for_plot, layout = "circular", lwd = 0.75)  # Circular tree
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.07,#
+    offset = 0.085, col = "gray30") + scale_fill_manual(values = c("gray70", "white",#
+    "black"))  # Create tiles to indicate which metric was used for this species
+p2
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.07,#
+    offset = 0.085, col = "gray30") + scale_fill_manual(values = c("gray70", "red",#
+    "black"))  # Create tiles to indicate which metric was used for this species
+p2
+data_for_tree_plot
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.07,#
+    offset = 0.085)
+p2
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.07,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "red",#
+    "black"))
+p2
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.15,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "red",#
+    "black"))  # Create tiles to indicate which metric was used for this species
+p2
+data_for_tree_plot
+data_for_tree_plot$dispersal_pattern <- as.character(data_for_tree_plot$dispersal_pattern)
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.15,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "red",#
+    "black"))  # Create tiles to indicate which metric was used for this species
+p2
+str(data_for_tree_plot)
+str(mytree)
+data_for_tree_plot %>% group_by(tip.label) %>% summarise(n = n())
+data_for_tree_plot <- distinct(data_for_tree_plot)
+str(data_for_tree_plot)
+data_for_tree_plot <- data_for_tree_plot %>% dplyr::select(tip.label, n_es, dispersal_pattern)
+data_for_tree_plot <- distinct(data_for_tree_plot)
+str(data_for_tree_plot)
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.15,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "red",#
+    "black"))  # Create tiles to indicate which metric was used for this species
+p2
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es,
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es,#
+    fill = class), stat = "identity", col = "gray1", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8) + scale_fill_manual(values = c("#00BBDB",#
+    "darkslategray4", "darkorange", "chartreuse", "indianred2", "lightsteelblue2",#
+    "darkorchid", "darkseagreen1", "deeppink", "darkred", "forestgreen", "darkolivegreen2",#
+    "#39568CFF", "darkgoldenrod2"))  # Display number of effect sizes
+p3
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray1", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8))  # Display number of effect sizes
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray1", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes
+p3
+# Read the Google Sheet into a dataframe#
+Species_info <- read_sheet(url) %>%#
+	filter(#
+		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
+		!composite_variable=="Y", #
+		!obsID=="TBD", #
+		!n_group_1 %in% c(0, 1), #
+		!n_group_2 %in% c(0, 1)) %>%#
+  select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type", "fitness_higher_level")) #
+length(unique(Species_info$species_cleaned)) #139#
+unique(Species_info$species_cleaned) #needs cleaning#
+table(Species_info$species_cleaned)#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #
+#
+length(unique(Species_info$species_cleaned)) #139#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine#
+names(taxa)#
+synonyms(taxa) ##list of all synonyms#
+taxa$unique_name # main TOL names#
+table(taxa$approximate_match) ##0 approximate match#
+taxa %>% filter(approximate_match==TRUE)#
+table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing#
+#
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #
+#this will fail#
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+#
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node#
+#
+mytree$tip.label#
+#
+## Tree tip labels need some cleaning:#
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments#
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores#
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace#
+#
+mytree$tip.label#
+#
+#this lets me check which species names don't match up#
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching -  got quite a few left to fix#
+sort(setdiff(unique(Species_info$species_cleaned), as.character(mytree$tip.label))) ## names from species column not matching with tip label#
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## names from tip.label not matching in animal column#
+#
+#check matching records again#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching - all fixed #
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+str(mytree) #276 tips
+#these tip labels are only to be used to relabel for the final plot, not for the data that is being shared#
+#
+data_for_tree <- mutate(Species_info, tip.label = species_cleaned)  # For the correspondence between tree and data#
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree#
+#
+summary(data_for_tree$tip.label)  # Need to remove duplicate species for building the tree#
+#
+data_for_tree <- data_for_tree %>%#
+    group_by(tip.label) %>%#
+    summarise(natal = dispersal_type == "natal", breeding = dispersal_type ==#
+        "breeding", both = dispersal_type == "B")  # Summarise, for each species, whether they tested natal effects, breeding effects, both, or LT50#
+ data_for_tree$natal = as.numeric(data_for_tree$natal)  # convert TRUE/FALSE to binary values#
+data_for_tree$breeding = as.numeric(data_for_tree$breeding)  # convert TRUE/FALSE to binary values#
+data_for_tree$both = as.numeric(data_for_tree$both)  #convert TRUE/FALSE to binary values#
+#
+ data_for_tree <- data_for_tree %>% #
+ 	group_by(tip.label) %>%#
+ 	summarise(natal = sum(natal), breeding = sum(breeding), both = sum(both))#
+ # In some cases, values were repeated, so need to replace '2' values by '1'#
+data_for_tree$natal[data_for_tree$natal > 1] <- "1"#
+data_for_tree$breeding[data_for_tree$breeding >1] <- "1"#
+data_for_tree$both[data_for_tree$both >1] <- "1"#
+#
+data_for_tree$natal = as.factor(data_for_tree$natal)  # convert back to factor for the plot#
+data_for_tree$breeding = as.factor(data_for_tree$breeding)#
+data_for_tree$both = as.factor(data_for_tree$both)
+data_for_tree <- mutate(data_for_tree, dispersal_pattern = ifelse(natal == "1" & breeding =="0" & both == "0", "natal", ifelse(natal == "0" & breeding == "1" & both == "0", "breeding", "both")))  # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
+head(Species_info)
+# Read the Google Sheet into a dataframe#
+Species_info <- read_sheet(url) %>%#
+	filter(#
+		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics#
+		!composite_variable=="Y", #
+		!obsID=="TBD", #
+		!n_group_1 %in% c(0, 1), #
+		!n_group_2 %in% c(0, 1)) %>%#
+  select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type", "fitness_higher_level"))
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #
+#
+length(unique(Species_info$species_cleaned)) #139#
+#
+taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine#
+names(taxa)#
+synonyms(taxa) ##list of all synonyms#
+taxa$unique_name # main TOL names#
+table(taxa$approximate_match) ##0 approximate match#
+taxa %>% filter(approximate_match==TRUE)#
+table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing#
+#
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #
+#this will fail#
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+#
+is.binary(mytree) #if it returns FALSE that means you have several branches coming from the same node#
+#
+mytree$tip.label#
+#
+## Tree tip labels need some cleaning:#
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments#
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores#
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace#
+#
+mytree$tip.label#
+#
+#this lets me check which species names don't match up#
+#you want to get 100% matching records between the two (your original labels and the labels in the tree)#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching -  got quite a few left to fix#
+sort(setdiff(unique(Species_info$species_cleaned), as.character(mytree$tip.label))) ## names from species column not matching with tip label#
+sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## names from tip.label not matching in animal column#
+#
+#check matching records again#
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 139 names are matching - all fixed #
+#
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)#
+str(mytree) #276 tips
+data_for_tree <- mutate(Species_info, tip.label = species_cleaned)  # For the correspondence between tree and data#
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree
+summary(data_for_tree$tip.label)  # Need to remove duplicate species for building the tree
+head(Species_info)
+data_for_tree <- mutate(df, tip.label = species_cleaned)  # For the correspondence between tree and data
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree#
+#
+summary(data_for_tree$tip.label)  # Need to remove duplicate species for building the tree
+head(df)
+summary(df)
+data_for_tree <- data_for_tree %>%#
+    group_by(tip.label) %>%#
+    summarise(natal = dispersal_type == "natal", breeding = dispersal_type ==#
+        "breeding", both = dispersal_type == "B", survival = fitness_higher_level == "survival", reproduction = fitness_higher_level == "reproduction", indirect = fitness_higher_level == "indirect fitness")  # Summarise, for each species, whether they tested natal effects, breeding effects, both, or LT50
+data_for_tree$natal = as.numeric(data_for_tree$natal)  # convert TRUE/FALSE to binary values#
+data_for_tree$breeding = as.numeric(data_for_tree$breeding)  # convert TRUE/FALSE to binary values#
+data_for_tree$both = as.numeric(data_for_tree$both)  #convert TRUE/FALSE to binary values#
+ data_for_tree$survival = as.numeric(data_for_tree$survival)  # convert TRUE/FALSE to binary values#
+data_for_tree$reproduction = as.numeric(data_for_tree$reproduction)  # convert TRUE/FALSE to binary values#
+data_for_tree$indirect = as.numeric(data_for_tree$indirect)
+data_for_tree <- data_for_tree %>% #
+ 	group_by(tip.label) %>%#
+ 	summarise(natal = sum(natal), breeding = sum(breeding), both = sum(both), survival=sum(survival), reproduction=sum(reproduction), indirect=sum(indirect))
+data_for_tree$survival[data_for_tree$survival > 1] <- "1"#
+data_for_tree$reproduction[data_for_tree$reproduction >1] <- "1"#
+data_for_tree$indirect[data_for_tree$indirect >1] <- "1"
+data_for_tree <- mutate(data_for_tree, fitness_measure = ifelse(survival == "1" & reproduction =="0" & indirect == "0", "survival", ifelse(survival == "0" & reproduction == "1" & indirect == "0", "reproduction", ifelse(survival == "0" & reproduction == "0" & indirect == "1", "indirect", "multiple"))))  # If survival, reproduction, or inbreeding, indicate 'multiple', if only survival, indicate 'survival', otherwise indicate 'reproductive'
+es_count <- Species_info %>%#
+	group_by(species_cleaned) %>%#
+	mutate(n_es=sum(n=n()), tip.label=species_cleaned) %>%#
+	ungroup()  # For the correspondence between tree and data#
+es_count <- distinct(es_count)
+data_for_tree_plot <- left_join(es_count, data_for_tree, by = "tip.label")  # Join this information to the rest of the data we want to plot
+data_for_tree_plot <- data_for_tree_plot %>% dplyr::select(tip.label, n_es, dispersal_pattern, fitness_measure)
+data_for_tree <- mutate(data_for_tree, dispersal_pattern = ifelse(natal == "1" & breeding =="0" & both == "0", "natal", ifelse(natal == "0" & breeding == "1" & both == "0", "breeding", "both")))  # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
+data_for_tree_plot <- left_join(es_count, data_for_tree, by = "tip.label")  # Join this information to the rest of the data we want to plot
+data_for_tree_plot <- data_for_tree_plot %>% dplyr::select(tip.label, n_es, dispersal_pattern, fitness_measure)
+data_for_tree_plot <- distinct(data_for_tree_plot)
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree
+p
+p <- p %<+% data_for_tree_plot  # link plot to data
+p
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 0.15,
+offset = 0.085) + scale_fill_manual(values = c("gray70", "red",
+"black"))  # Create tiles to indicate which metric was used for this species
+p2
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 0.07, col = "gray30") + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77", "blue"))  # Create tiles to indicate which metric was used for this species#
+p3
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 0.07) + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77", "blue"))  # Create tiles to indicate which metric was used for this species#
+p3
+data_for_tree_plot$n_es = as.numeric(data_for_tree_plot$n_es)  # Convert to numeric
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray1", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "red",#
+    "black"))  # Create tiles to indicate which metric was used for this species
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "red",#
+    "black"))  # Create tiles to indicate which metric was used for this species#
+p2#
+#
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77", "blue"))  # Create tiles to indicate which metric was used for this species#
+p3#
+#
+data_for_tree_plot$n_es = as.numeric(data_for_tree_plot$n_es)  # Convert to numeric #
+#
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray1", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77", "#6495ED"))  # Create tiles to indicate which metric was used for this species#
+p3
+data_for_tree <- mutate(df, tip.label = species_cleaned)  # For the correspondence between tree and data#
+data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor#
+data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data#
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree#
+#
+summary(data_for_tree$tip.label)  # Need to remove duplicate species for building the tree#
+#
+data_for_tree <- data_for_tree %>%#
+    group_by(tip.label) %>%#
+    summarise(natal = dispersal_type == "natal", breeding = dispersal_type ==#
+        "breeding", both = dispersal_type == "B", survival = fitness_higher_level == "survival", reproduction = fitness_higher_level == "reproduction", indirect = fitness_higher_level == "indirect fitness")  # Summarise, for each species, whether they tested natal effects, breeding effects, or both - and also for the fitness higher level stuff#
+#
+ data_for_tree$natal = as.numeric(data_for_tree$natal)  # convert TRUE/FALSE to binary values#
+data_for_tree$breeding = as.numeric(data_for_tree$breeding)  # convert TRUE/FALSE to binary values#
+data_for_tree$both = as.numeric(data_for_tree$both)  #convert TRUE/FALSE to binary values#
+ data_for_tree$survival = as.numeric(data_for_tree$survival)  # convert TRUE/FALSE to binary values#
+data_for_tree$reproduction = as.numeric(data_for_tree$reproduction)  # convert TRUE/FALSE to binary values#
+data_for_tree$indirect = as.numeric(data_for_tree$indirect)  #convert TRUE/FALSE to binary values#
+#
+ data_for_tree <- data_for_tree %>% #
+ 	group_by(tip.label) %>%#
+ 	summarise(natal = sum(natal), breeding = sum(breeding), both = sum(both), survival=sum(survival), reproduction=sum(reproduction), indirect=sum(indirect))#
+ # In some cases, values were repeated, so need to replace '2' values by '1'#
+data_for_tree$natal[data_for_tree$natal > 1] <- "1"#
+data_for_tree$breeding[data_for_tree$breeding >1] <- "1"#
+data_for_tree$both[data_for_tree$both >1] <- "1"#
+#
+ # In some cases, values were repeated, so need to replace '2' values by '1'#
+data_for_tree$survival[data_for_tree$survival > 1] <- "1"#
+data_for_tree$reproduction[data_for_tree$reproduction >1] <- "1"#
+data_for_tree$indirect[data_for_tree$indirect >1] <- "1"#
+data_for_tree$natal = as.factor(data_for_tree$natal)  # convert back to factor for the plot#
+data_for_tree$breeding = as.factor(data_for_tree$breeding)#
+data_for_tree$both = as.factor(data_for_tree$both)#
+#
+data_for_tree$survival = as.factor(data_for_tree$survival)  # convert back to factor for the plot#
+data_for_tree$reproduction = as.factor(data_for_tree$reproduction)#
+data_for_tree$indirect = as.factor(data_for_tree$indirect)#
+data_for_tree <- mutate(data_for_tree, dispersal_pattern = ifelse(natal == "1" & breeding =="0" & both == "0", "natal", ifelse(natal == "0" & breeding == "1" & both == "0", "breeding", "both")))  # If both natal and breeding, indicate 'both', if only natal, indicate 'natal', otherwise indicate 'breeding'
+head(data_for_tree)
+data_for_tree%>%filter(indirect==1)
+data_for_tree <- mutate(data_for_tree, fitness_measure = ifelse(survival == "1" & reproduction =="0" & indirect == "0", "survival", ifelse(survival == "0" & reproduction == "1" & indirect == "0", "reproduction", ifelse(survival == "0" & reproduction == "0" & indirect == "1", "indirect", "multiple"))))  # If survival, reproduction, or inbreeding, indicate 'multiple', if only survival, indicate 'survival', otherwise indicate 'reproductive'
+head(data_for_tree)
+es_count <- Species_info %>%#
+	group_by(species_cleaned) %>%#
+	mutate(n_es=sum(n=n()), tip.label=species_cleaned) %>%#
+	ungroup()  # For the correspondence between tree and data#
+es_count <- distinct(es_count)#
+#
+data_for_tree_plot <- left_join(es_count, data_for_tree, by = "tip.label")  # Join this information to the rest of the data we want to plot#
+#
+data_for_tree_plot <- data_for_tree_plot %>% dplyr::select(tip.label, n_es, dispersal_pattern, fitness_measure)#
+data_for_tree_plot <- distinct(data_for_tree_plot)#
+#
+p <- ggtree(mytree, layout = "circular", lwd = 0.75)  # Circular tree#
+p <- p %<+% data_for_tree_plot  # link plot to data#
+p#
+#
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "white",#
+    "black"))  # Create tiles to indicate which metric was used for this species#
+p2#
+#
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77", "#6495ED"))  # Create tiles to indicate which metric was used for this species#
+p3
+p3
+p3
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("gray70", "bisque",#
+    "black"))  # Create tiles to indicate which metric was used for this species#
+p2
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77", "#6495ED"))  # Create tiles to indicate which metric was used for this species#
+p3
+data_for_tree_plot$n_es = as.numeric(data_for_tree_plot$n_es)  # Convert to numeric
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "x", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("reddishpurple", "yellow",#
+    "black"))  # Create tiles to indicate which metric was used for this species#
+p2
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("#CC79A7", "#F0E442", "black"))  # Create tiles to indicate which metric was used for this species#
+p2
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D95F02",#
+    "#7570B3", "#1B9E77"))  # Create tiles to indicate which metric was used for this species#
+p3
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D55E00",#
+    "#7570B3", "#009E73"))  # Create tiles to indicate which metric was used for this species#
+p3
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D55E00",#
+    "#0072B2", "#009E73"))  # Create tiles to indicate which metric was used for this species#
+p3
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("#009E73", "#F0E442", "black"))  # Create tiles to indicate which metric was used for this species#
+p2#
+#
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#D55E00",#
+    "#0072B2", "#CC79A7"))  # Create tiles to indicate which metric was used for this species#
+p3
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#E69F00",#
+    "#0072B2", "#CC79A7"))  # Create tiles to indicate which metric was used for this species#
+p3
+offset = 0.085) + scale_fill_manual(values = c("#009E73", "#CC79A7", "black"))  # Create tiles to indicate which metric was used for this species
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("#009E73", "#CC79A7", "black"))  # Create tiles to indicate which metric was used for this species
+p2 <- p + geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 1,#
+    offset = 0.085) + scale_fill_manual(values = c("#009E73", "#CC79A7", "black"))  # Create tiles to indicate which metric was used for this species
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#E69F00",#
+    "#0072B2", "#F0E442"))  # Create tiles to indicate which metric was used for this species#
+p3
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -45, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = 0, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -90, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+img <- pick_phylopic(name = "Canis lupus", n = 4, view = 4)#
+uuid <- get_uuid(name = "Canis lupus", n = 4)#
+add_phylopic_base(uuid = uuid, x = 1, y = 1, ysize = 0.25)
+library(rphylopic)
+img <- pick_phylopic(name = "Canis lupus", n = 4, view = 4)#
+uuid <- get_uuid(name = "Canis lupus", n = 4)#
+add_phylopic_base(uuid = uuid, x = 1, y = 1, ysize = 0.25)
+uuid <- get_uuid(name = "Canis lupus", n = 4)
+add_phylopic_base(uuid = uuid, x = 1, y = 1, ysize = 0.25)
+p4 <- p4 + add_phylopic(uuid = uuid, x = 1, y = 1, ysize = 0.25)
+p4
+p4
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -90, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -90, hjust = 0, text.size = 3), border = 1.2, grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -90, hjust = 0, text.size = 3), grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes
+p4
+p3 <- p2 + new_scale_fill() + geom_fruit(geom = geom_tile, mapping = aes(fill = fitness_measure),#
+    offset = 0.1, width = 1) + scale_fill_manual(values = c("#E69F00",#
+    "#F0E442", "#0072B2"))  # Create tiles to indicate which metric was used for this species
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -90, hjust = 0, text.size = 3), grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4
+p5 <- p4 + add_phylopic(uuid = uuid, x = 1, y = 1, ysize = 0.25)
+p5
+p5 <- p4 + add_phylopic(uuid = uuid, x = 0.8, y = 5.5, ysize = 0.25)
+p5
+d <- ggimage::phylopic_uid(mytree$tip.label)
+p5 <- p4 %<+% d + #
+  geom_tiplab(aes(image=uid), geom="phylopic", offset=2.5)
+head(mytree)
+d <- ggimage::phylopic_uid((mytree%>%filter(tip.label=="Ursus americanus"))$tip.label)
+img<-readPNG(system.file("red squirrel", package="png"))
+library(png)
+library(grid)
+img<-readPNG(system.file("red squirrel", package="png"))
+img<-readPNG(system.file("img", package="png"))
+img<-readPNG(system.file("Rlogo.png", package="png"))
+logo_file <- system.file("extdata", "logo.png", package = "cowplot")
+my_plot_2 <- ggdraw() +#
+  draw_image(logo_file,  x = 0.3, y = 0.4, scale = .2) +#
+  draw_plot(my_plot)#
+my_plot_2
+my_plot_2 <- p4+ ggdraw() +#
+  draw_image(logo_file,  x = 0.3, y = 0.4, scale = .2) +#
+  draw_plot(my_plot)#
+my_plot_2
+p5 <- p4 + xlim(NA, 7) + ylim(NA, 7)
+p5
+imgdir <- system.file("extdata/frogs", package = "TDbook")
+p5 <- p4 + geom_image(x=1, y=1, image=paste0(imgdir, "/frog/jpg"), size=2)
+p5 <- p4 + ggimage::geom_image(x=1, y=1, image=paste0(imgdir, "/frog/jpg"), size=2)
+p5
+p4
+p5 <- p4 + ggimage::geom_image(x=1, y=1, image=paste0(imgdir, "/frog.jpg"), size=2)#
+p5
+library(ggimage)
+p5 <- p4 + geom_image(x=1, y=1, image=paste0(imgdir, "/frog.jpg"), size=.2)
+p5
+rlang::last_trace()
+p5 <- p4 + geom_image(x=1, y=1, image=paste0("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures", "/frog.jpg"), size=.2)
+p5
+imgdir <- system.file("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/silhouettes")
+imgdir
+imgdir
+p5 <- p4 + geom_image(x=1, y=1, image=paste0(imgdir, ""), size=.2)
+p5
+imgdir <- system.file("https://www.phylopic.org/images/4afd156c-051f-4b43-9064-cf6b673faadb/lepus-europaeus")
+imgdir
+imgdir <- "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/silhouettes"
+imgdir
+imgdir <- swd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/silhouettes")
+imgdir <- stwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/silhouettes")
+imgdir <- setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/silhouettes")
+imgdir
+setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/silhouettes")
+p5 <- p4 + geom_image(x=1, y=1, image=paste0("red squirrel.png"), size=.2)
+p5
+p5 <- p4 + geom_image(x=1, y=1, image=paste0("red squirrel.png"), size=.2)#
+p5
+p5 <- p4 + geom_image(x=1, y=1, image=paste0("red squirrel.png"), size=.1)#
+p5
+p5 <- p4 + geom_image(x=1, y=1, image=paste0("red squirrel.png"), size=.1)
+p5
+ggtree(mytree, layout="circular") +                    #
+   geom_tiplab( )
+p5 <- p4 + geom_image(x=-2, y=5, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=-40, y=60, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=40, y=60, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=40, y=80, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=30, y=60, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=15, y=80, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=15, y=10, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=15, y=-10, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=15, y=40, image=paste0("red squirrel.png"), size=.05)#
+p5
+p5 <- p4 + geom_image(x=10, y=50, image=paste0("red squirrel.png"), size=.05)#
+p5
+p4 <- p3 + new_scale_fill() + geom_fruit(geom = geom_bar, mapping = aes(x = n_es), stat = "identity", col = "gray97", orientation = "y", axis.params = list(axis = "x",#
+    text.angle = -90, hjust = 0, text.size = 3), grid.params = list(alpha = 0.35),#
+    offset = 0.085, pwidth = 0.55, alpha = 0.8)  # Display number of effect sizes#
+#
+p4

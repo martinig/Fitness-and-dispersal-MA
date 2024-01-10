@@ -30,7 +30,7 @@ Species_info <- read_sheet(url) %>%
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
-  select(c("reference", "paperID", "common_name", "species_cleaned")) 
+  select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type")) 
   
 length(unique(Species_info$species_cleaned)) #139
 unique(Species_info$species_cleaned) #needs cleaning
