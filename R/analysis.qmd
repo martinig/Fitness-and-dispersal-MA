@@ -34,6 +34,11 @@ execute:
   #cache: true
 ---
 
+Outstanding things and notes
+
+- need to think what to do with classes less than 5 studies
+
+
 ## Setting up
 
 ### Loading packages
@@ -483,6 +488,13 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
                          dat$direction_change, dat$function_needed), 
                     effect_size)                    
 
+# adding absolute value (effect sizes) too
+dat <- dat %>% mutate(
+  abs_yi = abs(yi), # we use this one (conservative)
+  abs_yi2 = folded_mu(yi, vi), # alternative way
+  abs_vi = folded_v(yi, vi))
+
+
 # dat$Zr <- unlist(effect1[1,])
 # dat$VZr <- unlist(effect1[2,])
 
@@ -514,6 +526,13 @@ dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)
 # creating a VCV for sampling error variances 
 # we assure shared groups will have r = 0.5
 VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+VCV <- nearPD(VCV)$mat
+
+
+# creating VCV for absolute values
+VCV_abs <- vcalc(vi = dat$abs_vi, cluster = dat$shared_group, rho = 0.5)
+VCV_abs <- nearPD(VCV_abs)$mat
+
 
 ```
 
@@ -560,6 +579,24 @@ round(i2_ml(mod),2)
 
 ```{r}
 
+# phylogeney accounts nothing (0) so we can take it out
+mod1 <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              test = "t",
+              sparse = TRUE)
+
+summary(mod1)
+
+round(i2_ml(mod1),2)   
+
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
+
 ```
 
 
@@ -580,8 +617,6 @@ mod1 <- rma.mv(yi = yi,
                 ~ 1 | effectID,
                 ~ 1 | paperID,
                 ~ 1 | species_cleaned),
-               # ~ 1 | phylogeny),
-              #R= list(phylogeny = cor_tree),
               test = "t",
               sparse = TRUE)
 
@@ -609,8 +644,6 @@ mod_sex <- rma.mv(yi = yi,
                 ~ 1 | effectID,
                 ~ 1 | paperID,
                 ~ 1 | species_cleaned),
-              #              ~ 1 | phylogeny),
-              #R= list(phylogeny = cor_tree),
               test = "t",
               sparse = TRUE)
 summary(mod_sex)
@@ -624,10 +657,284 @@ orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", 
 
 
 ```{r}
+mod_type <- rma.mv(yi = yi,  
+               V = VCV,
+               mod = ~ study_type - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_type)
+
+r2_ml(mod_type)
+
+orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
 
 ```
 
 
+## Age classes
+
+### Higher age grouping
+
+```{r}
+mod_age1 <- rma.mv(yi = yi,
+               V = VCV,
+               mod = ~ age_class_clean - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_age1)
+r2_ml(mod_age1)
+
+
+orchard_plot(mod_age1, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+```
+
+### Finer age grouping
+
+```{r}
+
+# ageclass
+mod_age2 <- rma.mv(yi = yi,
+               V = VCV,
+               mod = ~ age_class - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_age2)
+r2_ml(mod_age2)
+
+
+orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+```
+
+
+## Adult or offspring fitness?
+
+```{r}
+mod_gen <- rma.mv(yi = yi, 
+                V = VCV,
+               mod = ~ whose_fitness - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_gen)
+
+orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+```
+
+## Fitness metric
+
+### Higher level
+
+```{r}
+mod_fit1 <- rma.mv(yi = yi, 
+               V = VCV,
+               mod = ~ fitness_higher_level - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_fit1)
+r2_ml(mod_fit1)
+
+orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+### Finer level
+
+- need to think what to do with classes less than 5 studies
+
+```{r}
+mod_fit2 <- rma.mv(yi = yi, 
+               V = VCV,
+               mod = ~ fitness_metric_clean - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_fit2)
+r2_ml(mod_fit2)
+
+orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+## Dispersal type
+
+```{r}
+mod_disp1 <- rma.mv(yi = yi, 
+               V = VCV,
+               mod = ~ dispersal_type - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_disp1)
+r2_ml(mod_disp1)
+
+orchard_plot(mod_disp1, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+## Dispersal phase
+
+```{r}
+mod_disp2 <- rma.mv(yi = yi, V = vi,
+               mod = ~ dispersal_phase - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_disp2)
+r2_ml(mod_disp2)
+
+orchard_plot(mod_disp2, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+## Study focus
+
+### normal analysis
+
+```{r}
+mod12 <- rma.mv(yi = yi, 
+                V = VCV,
+                mod = ~ fitness_main_focus - 1,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                # ~ 1 | phylogeny),
+                # R= list(phylogeny = cor_tree),
+                test = "t",
+                sparse = TRUE)
+summary(mod12)
+r2_ml(mod12)
+orchard_plot(mod12, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
+
+
+```{r}
+# hetero
+
+
+```
+
+
+## absolute value analysis
+
+```{r}
+
+mod11 <- rma.mv(yi = abs_yi2, 
+                V = VCV_abs,
+                mod = ~ fitness_main_focus - 1,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                # ~ 1 | phylogeny),
+                # R= list(phylogeny = cor_tree),
+                test = "t",
+                sparse = TRUE)
+summary(mod11)
+r2_ml(mod11)
+```
+
+```{r}
+
+mod11a <- rma.mv(yi = abs_yi2, 
+                V = VCV_abs,
+                mod = ~ fitness_main_focus,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                # ~ 1 | phylogeny),
+                # R= list(phylogeny = cor_tree),
+                test = "t",
+                sparse = TRUE,
+                method = "ML",
+                control = list(optimizer = "Nelder-Mead"))
+                
+summary(mod11a)
+
+# hetero
+mod11b <- rma.mv(yi = abs_yi2, 
+                 V = VCV_abs,
+                 mod = ~ fitness_main_focus,
+                 data = dat, 
+                 random = list(
+                   ~ fitness_main_focus | effectID,
+                   ~ 1 | paperID,
+                   ~ 1 | species_cleaned),
+                 struct = "DIAG",
+                 # ~ 1 | phylogeny),
+                 # R= list(phylogeny = cor_tree),
+                 method = "ML",
+                 test = "t",
+                 sparse = TRUE,
+                 control = list(optimizer = "Nelder-Mead"))
+summary(mod11b)
+
+anova(mod11a, mod11b)
+
+
+orchard_plot(mod11b, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
+
+## Study design
+
+```{r}
+mod_design <- rma.mv(yi = yi, V = vi,
+               mod = ~ study_design - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_design)
+r2_ml(mod_design)
+
+orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+
+
+::: {.panel-tabset}
 
 
 ## Multi-moderator-regression model
@@ -640,70 +947,6 @@ orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", 
 
 ```
  
-
-## Age classes
-
-Higher age grouping
-
-```{r}
-
-```
-
-Finer age grouping
-
-```{r}
-
-```
-
-
-## Adult or offspring fitness?
-
-```{r}
-
-```
-
-## 
-
-```{r}
-
-```
-
-## 
-
-```{r}
-
-```
-
-## 
-
-```{r}
-
-```
-
-## 
-
-```{r}
-
-```
-
-## 
-
-```{r}
-
-```
-
-## 
-
-```{r}
-
-```
-
-
-
-::: {.panel-tabset}
-
-
-## Multi-moderator-regression model
 
 
 ## Publication bias
