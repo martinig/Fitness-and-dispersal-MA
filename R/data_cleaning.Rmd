@@ -3,7 +3,8 @@
 		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
-		!n_group_2 %in% c(0, 1)) %>%	mutate_if(is.character, as.factor) %>%
+		!n_group_2 %in% c(0, 1)) %>%
+  separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%		mutate_if(is.character, as.factor) %>%
 	mutate(
 		publication_year =str_sub(reference, start = -4),
 		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),

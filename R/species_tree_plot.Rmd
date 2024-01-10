@@ -12,33 +12,57 @@ ggtree(mytree, layout="circular", branch.length = "none")
    
    
       
-
 #these tip labels are only to be used to relabel for the final plot, not for the data that is being shared
 
-data_for_tree <- mutate(df, tip.label = species_cleaned)  # For the correspondence between tree and data
-data_for_tree $tip.label = as.factor(data_for_tree$tip.label)  # Convert to factor
-data_for_tree$tip.label <- gsub("_", " ", data_for_tree$tip.label)  # remove underscores from data
 mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)  # remove underscores from tree
 
-summary(data_for_tree$tip.label)  # Need to remove duplicate species for building the tree
+data_for_tree <- df %>% 
+  mutate(
+    natal = as.numeric(dispersal_type == "natal"),
+    breeding = as.numeric(dispersal_type == "breeding"),
+    both = as.numeric(dispersal_type == "B"),
+    survival = as.numeric(fitness_higher_level == "survival"),
+    reproduction = as.numeric(fitness_higher_level == "reproduction"),
+    indirect = as.numeric(fitness_higher_level == "indirect fitness")
+  ) %>%
+  group_by(species_cleaned) %>%
+  mutate(
+    tip.label = as.factor(gsub("_", " ", species_cleaned)),
+    n_es = sum(n = n()),
+    across(c(natal, breeding, both, survival, reproduction, indirect), ~ ifelse(sum(.) > 1, 1, .), .names = "sum_{.col}") %>%
+    mutate(across(c(natal, breeding, both, survival, reproduction, indirect), as.factor)),
+    dispersal_pattern = case_when(
+      sum_natal == 1 & sum_breeding == 0 & sum_both == 0 ~ "natal",
+      sum_natal == 0 & sum_breeding == 1 & sum_both == 0 ~ "breeding",
+      TRUE ~ "both"
+    ),
+    fitness_measure = case_when(
+      sum_survival == 1 & sum_reproduction == 0 & sum_indirect == 0 ~ "survival",
+      sum_survival == 0 & sum_reproduction == 1 & sum_indirect == 0 ~ "reproduction",
+      sum_survival == 0 & sum_reproduction == 0 & sum_indirect == 1 ~ "indirect",
+      TRUE ~ "multiple"
+    )
+  ) %>%
+  ungroup() %>%
+  dplyr::select(tip.label, n_es, dispersal_pattern, fitness_measure) %>%
+  distinct()
 
-data_for_tree <- data_for_tree %>%
-    group_by(tip.label) %>%
-    summarise(natal = dispersal_type == "natal", breeding = dispersal_type ==
-        "breeding", both = dispersal_type == "B", survival = fitness_higher_level == "survival", reproduction = fitness_higher_level == "reproduction", indirect = fitness_higher_level == "indirect fitness")  # Summarise, for each species, whether they tested natal effects, breeding effects, or both - and also for the fitness higher level stuff
-
- data_for_tree$natal = as.numeric(data_for_tree$natal)  # convert TRUE/FALSE to binary values
-data_for_tree$breeding = as.numeric(data_for_tree$breeding)  # convert TRUE/FALSE to binary values
-data_for_tree$both = as.numeric(data_for_tree$both)  #convert TRUE/FALSE to binary values
 
 
- data_for_tree$survival = as.numeric(data_for_tree$survival)  # convert TRUE/FALSE to binary values
-data_for_tree$reproduction = as.numeric(data_for_tree$reproduction)  # convert TRUE/FALSE to binary values
-data_for_tree$indirect = as.numeric(data_for_tree$indirect)  #convert TRUE/FALSE to binary values
+data_for_tree %>% filter(tip.label=="Ctenomys sociabilis")
+es_count %>% filter(tip.label=="Ctenomys sociabilis")
+data_for_tree_plot %>% filter(tip.label=="Ctenomys sociabilis")
 
- data_for_tree <- data_for_tree %>% 
- 	group_by(tip.label) %>%
- 	summarise(natal = sum(natal), breeding = sum(breeding), both = sum(both), survival=sum(survival), reproduction=sum(reproduction), indirect=sum(indirect))
+
+
+
+
+
+
+
+
+
+
  
  # In some cases, values were repeated, so need to replace '2' values by '1'
 data_for_tree$natal[data_for_tree$natal > 1] <- "1"
