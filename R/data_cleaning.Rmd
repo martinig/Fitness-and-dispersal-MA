@@ -85,7 +85,7 @@ head(df)
 nrow(df) #648 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #195 studies		
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #139 species		
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #139 species #16 papers (need to do 20 % - so 39)
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #139 species #28 papers (need to do 20 % - so 39 in total)
 
 	
 test<-df %>% group_by(paperID) %>% filter(row_number()==1)	
