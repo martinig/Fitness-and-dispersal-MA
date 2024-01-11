@@ -1,22 +1,5 @@
 #code to creat a taxonomic tree
-#last edited Dec 20, 2023 by A. R. Martinig
-
-options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror
-
-#load libraries
-
-packages=c("googlesheets4", "tidyverse", "rotl", "dplyr", "ape", "ggplot2", "ggnewscale", "ggtree", "ggtreeExtra") 
-
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-
-# Packages loading
-lapply(packages, library, character.only = TRUE)
-
-select<-dplyr::select
+#last edited Jan 11, 2024 by A. R. Martinig
 
 
 # Specify the URL of your Google Sheet
