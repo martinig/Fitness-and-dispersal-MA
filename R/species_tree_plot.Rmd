@@ -48,10 +48,8 @@ data_for_tree <- df %>%
 str(data_for_tree)
 head(data_for_tree)
 
-data_for_tree_plot<-left_join(data_for_tree, (df%>%select(species_cleaned, species_class)), by ="species_cleaned") 
-head(data_for_tree_plot)
-
-
+data_for_tree_plot<-left_join(data_for_tree, (df%>%select(species_cleaned, species_class)), by ="species_cleaned") %>%
+  distinct()
 
 p <- ggtree(mytree, layout = "circular", lwd = 0.75) %<+% data_for_tree_plot  # link plot to data
 p # Circular tree
@@ -94,6 +92,8 @@ p4 <- p3 +
 	guides(fill = guide_legend(order = 1))  
 p4
 
+ ggsave("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")
+
 
 
 library(ggimage)
@@ -102,4 +102,3 @@ setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA
 p5 <- p4 + geom_image(x=10, y=50, image=paste0("red squirrel.png"), size=.05)
 p5
 
- ggsave("species_tree_circular_v0.pdf", width = 12, height = 10, scale = 10)
