@@ -45,7 +45,9 @@ Outstanding things and notes
 
 ```{r}
 pacman::p_load(tidyverse, # tidy family and related pacakges below
-               kableExtra, 
+               kableExtra, # nice tables
+               MuMIn,  # multi-model inference
+               emmeans, # post-hoc tests
                gridExtra, # may not use this
                pander,   # nice tables
                metafor,  # package for meta-analysis
@@ -54,6 +56,7 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
                patchwork,   # putting ggplots together - you need to install via devtool
                here,         # making reading files easy
                orchaRd # plotting orchard plots
+               # more too add
 
 )
 
@@ -283,6 +286,31 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
 }
 
 
+##########
+# functions for absolute values
+
+
+# folded mean
+folded_mu <-function(mean, variance){
+  mu <- mean
+  sigma <- sqrt(variance)
+  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
+  fold_mu
+} 
+
+# folded variance
+folded_v <-function(mean, variance){
+  mu <- mean
+  sigma <- sqrt(variance)
+  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
+  fold_se <- sqrt(mu^2 + sigma^2 - fold_mu^2)
+  # adding se to make bigger mean
+  fold_v <-fold_se^2
+  fold_v
+} 
+
+
+
 #' Title: Contrast name generator
 #'
 #' @param name: a vector of character strings
@@ -379,7 +407,7 @@ all_models <- function(model, mod = " ", type = "normal") {
   dat2 <- model$data
   mod <- mod
 
-
+  # creating a function to run models
   run_rma1 <- function(name) {
       
     # variance covarinace matrix for sampling errors
@@ -393,8 +421,6 @@ all_models <- function(model, mod = " ", type = "normal") {
                             ~ 1 | effectID,
                             ~ 1 | paperID,
                             ~ 1 | species_cleaned),
-                          # ~ 1 | phylogeny),
-             # R = list(phylogeny = cor_tree),
                      data = dat2,
                      test = "t",
                      sparse = TRUE,
@@ -417,7 +443,27 @@ all_models <- function(model, mod = " ", type = "normal") {
                      test = "t",
                      sparse = TRUE,
                      control = list(optimizer = "Nelder-Mead"))
+    }
+    
+    run_rma3 <- function(name) {
+      
+              # variance covarinace matrix for sampling errors
+                VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+                VCV1 <- nearPD(VCV1)$mat
+               
+                rma.mv(yi, V = VCV1,
+                   mods = ~relevel(dat2[[mod]], ref = name),
+                     random = list( # hetero in relation to mod
+                            formula(paste("~", mod, "| effectID")),
+                            ~ 1 | paperID,
+                            ~ 1 | species_cleaned),
+                     struct = "DIAG",
+                     data = dat2,
+                     test = "t",
+                     sparse = TRUE,
+                     control = list(optimizer = "Nelder-Mead"))
    }
+
 
 # results of meta-regression including all contrast results; taking the last level out ([-length(level_names)])
 # this does not work for hetero model?
@@ -425,8 +471,12 @@ if (type == "normal"){
 
     model_all <- purrr::map(level_names[-length(level_names)], run_rma1)
 
-  } else {
-  model_all <- purrr::map(level_names[-length(level_names)], run_rma2)
+  }else if(type == "absolute"){
+    model_all <- purrr::map(level_names[-length(level_names)], run_rma2)
+    
+  }else if(type == "hetero"){
+    model_all <- purrr::map(level_names[-length(level_names)], run_rma3)
+    
   }
   
   # getting estimates from intercept-less models (means for all the groups)
@@ -449,29 +499,6 @@ if (type == "normal"){
 
 }
 
-
-##########
-# functions for absolute values
-
-
-# folded mean
-folded_mu <-function(mean, variance){
-  mu <- mean
-  sigma <- sqrt(variance)
-  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
-  fold_mu
-} 
-
-# folded variance
-folded_v <-function(mean, variance){
-  mu <- mean
-  sigma <- sqrt(variance)
-  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
-  fold_se <- sqrt(mu^2 + sigma^2 - fold_mu^2)
-  # adding se to make bigger mean
-  fold_v <-fold_se^2
-  fold_v
-} 
 
 ```
 
@@ -496,7 +523,8 @@ dat <- cbind(dat, effect2)
 dat <- dat %>% mutate(
   abs_yi = abs(yi), # we use this one (conservative)
   abs_yi2 = folded_mu(yi, vi), # alternative way
-  abs_vi = folded_v(yi, vi))
+  abs_vi = folded_v(yi, vi)) %>% 
+  mutate_if(is.character, as.factor) # changing all character to factor
 
 
 # dat$Zr <- unlist(effect1[1,])
@@ -654,8 +682,26 @@ r2_ml(mod_sex)
 
 orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
+```
+
+```{r}
+#| eval: false
+
+tab_sex <- all_models(mod_sex,  mod = "sex", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_sex, here("Rdata", "tab_sex.RDS"))
+        
+```
+
+```{r}
+tab_sex <-readRDS(here("Rdata", "tab_sex.RDS"))
+
+tab_sex
 
 ```
+
+
 
 ## Study type
 
@@ -677,6 +723,23 @@ r2_ml(mod_type)
 
 orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
+```
+
+
+```{r}
+#| eval: false
+
+tab_type <- all_models(mod_type,  mod = "study_type", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_type, here("Rdata", "tab_type.RDS"))
+        
+```
+
+```{r}
+tab_type <-readRDS(here("Rdata", "tab_type.RDS"))
+
+tab_type
 
 ```
 
@@ -700,14 +763,33 @@ summary(mod_age1)
 r2_ml(mod_age1)
 
 
-orchard_plot(mod_age1, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
+
+
+```{r}
+#| eval: false
+
+tab_age1 <- all_models(mod_age1,  mod = "age_class_clean", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_age1, here("Rdata", "tab_age1.RDS"))
+        
+```
+
+```{r}
+tab_age1 <-readRDS(here("Rdata", "tab_age1.RDS"))
+
+tab_age1
+```
+
 
 ### Finer age grouping
 
 ```{r}
 
-# ageclass
+# age_class
+
 mod_age2 <- rma.mv(yi = yi,
                V = VCV,
                mod = ~ age_class - 1,
@@ -723,6 +805,8 @@ r2_ml(mod_age2)
 
 
 orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+# table not created for this (not meaningful for some levels)
 
 ```
 
@@ -746,6 +830,25 @@ orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "
 
 ```
 
+
+```{r}
+#| eval: false
+
+tab_gen <- all_models(mod_gen,  mod = "whose_fitness", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_gen, here("Rdata", "tab_gen.RDS"))
+        
+```
+
+```{r}
+tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
+
+tab_gen
+```
+
+
+
 ## Fitness metric
 
 ### Higher level
@@ -767,6 +870,24 @@ r2_ml(mod_fit1)
 orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
+
+```{r}
+#| eval: false
+
+tab_fit1 <- all_models(mod_fit1,  mod = "fitness_higher_level", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_fit1, here("Rdata", "tab_fit1.RDS"))
+        
+```
+
+```{r}
+tab_fit1 <-readRDS(here("Rdata", "tab_fit1.RDS"))
+
+tab_fit1
+```
+
+
 ### Finer level
 
 - need to think what to do with classes less than 5 studies
@@ -786,6 +907,10 @@ summary(mod_fit2)
 r2_ml(mod_fit2)
 
 orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+
+# table not created for this (not meaningful for some levels)
+
 ```
 
 ## Dispersal type
@@ -807,6 +932,26 @@ r2_ml(mod_disp1)
 orchard_plot(mod_disp1, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
+
+
+```{r}
+#| eval: false
+
+tab_disp1 <- all_models(mod_disp1,  mod = "dispersal_type", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_disp1, here("Rdata", "tab_disp1.RDS"))
+        
+```
+
+```{r}
+tab_disp1 <-readRDS(here("Rdata", "tab_disp1.RDS"))
+
+tab_disp1
+```
+
+
+
 ## Dispersal phase
 
 ```{r}
@@ -825,13 +970,102 @@ r2_ml(mod_disp2)
 orchard_plot(mod_disp2, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
+```{r}
+#| eval: false
+
+tab_disp2 <- all_models(mod_disp2,  mod = "dispersal_phase", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_disp2, here("Rdata", "tab_disp2.RDS"))
+        
+```
+
+```{r}
+tab_disp2 <-readRDS(here("Rdata", "tab_disp2.RDS"))
+
+tab_disp2
+```
+
+
+## Species class
+
+```{r}
+mod_class <- rma.mv(yi = yi, V = vi,
+               mod = ~ species_class - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_class)
+r2_ml(mod_class)
+
+orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+```
+
+```{r}
+#| eval: false
+
+tab_class <- all_models(mod_class,  mod = "species_class", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_class, here("Rdata", "tab_class.RDS"))
+        
+```
+
+```{r}
+tab_class <-readRDS(here("Rdata", "tab_class.RDS"))
+
+tab_class
+```
+
+
+
+## Study design
+
+```{r}
+mod_design <- rma.mv(yi = yi, V = vi,
+               mod = ~ study_design - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_design)
+r2_ml(mod_design)
+
+orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+```{r}
+#| eval: false
+
+tab_design <- all_models(mod_design,  mod = "study_design", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_design, here("Rdata", "tab_design.RDS"))
+        
+```
+
+```{r}
+tab_design <-readRDS(here("Rdata", "tab_design.RDS"))
+
+tab_design
+```
+
+
 ## Study focus
 
-### normal analysis
+### Normal analysis (homoscedasticity)
 
 ```{r}
 
-mod12 <- rma.mv(yi = yi, 
+mod_focus <- rma.mv(yi = yi, 
                 V = VCV,
                 mod = ~ fitness_main_focus - 1,
                 data = dat, 
@@ -839,29 +1073,37 @@ mod12 <- rma.mv(yi = yi,
                   ~ 1 | effectID,
                   ~ 1 | paperID,
                   ~ 1 | species_cleaned),
-                # ~ 1 | phylogeny),
-                # R= list(phylogeny = cor_tree),
                 test = "t",
                 sparse = TRUE)
-summary(mod12)
-r2_ml(mod12)
-orchard_plot(mod12, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+summary(mod_focus)
+r2_ml(mod_focus)
+orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
 ```
 
+```{r}
+#| eval: false
+
+tab_focus <- all_models(mod_focus,  mod = "fitness_main_focus", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_focus, here("Rdata", "tab_focus.RDS"))
+        
+```
 
 ```{r}
-# hetero
+tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
 
-
+tab_focus
 ```
 
 
-## absolute value analysis
+### Absolute value analysis
 
 ```{r}
 
-mod11 <- rma.mv(yi = abs_yi2, 
+# homo
+mod_focusA <- rma.mv(yi = abs_yi2, 
                 V = VCV_abs,
                 mod = ~ fitness_main_focus - 1,
                 data = dat, 
@@ -869,17 +1111,37 @@ mod11 <- rma.mv(yi = abs_yi2,
                   ~ 1 | effectID,
                   ~ 1 | paperID,
                   ~ 1 | species_cleaned),
-                # ~ 1 | phylogeny),
-                # R= list(phylogeny = cor_tree),
                 test = "t",
                 sparse = TRUE)
-summary(mod11)
-r2_ml(mod11)
+summary(mod_focusA)
+r2_ml(mod_focusA)
+
+# hetero
+mod_focusA1 <- rma.mv(yi = abs_yi2, 
+                 V = VCV_abs,
+                 mod = ~ fitness_main_focus,
+                 data = dat, 
+                 random = list(
+                   ~ fitness_main_focus | effectID,
+                   ~ 1 | paperID,
+                   ~ 1 | species_cleaned),
+                 struct = "DIAG",
+                 method = "ML",
+                 test = "t",
+                 sparse = TRUE,
+                 control = list(optimizer = "Nelder-Mead"))
+summary(mod_focusA1)
+
+# homo
+orchard_plot(mod_focusA, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
+# hetero
+orchard_plot(mod_focusA1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
 ```
 
 ```{r}
-
+# for model comparsion we need to use ML
 mod11a <- rma.mv(yi = abs_yi2, 
                 V = VCV_abs,
                 mod = ~ fitness_main_focus,
@@ -907,8 +1169,6 @@ mod11b <- rma.mv(yi = abs_yi2,
                    ~ 1 | paperID,
                    ~ 1 | species_cleaned),
                  struct = "DIAG",
-                 # ~ 1 | phylogeny),
-                 # R= list(phylogeny = cor_tree),
                  method = "ML",
                  test = "t",
                  sparse = TRUE,
@@ -918,51 +1178,11 @@ summary(mod11b)
 anova(mod11a, mod11b)
 
 
-orchard_plot(mod11b, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-
 ```
-
-## Study design
-
-```{r}
-mod_design <- rma.mv(yi = yi, V = vi,
-               mod = ~ study_design - 1,
-               data = dat, 
-               random = list(
-                 ~ 1 | effectID,
-                 ~ 1 | paperID,
-                 ~ 1 | species_cleaned),
-               test = "t",
-               sparse = TRUE)
-summary(mod_design)
-r2_ml(mod_design)
-
-orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-```
-
-
-## Species class
-
-```{r}
-mod_class <- rma.mv(yi = yi, V = vi,
-               mod = ~ species_class - 1,
-               data = dat, 
-               random = list(
-                 ~ 1 | effectID,
-                 ~ 1 | paperID,
-                 ~ 1 | species_cleaned),
-               test = "t",
-               sparse = TRUE)
-summary(mod_class)
-r2_ml(mod_class)
-
-orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-```
-
 
 :::
 
-## Multi-moderator-regression model
+## Multi-moderator-regression model   
 
 
 ::: {.panel-tabset}
@@ -975,57 +1195,28 @@ orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group =
 # Mulit-variable models
 #######################
 
-dat_short$sln_duration <- scale(log(dat_short$duration_days))
-
 # we need - to
-mod_full <- rma.mv(yi = SMD, 
-               V = VCVs, 
-               random = list(~1|Spp , 
-                             ~1 | RecNo,
-                             ~1 | Obs_ID),
-               mods =  ~ sln_duration*Type +
-                         sln_duration*Treat_mod +
-                         Sex,
-               test = "t",
-               method = "ML", # use "ML"
-               sparse = TRUE,
-               data = dat_short)
+mod_full <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ 1 + sex + study_type + 
+                age_class_clean + whose_fitness + 
+                fitness_higher_level +
+                dispersal_type + dispersal_phase + 
+                species_class,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              method = "ML",
+              test = "t",
+              sparse = TRUE)
 summary(mod_full)
 
 round(r2_ml(mod_full)*100, 2)
 
 ```
- 
-## Visualization 
- 
-```{r}
-orchard_plot(mod_full,
-             mod = "Type",
-             group = "RecNo", 
-             xlab = "Standardised mean differnece (SMD)",
-             branch.size = 3)
 
-orchard_plot(mod_full,
-             mod = "Treat_mod",
-             group = "RecNo", 
-             xlab = "Standardised mean differnece (SMD)",
-             branch.size = 3)
-
-# interaction plot of duration with trait types
-int_type <- mod_results(mod_full, mod = "sln_duration", group = "RecNo", weights = "prop",
-                                   by = "Type")
-
-bubble_plot(int_type, group = "RecNo", mod = "sln_duration", xlab = "ln(duration in days) (z-transformed)",
-                     legend.pos = "top.left", condition.nrow = 3, g = TRUE)
-
-# interaction plot of duration with trait types
-int_trt <- mod_results(mod_full, mod = "sln_duration", group = "RecNo", weights = "prop",
-                        by = "Treat_mod")
-
-bubble_plot(int_trt, group = "RecNo", mod = "sln_duration", xlab = "ln(duration in days)",
-            legend.pos = "top.left", condition.nrow = 3, g = TRUE)
-```
- 
 ## Multi-model inference
 
 ```{r}
@@ -1043,7 +1234,6 @@ importance <- sw(candidates)
 
  
 ::: 
-
 
 
 ## Publication bias
