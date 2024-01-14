@@ -36,7 +36,7 @@ execute:
 
 Outstanding things and notes
 
-- need to think what to do with classes less than 5 studies
+- need to think what to do with levels less than 5 studies
 
 
 ## Setting up
@@ -488,6 +488,10 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
                          dat$direction_change, dat$function_needed), 
                     effect_size)                    
 
+
+# merging two data frames
+dat <- cbind(dat, effect2)
+
 # adding absolute value (effect sizes) too
 dat <- dat %>% mutate(
   abs_yi = abs(yi), # we use this one (conservative)
@@ -498,8 +502,6 @@ dat <- dat %>% mutate(
 # dat$Zr <- unlist(effect1[1,])
 # dat$VZr <- unlist(effect1[2,])
 
-# merging two data frames
-dat <- cbind(dat, effect2)
 
 
 # renaming X to effectID
@@ -939,9 +941,26 @@ orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group =
 ```
 
 
+## Species class
+
+```{r}
+mod_class <- rma.mv(yi = yi, V = vi,
+               mod = ~ species_class - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_class)
+r2_ml(mod_class)
+
+orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
 
 
-
+:::
 
 ## Multi-moderator-regression model
 
@@ -1245,6 +1264,9 @@ leaveoneout
 
  
 ::: 
+
+## Figure gallary 
+
 
 
 ## R Session Informtion
