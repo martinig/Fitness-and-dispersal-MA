@@ -60,6 +60,7 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
 
 )
 
+eval(metafor:::.MuMIn)
 ```
 
 ### Loading data: paper and tree data
@@ -1061,7 +1062,7 @@ tab_design
 
 ## Study focus
 
-### Normal analysis (homoscedasticity)
+### Normal analysis
 
 ```{r}
 
@@ -1131,6 +1132,7 @@ mod_focusA1 <- rma.mv(yi = abs_yi2,
                  sparse = TRUE,
                  control = list(optimizer = "Nelder-Mead"))
 summary(mod_focusA1)
+#r2_ml(mod_focusA1)
 
 # homo
 orchard_plot(mod_focusA, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
@@ -1141,43 +1143,19 @@ orchard_plot(mod_focusA1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", 
 ```
 
 ```{r}
-# for model comparsion we need to use ML
-mod11a <- rma.mv(yi = abs_yi2, 
-                V = VCV_abs,
-                mod = ~ fitness_main_focus,
-                data = dat, 
-                random = list(
-                  ~ 1 | effectID,
-                  ~ 1 | paperID,
-                  ~ 1 | species_cleaned),
-                # ~ 1 | phylogeny),
-                # R= list(phylogeny = cor_tree),
-                test = "t",
-                sparse = TRUE,
-                method = "ML",
-                control = list(optimizer = "Nelder-Mead"))
-                
-summary(mod11a)
+#| eval: false
 
-# hetero
-mod11b <- rma.mv(yi = abs_yi2, 
-                 V = VCV_abs,
-                 mod = ~ fitness_main_focus,
-                 data = dat, 
-                 random = list(
-                   ~ fitness_main_focus | effectID,
-                   ~ 1 | paperID,
-                   ~ 1 | species_cleaned),
-                 struct = "DIAG",
-                 method = "ML",
-                 test = "t",
-                 sparse = TRUE,
-                 control = list(optimizer = "Nelder-Mead"))
-summary(mod11b)
+tab_focusA1 <- all_models(mod_focusA1,  mod = "fitness_main_focus", type = "hetero")
 
-anova(mod11a, mod11b)
+# saving tab_sex as RDS
+saveRDS(tab_focus, here("Rdata", "tab_focusA1.RDS"))
+        
+```
 
+```{r}
+tab_focusA1 <-readRDS(here("Rdata", "tab_focusA1.RDS"))
 
+tab_focusA1
 ```
 
 :::
@@ -1198,11 +1176,10 @@ anova(mod11a, mod11b)
 # we need - to
 mod_full <- rma.mv(yi = yi, 
                V = VCV,
-              mod = ~ 1 + sex + study_type + 
+              mod = ~ 1 + sex +
                 age_class_clean + whose_fitness + 
                 fitness_higher_level +
-                dispersal_type + dispersal_phase + 
-                species_class,
+                dispersal_type + dispersal_phase,
               data = dat, 
               random = list(
                 ~ 1 | effectID,
@@ -1220,16 +1197,31 @@ round(r2_ml(mod_full)*100, 2)
 ## Multi-model inference
 
 ```{r}
-# mulit-model selection
+#| eval: false
+# multi-model selection
 candidates <- dredge(mod_full, trace = 2)
 
+# saving tab_sex as RDS
+saveRDS(candidates, here("Rdata", "candidates.RDS"))
+        
+```
+
+```{r}
+candidates <-readRDS(here("Rdata", "candidates.RDS"))
+
+candidates
+
 # displays delta AICc <2
-candidates_aic2 <- subset(candidates, delta < 5) 
+candidates_aic2 <- subset(candidates, delta < 2) 
 # model averaging
-mr_averaged_aic2 <- summary(model.avg(candidates, delta < 5)) 
+mr_averaged_aic2 <- summary(model.avg(candidates, delta < 2)) 
+
+mr_averaged_aic2
 
 # relative importance of each predictor for all the models
 importance <- sw(candidates)
+
+importance
 ```
 
  
@@ -1310,6 +1302,7 @@ small
 
 ```{r}
 # creating publication year from "reference"
+dat$reference <- as.character(dat$reference)
 dat$year <- with(dat, substr(reference, nchar(reference)-4, nchar(reference)))
 dat$year <- as.integer(ifelse(dat$year == "2017a" | dat$year == "2017b", 2017, dat$year))
 # decline effect
@@ -1431,15 +1424,14 @@ saveRDS(MA_oneout, here("Rdata", "MA_oneout.RDS"))
 ```
 
 ```{r}
-
 MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS"))
 
 # plotting
 leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) +
 
-  geom_hline(yintercept = mod_ma2$ci.lb, lty = 3, lwd = 0.75, colour = "black") +
-  geom_hline(yintercept = mod_ma2$b, lty = 1, lwd = 0.75, colour = "black") + 
-  geom_hline(yintercept = mod_ma2$ci.ub,
+  geom_hline(yintercept = mod1$ci.lb, lty = 3, lwd = 0.75, colour = "black") +
+  geom_hline(yintercept = mod1$b, lty = 1, lwd = 0.75, colour = "black") + 
+  geom_hline(yintercept = mod1$ci.ub,
              lty = 3, lwd = 0.75, colour = "black") + 
   geom_pointrange(aes(x = left_out, y = est,
                       ymin = lower, ymax = upper)) + 
@@ -1455,9 +1447,26 @@ leaveoneout
  
 ::: 
 
-## Figure gallary 
+
+## Figure gallery 
+
+::: {.panel-tabset}
+
+## Figure ---
+
+```{r}
+# TODO - April to put figure code...
+
+```
+
+## Figure ---
+
+```{r}
+
+```
 
 
+::: 
 
 ## R Session Informtion
 
