@@ -34,13 +34,13 @@ execute:
   #cache: true
 ---
 
-Things to do for April    
+Things to do for April
 
-1. Rerun all the models 
-2. Put figures at the end
-3. Add some texts so the reader understand
-4. Go through code and add more annotation
-5. Ask questions about things you do not understand
+1.  Rerun all the models
+2.  Put figures at the end
+3.  Add some texts so the reader understand
+4.  Go through code and add more annotation
+5.  Ask questions about things you do not understand
 
 ## Setting up
 
@@ -507,8 +507,7 @@ if (type == "normal"){
 
 ```
 
-### Preparing data: obtaining effect sizes etc. 
-
+### Preparing data: obtaining effect sizes etc.
 
 ```{r}
 # calcuating effect sizes
@@ -574,10 +573,8 @@ VCV_abs <- nearPD(VCV_abs)$mat
 
 ## Meta-analysis
 
-::: {.panel-tabset}
-
-## Phylogenetic mulitlevle model
-
+::: panel-tabset
+## Phylogenetic multilevel model
 
 ## All random effects (5)
 
@@ -612,36 +609,10 @@ summary(mod)
 round(i2_ml(mod),2)   
 ```
 
-## Reducted mulitlevle model
+## Reduced multilevel model
 
 ```{r}
 
-# phylogeney accounts nothing (0) so we can take it out
-mod1 <- rma.mv(yi = yi, 
-               V = VCV,
-              mod = ~ 1,
-              data = dat, 
-              random = list(
-                ~ 1 | effectID,
-                ~ 1 | paperID,
-                ~ 1 | species_cleaned),
-              test = "t",
-              sparse = TRUE)
-
-summary(mod1)
-
-round(i2_ml(mod1),2)   
-
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
-
-```
-
-
-## Uni-moderator eta-regression models
-
-## Reduced random effects (3)
-
-```{r}
 # phylogeney accounts nothing (0) so we can take it out
 mod1 <- rma.mv(yi = yi, 
                V = VCV,
@@ -659,14 +630,14 @@ summary(mod1)
 round(i2_ml(mod1),2)   
 
 orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
 ```
 
 :::
 
-## Uni-moderator eta-regression models
+## Uni-moderator meta-regression models
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## Sex
 
 ```{r}
@@ -705,10 +676,7 @@ tab_sex
 
 ```
 
-
-
 ## Study type
-
 
 ```{r}
 mod_type <- rma.mv(yi = yi,  
@@ -729,7 +697,6 @@ orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "pa
 
 ```
 
-
 ```{r}
 #| eval: false
 
@@ -746,7 +713,6 @@ tab_type <-readRDS(here("Rdata", "tab_type.RDS"))
 tab_type
 
 ```
-
 
 ## Age classes
 
@@ -770,7 +736,6 @@ r2_ml(mod_age1)
 orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
-
 ```{r}
 #| eval: false
 
@@ -786,7 +751,6 @@ tab_age1 <-readRDS(here("Rdata", "tab_age1.RDS"))
 
 tab_age1
 ```
-
 
 ### Finer age grouping
 
@@ -814,7 +778,6 @@ orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "pap
 
 ```
 
-
 ## Adult or offspring fitness?
 
 ```{r}
@@ -834,7 +797,6 @@ orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "
 
 ```
 
-
 ```{r}
 #| eval: false
 
@@ -850,8 +812,6 @@ tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
 
 tab_gen
 ```
-
-
 
 ## Fitness metric
 
@@ -874,7 +834,6 @@ r2_ml(mod_fit1)
 orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
-
 ```{r}
 #| eval: false
 
@@ -891,10 +850,9 @@ tab_fit1 <-readRDS(here("Rdata", "tab_fit1.RDS"))
 tab_fit1
 ```
 
-
 ### Finer level
 
-- need to think what to do with classes less than 5 studies
+-   need to think what to do with classes less than 5 studies
 
 ```{r}
 mod_fit2 <- rma.mv(yi = yi, 
@@ -936,8 +894,6 @@ r2_ml(mod_disp1)
 orchard_plot(mod_disp1, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
-
-
 ```{r}
 #| eval: false
 
@@ -953,8 +909,6 @@ tab_disp1 <-readRDS(here("Rdata", "tab_disp1.RDS"))
 
 tab_disp1
 ```
-
-
 
 ## Dispersal phase
 
@@ -989,7 +943,6 @@ tab_disp2 <-readRDS(here("Rdata", "tab_disp2.RDS"))
 
 tab_disp2
 ```
-
 
 ## Species class
 
@@ -1026,7 +979,6 @@ tab_class <-readRDS(here("Rdata", "tab_class.RDS"))
 tab_class
 ```
 
-
 ## Study design
 
 ```{r}
@@ -1060,7 +1012,6 @@ tab_design <-readRDS(here("Rdata", "tab_design.RDS"))
 
 tab_design
 ```
-
 
 ## Study focus
 
@@ -1099,7 +1050,6 @@ tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
 
 tab_focus
 ```
-
 
 ### Absolute value analysis
 
@@ -1159,14 +1109,11 @@ tab_focusA1 <-readRDS(here("Rdata", "tab_focusA1.RDS"))
 
 tab_focusA1
 ```
-
 :::
 
-## Multi-moderator-regression model   
+## Multi-moderator-regression model
 
-
-::: {.panel-tabset}
-
+::: panel-tabset
 ## Full model
 
 ```{r}
@@ -1225,16 +1172,11 @@ importance <- sw(candidates)
 
 importance
 ```
-
- 
-::: 
-
+:::
 
 ## Publication bias
 
-::: {.panel-tabset}
-
-
+::: panel-tabset
 ```{r}
 ####################
 # publication bias
@@ -1328,7 +1270,7 @@ decline <- bubble_plot(mod_dec,
 decline 
 ```
 
-## Combinmed analysis
+## Combined analysis
 
 ```{r}
 # All together
@@ -1443,14 +1385,11 @@ leaveoneout
 ```
 
 <!-- ![](./figures/sensitivity analysis plot.png) -->
- 
-::: 
+:::
 
+## Figure gallery
 
-## Figure gallery 
-
-::: {.panel-tabset}
-
+::: panel-tabset
 ## Figure ---
 
 ```{r}
@@ -1463,16 +1402,11 @@ leaveoneout
 ```{r}
 
 ```
+:::
 
-
-::: 
-
-## R Session Informtion
+## R Session Information
 
 ```{r}
 # pander for making it look nicer
 sessionInfo() %>% pander()
 ```
-
-
-
