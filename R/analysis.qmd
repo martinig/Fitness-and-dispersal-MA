@@ -75,6 +75,7 @@ dat <- read.csv(here("data", "clean_data.csv"))
 #head(dat)
 
 tree <- read.tree(here("data", "species_tree.tre"))
+
 ```
 
 ### Custom functions
@@ -573,9 +574,10 @@ VCV_abs <- nearPD(VCV_abs)$mat
 
 ## Meta-analysis
 
+::: {.panel-tabset}
 
 ## Phylogenetic mulitlevle model
-::: {.panel-tabset}
+
 
 ## All random effects (5)
 
@@ -1025,7 +1027,6 @@ tab_class
 ```
 
 
-
 ## Study design
 
 ```{r}
@@ -1419,9 +1420,9 @@ saveRDS(MA_oneout, here("Rdata", "MA_oneout.RDS"))
 ```
 
 ```{r}
-#| fig-height: 15
+#| fig-height: 16
 
-MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS")6
+MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS"))
 
 # plotting
 leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) +
@@ -1441,6 +1442,7 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 leaveoneout
 ```
 
+<!-- ![](./figures/sensitivity analysis plot.png) -->
  
 ::: 
 
