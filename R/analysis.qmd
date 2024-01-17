@@ -34,10 +34,13 @@ execute:
   #cache: true
 ---
 
-Outstanding things and notes
+Things to do for April
 
-- need to think what to do with levels less than 5 studies
-
+1. Rerun all the models 
+2. Put figures at the end
+3. Add some texts so the reader understand
+4. Go through code and add more annotation
+5. Ask questions about things you do not understand
 
 ## Setting up
 
@@ -547,13 +550,14 @@ dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)
 # 
 # intersect(unique(dat$phylogeny), tree$tip.label)
 # setdiff(unique(dat$phylogeny), tree$tip.label)
-# 
+# # 
 # match(unique(dat$phylogeny), tree$tip.label)
 # sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))
 
 # creating a correlation matrix from a tree
 
-
+tree <- compute.brlen(tree)
+cor_tree <- vcv(tree,corr=T) 
 # creating a VCV for sampling error variances 
 # we assure shared groups will have r = 0.5
 VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
@@ -633,9 +637,6 @@ orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
 
 ## Uni-moderator eta-regression models
 
-
-!!! - model comparison we should use ML - !!!
-
 ## Reduced random effects (3)
 
 ```{r}
@@ -655,7 +656,7 @@ summary(mod1)
 
 round(i2_ml(mod1),2)   
 
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
 :::
@@ -1280,8 +1281,6 @@ mod_egger <- rma.mv(yi = yi,
                   ~ 1 | effectID,
                   ~ 1 | paperID,
                   ~ 1 | species_cleaned),
-                # ~ 1 | phylogeny),
-                # R= list(phylogeny = cor_tree),
                 test = "t",
                 sparse = TRUE)
 summary(mod_egger)
@@ -1313,8 +1312,6 @@ mod_dec <- rma.mv(yi = yi, V = vi,
                        ~ 1 | effectID,
                        ~ 1 | paperID,
                        ~ 1 | species_cleaned),
-                     # ~ 1 | phylogeny),
-                     # R= list(phylogeny = cor_tree),
                      test = "t",
                      sparse = TRUE)
 summary(mod_dec)
@@ -1394,8 +1391,6 @@ for (i in 1:length(levels(dat$leave_out))) {
                                            ~ 1 | effectID,
                                            ~ 1 | paperID,
                                            ~ 1 | species_cleaned),
-                                         # ~ 1 | phylogeny),
-                                         # R= list(phylogeny = cor_tree),
                                          test = "t",
                                          sparse = TRUE,
                                          data = temp_dat[temp_dat$leave_out != levels(temp_dat$leave_out)[i], ])
@@ -1424,7 +1419,9 @@ saveRDS(MA_oneout, here("Rdata", "MA_oneout.RDS"))
 ```
 
 ```{r}
-MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS"))
+#| fig-height: 15
+
+MA_oneout <- readRDS(here("Rdata", "MA_oneout.RDS")6
 
 # plotting
 leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) +
