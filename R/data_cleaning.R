@@ -1,5 +1,17 @@
-#code to prepare the data for analysis#last edited Jan 12, 2024 by A. R. Martinig#Delete previous information stored rm(list=ls(all=T))##set wd to the folder with all your csv's in itsetwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror#load libraries
+#code to prepare the data for analysis
+#last edited Feb 14, 2024 by A. R. Martinig
+
+#Delete previous information stored 
+rm(list=ls(all=T))
+
+##set wd to the folder with all your csv's in it
+#setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")
+
+options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror
+
+#load libraries
 pacman::p_load(
+          here,
 					dplyr,
 					googlesheets4, 
 					tidyverse, 
@@ -15,13 +27,18 @@ pacman::p_load(
 )
 
 select<-dplyr::select
-# Read in dataframedf <- read.csv("Aim 1 - Aim 1.csv", header=T) %>%	filter(
+
+
+# Read in dataframe
+df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>%
+	filter(
 		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
 		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
-  separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%		mutate_if(is.character, as.factor) %>%
+  separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%	
+	mutate_if(is.character, as.factor) %>%
 	mutate(
 		publication_year =str_sub(reference, start = -4),
 		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),
@@ -71,8 +88,15 @@ select<-dplyr::select
 
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual"))) %>%
   	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, data_source, comments))
-  		  			 summary(df)
-  			table(df$function_needed)	table(df$effect_size)	table(df$effect_size_details)	table(df$effect_size_type)table(df$effect_size_direction)	table(df$effect_size_df)
+  		  			 
+summary(df)
+  			
+table(df$function_needed)	
+table(df$effect_size)	
+table(df$effect_size_details)	
+table(df$effect_size_type)
+table(df$effect_size_direction)	
+table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
 table(df$fitness_higher_level)
@@ -81,17 +105,22 @@ hist(df$publication_year, breaks=50)
 
 head(df)
 	
-nrow(df) #650 effect sizes
+nrow(df) #647 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #197 studies		
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #140 species		
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #197 studies #40 papers (need to do 20 % of toal papers, so crosscheck at least 40)
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #176
+df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21
+
+table(df$species_class)
 
 	
 test<-df %>% group_by(paperID) %>% filter(row_number()==1)	
 table(test$species_class)	
 table(test$species_cleaned)
 	
-	write.csv(df, "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv")
+	
+write.csv(df, here("data", "clean_data.csv"))
 		
 
 
