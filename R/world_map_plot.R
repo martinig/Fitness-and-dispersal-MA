@@ -1,5 +1,5 @@
 #code to create my world map plot
-#last edited Jan 12, 2024 by A. R. Martinig
+#last edited Feb 15, 2024 by A. R. Martinig
 
 # Load the necessary packages
   pacman::p_load(  
@@ -60,12 +60,10 @@ map
   
 map  + theme(legend.justification=c(0,-1)) +  theme(plot.margin = unit(c(-4, -1, -5, 0), "cm"))
 
+#export image as 800x700
 
 
+ggsave(map, filename = "./output/figures/fig-preds.png", width = 7.8, height = 10.1)
 
-
-
-
-ggsave(p, filename = "./output/figures/fig-preds.png", width = 7.8, height = 10.1)
 
 image_read("./output/figures/fig-preds.png")

@@ -30,8 +30,18 @@ select<-dplyr::select
 
 
 # Read in dataframe
-df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>%
-	filter(
+df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
+	
+########################################
+########################################
+
+  slice(-1:-4) %>% # REMOVE THIS BEFORE YOU DO ANYTHING ELSE # THESE FOUR ROWS ARE PLACE HOLDERS AND WILL EVENTUALLY BE REMOVED
+  
+  
+########################################
+########################################  
+
+  filter(
 		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
 		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)
 		!obsID=="TBD", 
@@ -105,14 +115,20 @@ hist(df$publication_year, breaks=50)
 
 head(df)
 	
-nrow(df) #647 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #197 studies		
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #140 species		
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #197 studies #40 papers (need to do 20 % of toal papers, so crosscheck at least 40)
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #176
+nrow(df) #662 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #199 studies	
+df %>% as_tibble() %>% count(common_name) %>% nrow() #150 species		
+df %>% as_tibble() %>% count(species) %>% nrow() #147 species		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #144 species		
+length(unique(df$species_cleaned)) #144
+
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #199 studies #40 papers (need to do 20 % of toal papers, so crosscheck at least 40)
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #178
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21
 
 table(df$species_class)
+
+
 
 	
 test<-df %>% group_by(paperID) %>% filter(row_number()==1)	
@@ -126,9 +142,13 @@ write.csv(df, here("data", "clean_data.csv"))
 
 #to check that the taxonomic tree is the same between mytree and what is in my dataset	
 #phylogeny <- gsub(" ", "_", df$species_cleaned)
-#length(unique(phylogeny)) #139
+#length(unique(phylogeny)) #145
 #mytips<-mytree$tip.label
-#length(unique(mytips)) #139
+#length(unique(mytips)) #144
 
 #setdiff(phylogeny, mytips)
 #setdiff(mytips, phylogeny)
+
+
+setdiff(df$species_cleaned, Species_info$species_cleaned)
+setdiff(Species_info$species_cleaned, df$species_cleaned)
