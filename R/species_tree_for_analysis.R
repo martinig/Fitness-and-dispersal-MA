@@ -27,7 +27,7 @@ length(unique(Species_info$species_cleaned)) #144
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine
 names(taxa)
-synonyms(taxa) ##list of all synonyms
+#synonyms(taxa) ##list of all synonyms
 taxa$unique_name # main TOL names
 table(taxa$approximate_match) ##0 approximate match
 taxa %>% filter(approximate_match==TRUE)
