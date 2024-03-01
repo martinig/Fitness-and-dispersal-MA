@@ -123,13 +123,57 @@ df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow()
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #182 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #23 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #8 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #15 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #11 studies
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #21 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #20 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #74 effect sizes
 
 
 table(df$species_class)
+
+
+#sanity checks
+
+#means and error
+df_means<-df%>%filter(function_needed=="mean_method")
+plot(df_means$mean_group_1, df_means$variance_group_1)
+plot(df_means$mean_group_2, df_means$variance_group_2)
+
+#zooming in to see the relationship better
+df_means_zoom_1<-df_means%>%filter(mean_group_1<200)
+df_means_zoom_2<-df_means%>%filter(mean_group_2<200)
+
+plot(df_means_zoom_1$mean_group_1, df_means_zoom_1$variance_group_1)
+plot(df_means_zoom_2$mean_group_2, df_means_zoom_2$variance_group_2)
+
+
+#percentages
+summary((df%>%filter(function_needed=="percent_method1"))$mean_group_1)
+summary((df%>%filter(function_needed=="percent_method2"))$mean_group_1)
+
+summary((df%>%filter(function_needed=="percent_method1"))$mean_group_2)
+summary((df%>%filter(function_needed=="percent_method2"))$mean_group_2)
+
+#checking values under "1%"
+summary((df%>%filter(function_needed=="percent_method1", mean_group_1<=1))$mean_group_1)
+summary((df%>%filter(function_needed=="percent_method2", mean_group_1<=1))$mean_group_1)
+
+summary((df%>%filter(function_needed=="percent_method1", mean_group_2<=1))$mean_group_2)
+summary((df%>%filter(function_needed=="percent_method2", mean_group_2<=1))$mean_group_2)
+
+#the percentages look good
+
+
+#proportions
+summary((df%>%filter(function_needed=="proportion_method1"))$mean_group_1)
+summary((df%>%filter(function_needed=="proportion_method2"))$mean_group_1)
+
+summary((df%>%filter(function_needed=="proportion_method1"))$mean_group_2)
+summary((df%>%filter(function_needed=="proportion_method2"))$mean_group_2)
+
+#the proportions look good
+
+
 
 write.csv(df, here("data", "clean_data.csv"))
 		
