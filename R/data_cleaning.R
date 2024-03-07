@@ -1,5 +1,6 @@
 #code to prepare the data for analysis
-#last edited Feb 22, 2024 by A. R. Martinig
+#written by A. R. Martinig
+#last edited March 7, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -32,7 +33,6 @@ select<-dplyr::select
 # Read in dataframe
 df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
   filter(
-		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
 		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
@@ -87,7 +87,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 				TRUE ~ fitness_metric_clean)),
 
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual"))) %>%
-  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, exclude, needs_another_opinion, data_source, comments))
+  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, data_source, comments))
   		  			 
 summary(df)
   			
@@ -107,6 +107,7 @@ head(df)
 	
 nrow(df) #666 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #199 studies	
+#df %>% as_tibble() %>% count(speciesID) %>% nrow() #148 species		
 #df %>% as_tibble() %>% count(common_name) %>% nrow() #150 species		
 #df %>% as_tibble() %>% count(species) %>% nrow() #147 species		
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #144 species		
@@ -134,17 +135,22 @@ table(df$species_class)
 
 #sanity checks
 
+#checking to see if species are oddly distributed across moderators
+study_level<-df%>%group_by(paperID, subsetID, speciesID, dispersal_type, dispersal_phase, age_class_clean, fitness_higher_level)%>%filter(row_number()==1)
+table(study_level$species_class, study_level$sex)
+table(study_level$species_class, study_level$dispersal_type) #most breeding dispersal studies are birds
+table(study_level$species_class, study_level$dispersal_phase) #majority of data on settlement phase comes from birds
+table(study_level$species_class, study_level$age_class_clean) #same idea here
+table(study_level$species_class, study_level$fitness_higher_level) #majority of data on reproduction phase comes from birds
+table(study_level$species_class, study_level$fitness_main_focus)
+table(study_level$species_class, study_level$confirmation_bias)
+#birds being 50% of the data contribute to nearly all moderators proportionally more than any other taxonomic group
+
+
 #means and error
-df_means<-df%>%filter(function_needed=="mean_method")
-plot(df_means$mean_group_1, df_means$variance_group_1)
-plot(df_means$mean_group_2, df_means$variance_group_2)
-
-#zooming in to see the relationship better
-df_means_zoom_1<-df_means%>%filter(mean_group_1<200)
-df_means_zoom_2<-df_means%>%filter(mean_group_2<200)
-
-plot(df_means_zoom_1$mean_group_1, df_means_zoom_1$variance_group_1)
-plot(df_means_zoom_2$mean_group_2, df_means_zoom_2$variance_group_2)
+df_means<-df%>%filter(function_needed=="mean_method") %>% mutate(ratio_1=variance_group_1/mean_group_1, ratio_2=variance_group_2/mean_group_2)
+hist(df_means$ratio_1) #values above X should be investigated
+hist(df_means$ratio_2) #values above X should be investigated
 
 
 #percentages
