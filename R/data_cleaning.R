@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited March 7, 2024 by A. R. Martinig
+#last edited March 8, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -149,8 +149,43 @@ table(study_level$species_class, study_level$confirmation_bias)
 
 #means and error
 df_means<-df%>%filter(function_needed=="mean_method") %>% mutate(ratio_1=variance_group_1/mean_group_1, ratio_2=variance_group_2/mean_group_2)
-hist(df_means$ratio_1) #values above X should be investigated
-hist(df_means$ratio_2) #values above X should be investigated
+summary(df_means)
+
+#group 1
+hist(df_means$ratio_1) #values above 4 or below zero should be investigated
+
+above4_1<-df_means%>%filter(ratio_1>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+above4_1
+#studies flagged:
+#Krohne & Burgin 1987 (line 41) -> had to convert SE to SD using an estimated n
+#Engh et al. 2002 (line 242) -> had to convert SE to SD
+#Pärn et al. 2009 (line 302) -> had to convert SE to SD
+#Cotto et al. 2015 (line 383) -> They measured fitness as reproductive effort (realized value reltive to what would be expected given body size).
+#Green & Hatchwell 2018 (line 465) -> authors calculated this and sent us the mean and SD 
+
+below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+below0_1
+#studies flagged:
+#Cotto et al. 2015 (line 384) -> it is OK. They measured fitness as reproductive effort (realized value reltive to what would be expected given body size). It allows for negative values.
+
+
+#group 2
+hist(df_means$ratio_2) #values above 4 or below zero should be investigated
+summary(df_means)
+
+above4_2<-df_means%>%filter(ratio_2>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+above4_2
+#studies flagged:
+#Krohne & Burgin 1987 (line 41) -> had to convert SE to SD using an estimated n
+#Pärn et al. 2009 (line 301) -> had to convert SE to SD
+#Qu et al. 2018 (line 458-459) -> extracted from figure using an estimated n
+#Green & Hatchwell 2018 (line 465) -> authors calculated this and sent us the mean and SD 
+#Spence-Jones et al. 2021 (line 662-663) -> data extracted from figure
+
+below0_2<-df_means%>%filter(ratio_2<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+below0_2
+#studies flagged:
+#Cotto et al. 2015 (line 383 & 385) -> it is OK. They measured fitness as reproductive effort (realized value reltive to what would be expected given body size). It allows for negative values.
 
 
 #percentages

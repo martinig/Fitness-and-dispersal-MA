@@ -8,6 +8,7 @@ data <- metaDigitise(dir = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Ext
 
 data 
 
-data%>%filter(filename=="Barbraud & Delord 2023 Figure 4a.png")
-data%>%filter(filename=="Barbraud & Delord 2023 Figure 4b.png")
-data%>%filter(filename=="Barbraud & Delord 2023 Figure 4c.png")
+data%>%filter(filename=="Martin et al. 2014.png")
+data%>%filter(filename=="Veenstra & Byrne 1999 SE.png")
+data%>%filter(filename=="Ward & Weatherhead 2005.png")
+data%>%filter(filename=="Williams & Rabenold 2005 SD?.png")
