@@ -160,13 +160,13 @@ above4_1
 #Krohne & Burgin 1987 (line 41) -> had to convert SE to SD using an estimated n
 #Engh et al. 2002 (line 242) -> had to convert SE to SD
 #Pärn et al. 2009 (line 302) -> had to convert SE to SD
-#Cotto et al. 2015 (line 383) -> They measured fitness as reproductive effort (realized value reltive to what would be expected given body size).
+#Cotto et al. 2015 (line 383) -> They measured fitness as reproductive effort (realized value relative to what would be expected given body size).
 #Green & Hatchwell 2018 (line 465) -> authors calculated this and sent us the mean and SD 
 
 below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_1
 #studies flagged:
-#Cotto et al. 2015 (line 384) -> it is OK. They measured fitness as reproductive effort (realized value reltive to what would be expected given body size). It allows for negative values.
+#Cotto et al. 2015 (line 384) -> it is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
 
 
 #group 2
@@ -185,7 +185,7 @@ above4_2
 below0_2<-df_means%>%filter(ratio_2<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_2
 #studies flagged:
-#Cotto et al. 2015 (line 383 & 385) -> it is OK. They measured fitness as reproductive effort (realized value reltive to what would be expected given body size). It allows for negative values.
+#Cotto et al. 2015 (line 383 & 385) -> it is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
 
 
 #percentages
