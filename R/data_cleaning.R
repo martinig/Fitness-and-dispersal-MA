@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited March 8, 2024 by A. R. Martinig
+#last edited March 27, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -56,12 +56,10 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 				
 		#number of offspring produced over a lifetime - including breeding success (i.e., bred at least once); grouping clutch size (number of eggs laid) and brood size (number of eggs that hatch)/number emerged	
     		fitness_metric %in% c("clutch size", "brood size", "number of juveniles at emergence", "breeding probability", "nest success (at least once hatchling alive at banding)", "attained breeding success (individual bred)", "attaining breeder position", "bred at least once", "breed at least once in lifetime", "total number of offspring across lifetime", "relative clutch size", "produced offspring", "produced chicks in season", "percent of clutch hatched", "number of offspring", "number of hatchlings", "n offspring", "number of offspring per year", "number of mature ova", "number of eggs", "lifetime reproductive success (total eggs)", "probability of reproducing", "probability of conception",  "percent males bred", "reproduced", "reproductive", "litter size", "hatching success (at least one egg hatched)", "first egg stage (laid an egg)", "emerged pups sired per month", "eggs per individual", "clutch volume (instead of size)", "brood size at hatching", "breeding probability (not defined)", "birth rate", "annual number of offspring", "percentage of females known to nest successfully", "reproductive effort (see comments)", "reproductive success", "reproductive success (she survived and hatched at least one egg)", "reproduced as adult", "reproduced as yearling", "survival to reproduction (successfully weaned at least one offspring)",  "gain breeding position (survivors only)", "did not lose whole clutch", "male paternity loss/extrapair young in the nest (yes/no)", "breeding (y/n)")  ~ "lifetime breeding success", 
-	    			    	
 	    			    		
 		#number of offspring produced over a lifetime that survive until weaning or fledging (i.e., still dependent on parents)
     		fitness_metric %in% c("number of fledglings", "annual number of fledglings", "number of fledglings per breeding attempt", "weaning success", "reproductive success (at least one fledgling)", "lifetime n of pups reared to weaning", "n pups reared to weaning", "at least one fledgling",  "at least one young fledged", "total number of offspring fledged", "percent of clutch fledged", "number of weaned offspring", "nestlings fledged", "no young fledged", "nest success", "proportion of eggs producing fledglings", "number of fledglings among successful nests", "number of fledglings (first breeding attempt)", "n offspring successfully weaned", "lifetime reproductive success (total fledglings)", "produced offspring that survived to weaning", "fledging probablity", "daily nest survival (at least one chick fledged)", "breeding success (ratio of chicks fledged to number of eggs laid)", "breeding performance (all eggs fledged or partial clutch fledged)", "number fledged per laid egg", "nest success (fledged at least one offspring)")  ~ "lifetime reproductive success", 
 
-    		
 		#how the offspring themselves survive - often until recruitment (when they are "added" to a population) or after reaching independence from parents (i.e., post-fledging)
     		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits", "reproductive success (yearlings raised in first year)", "offspring recruitment probability") ~ "offspring survival", 
     	
@@ -76,7 +74,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 
    			
    			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)
-    			fitness_metric %in% c("offspring successfully bred at least once", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", 
+    			fitness_metric %in% c("offspring successfully bred at least once", "number of offspring that bred", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", 
     		
   		TRUE ~ fitness_metric)),
   		
@@ -105,35 +103,84 @@ hist(df$publication_year, breaks=50)
 
 head(df)
 	
-nrow(df) #666 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #199 studies	
-#df %>% as_tibble() %>% count(speciesID) %>% nrow() #148 species		
-#df %>% as_tibble() %>% count(common_name) %>% nrow() #150 species		
-#df %>% as_tibble() %>% count(species) %>% nrow() #147 species		
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #144 species		
-length(unique(df$species_cleaned)) #144
+####################################
+#summary stats - sample sizes
+####################################
+
+nrow(df) #678 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #202 studies			
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
+length(unique(df$species_cleaned)) #146
+
+####################################
+#summary stats - observer-level
+####################################
 
 #extracted data
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #178 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #591 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #603 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
 #cross checked data
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #199 studies #40 papers (need to do 20 % of toal papers, so crosscheck at least 40)
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #182 effect sizes
-df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #23 studies 
-df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies #44 papers (need to do 20 % of total papers, so crosscheck at least 40)
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #207 effect sizes
+df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
+df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #78 effect sizes
 df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #11 studies
 df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #21 effect sizes
-df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #20 studies 
-df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #74 effect sizes
+df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
+df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
 
-table(df$species_class)
+
+####################################
+#sanity checks - species sample sizes
+####################################
+
+df %>% as_tibble() %>% count(speciesID) %>% nrow() #149 species		
+df %>% as_tibble() %>% count(common_name) %>% nrow() #149 species		
+df %>% as_tibble() %>% count(species) %>% nrow() #149 species		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
+length(unique(df$species_cleaned)) #146
+
+#there were some mismatches across columns, so here is how I checked this (instead of checking manually)
+
+aa<- df %>% select(speciesID, common_name, species, species_cleaned)
+
+distinct(aa) |>
+  filter(.by = speciesID, n() > 1)
+
+distinct(aa) |>
+  filter(.by = common_name, n() > 1)
+
+distinct(aa) |>
+  filter(.by = species, n() > 1)
+
+distinct(aa) |>
+  filter(.by = species_cleaned, n() > 1) %>% arrange(species_cleaned)
 
 
-#sanity checks
+####################################
+#sanity checks - taxonomic tree
+####################################
+
+#to check that the taxonomic tree is the same between mytree and what is in my dataset	
+#phylogeny <- gsub(" ", "_", df$species_cleaned)
+#length(unique(phylogeny)) #145
+#mytips<-mytree$tip.label
+#length(unique(mytips)) #144
+
+#setdiff(phylogeny, mytips)
+#setdiff(mytips, phylogeny)
+
+#setdiff(df$species_cleaned, Species_info$species_cleaned)
+#setdiff(Species_info$species_cleaned, df$species_cleaned)
+
+
+####################################
+#sanity checks - biased species sampling
+####################################
 
 #checking to see if species are oddly distributed across moderators
 study_level<-df%>%group_by(paperID, subsetID, speciesID, dispersal_type, dispersal_phase, age_class_clean, fitness_higher_level)%>%filter(row_number()==1)
@@ -146,8 +193,10 @@ table(study_level$species_class, study_level$fitness_main_focus)
 table(study_level$species_class, study_level$confirmation_bias)
 #birds being 50% of the data contribute to nearly all moderators proportionally more than any other taxonomic group
 
+####################################
+#sanity checks - mean and SD
+####################################
 
-#means and error
 df_means<-df%>%filter(function_needed=="mean_method") %>% mutate(ratio_1=variance_group_1/mean_group_1, ratio_2=variance_group_2/mean_group_2)
 summary(df_means)
 
@@ -188,7 +237,10 @@ below0_2
 #Cotto et al. 2015 (line 383 & 385) -> it is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
 
 
-#percentages
+####################################
+#sanity checks - percentages
+####################################
+
 summary((df%>%filter(function_needed=="percent_method1"))$mean_group_1)
 summary((df%>%filter(function_needed=="percent_method2"))$mean_group_1)
 
@@ -204,8 +256,17 @@ summary((df%>%filter(function_needed=="percent_method2", mean_group_2<=1))$mean_
 
 #the percentages look good
 
+####################################
+#sanity checks - percentages and SD
+####################################
 
-#proportions
+#to do
+
+
+####################################
+#sanity checks - proportions
+####################################
+
 summary((df%>%filter(function_needed=="proportion_method1"))$mean_group_1)
 summary((df%>%filter(function_needed=="proportion_method2"))$mean_group_1)
 
@@ -214,20 +275,18 @@ summary((df%>%filter(function_needed=="proportion_method2"))$mean_group_2)
 
 #the proportions look good
 
+####################################
+#sanity checks - proportions and SD
+####################################
 
+#to do
+
+
+
+
+
+####################################
+#final data export
+####################################
 
 write.csv(df, here("data", "clean_data.csv"))
-		
-
-#to check that the taxonomic tree is the same between mytree and what is in my dataset	
-#phylogeny <- gsub(" ", "_", df$species_cleaned)
-#length(unique(phylogeny)) #145
-#mytips<-mytree$tip.label
-#length(unique(mytips)) #144
-
-#setdiff(phylogeny, mytips)
-#setdiff(mytips, phylogeny)
-
-
-setdiff(df$species_cleaned, Species_info$species_cleaned)
-setdiff(Species_info$species_cleaned, df$species_cleaned)

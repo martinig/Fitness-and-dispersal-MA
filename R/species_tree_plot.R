@@ -1,5 +1,6 @@
 #code to create my phylogenetic plot
-#last edited Feb 15, 2024 by A. R. Martinig
+#code written by P. Pottier and A. R. Martinig
+#last edited March 27, 2024 by A. R. Martinig
 
 #basic plots that do work
 

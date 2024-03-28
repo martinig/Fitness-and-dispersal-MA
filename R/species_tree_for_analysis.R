@@ -1,5 +1,6 @@
 #code to creat a taxonomic tree
-#last edited Feb 15, 2024 by A. R. Martinig
+#written by M. Lagisz and A. R. Martinig
+#last edited March 27, 2024 by A. R. Martinig
 
 
 # Specify the URL of your Google Sheet
@@ -8,7 +9,6 @@ url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtF
 # Read the Google Sheet into a dataframe
 Species_info <- read_sheet(url) %>%
 	filter(
-		!exclude=="yes", #exclude unless the authors send us the raw data - they clearly did some sort of group level measure instead of individual level metrics
 		!composite_variable=="Y", 
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
@@ -16,14 +16,14 @@ Species_info <- read_sheet(url) %>%
   select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type")) 
 
 
-length(unique(Species_info$species_cleaned)) #144
-Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #145 species		
+length(unique(Species_info$species_cleaned)) #146
+Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
 unique(Species_info$species_cleaned) #needs cleaning 
 table(Species_info$species_cleaned)
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) 
 
-length(unique(Species_info$species_cleaned)) #144
+length(unique(Species_info$species_cleaned)) #146
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine
 names(taxa)
@@ -59,7 +59,7 @@ sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned
 sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 144 names are matching - all fixed 
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
-str(mytree) #286 tips
+str(mytree) #290 tips
 
 
 write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
