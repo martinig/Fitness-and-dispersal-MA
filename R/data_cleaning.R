@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited March 27, 2024 by A. R. Martinig
+#last edited April 5, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -107,7 +107,7 @@ head(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #678 effect sizes
+nrow(df) #675 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #202 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
 length(unique(df$species_cleaned)) #146
@@ -123,10 +123,10 @@ df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
 #cross checked data
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies #44 papers (need to do 20 % of total papers, so crosscheck at least 40)
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #207 effect sizes
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies #45 papers (need to do 20 % of total papers, so crosscheck at least 40)
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
-df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #78 effect sizes
+df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
 df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #11 studies
 df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #21 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
@@ -149,16 +149,17 @@ length(unique(df$species_cleaned)) #146
 aa<- df %>% select(speciesID, common_name, species, species_cleaned)
 
 distinct(aa) |>
-  filter(.by = speciesID, n() > 1)
+  filter(.by = speciesID, n() > 1) #if this has anything except 0 as an output this means there is a problem 
 
 distinct(aa) |>
-  filter(.by = common_name, n() > 1)
+  filter(.by = common_name, n() > 1) #if this has anything except 0 as an output this means there is a problem
 
 distinct(aa) |>
-  filter(.by = species, n() > 1)
+  filter(.by = species, n() > 1) #if this has anything except 0 as an output this means there is a problem
 
 distinct(aa) |>
-  filter(.by = species_cleaned, n() > 1) %>% arrange(species_cleaned)
+  filter(.by = species_cleaned, n() > 1) %>% arrange(species_cleaned) 
+#in this case, the non-zero stuff here is ok. we explicitly made these changes 
 
 
 ####################################
@@ -206,16 +207,16 @@ hist(df_means$ratio_1) #values above 4 or below zero should be investigated
 above4_1<-df_means%>%filter(ratio_1>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 above4_1
 #studies flagged:
-#Krohne & Burgin 1987 (line 41) -> had to convert SE to SD using an estimated n
-#Engh et al. 2002 (line 242) -> had to convert SE to SD
-#Pärn et al. 2009 (line 302) -> had to convert SE to SD
-#Cotto et al. 2015 (line 383) -> They measured fitness as reproductive effort (realized value relative to what would be expected given body size).
-#Green & Hatchwell 2018 (line 465) -> authors calculated this and sent us the mean and SD 
+#Engh et al. 2002 -> had to convert SE to SD
+#Cotto et al. 2015 -> They measured fitness as reproductive effort (realized value relative to what would be expected given body size).
+#Green & Hatchwell 2018 -> authors calculated this and sent us the mean and SD 
+#we checked all of these and concluded they are ok
 
 below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_1
 #studies flagged:
-#Cotto et al. 2015 (line 384) -> it is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
+#Cotto et al. 2015
+#we concluded this is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
 
 
 #group 2
@@ -225,16 +226,17 @@ summary(df_means)
 above4_2<-df_means%>%filter(ratio_2>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 above4_2
 #studies flagged:
-#Krohne & Burgin 1987 (line 41) -> had to convert SE to SD using an estimated n
-#Pärn et al. 2009 (line 301) -> had to convert SE to SD
-#Qu et al. 2018 (line 458-459) -> extracted from figure using an estimated n
-#Green & Hatchwell 2018 (line 465) -> authors calculated this and sent us the mean and SD 
-#Spence-Jones et al. 2021 (line 662-663) -> data extracted from figure
+#Pärn et al. 2009 -> had to convert SE to SD
+#Qu et al. 2018 -> extracted from figure using an estimated n
+#Green & Hatchwell 2018 -> authors calculated this and sent us the mean and SD 
+#Spence-Jones et al. 2021 -> data extracted from figure
+#we checked all of these and concluded they are ok
 
 below0_2<-df_means%>%filter(ratio_2<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_2
 #studies flagged:
-#Cotto et al. 2015 (line 383 & 385) -> it is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
+#Cotto et al. 2015
+#it is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
 
 
 ####################################
@@ -260,8 +262,24 @@ summary((df%>%filter(function_needed=="percent_method2", mean_group_2<=1))$mean_
 #sanity checks - percentages and SD
 ####################################
 
-#to do
+#check this in the same way you do for mean and SD (use the coefficient of variation)
+df_percent<-df%>%filter(function_needed=="percent_method2") %>% mutate(ratio_1=variance_group_1/mean_group_1, ratio_2=variance_group_2/mean_group_2)
+summary(df_percent)
 
+#group 1
+hist(df_percent$ratio_1) #values above 4 or below ~0.05 should be investigated
+
+below0_1_percent<-df_percent%>%filter(ratio_1<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+below0_1_percent
+#studies flagged:
+#Spence-Jones et al. 2021 -> converted SE to SD
+#we checked and concluded it is ok
+
+#group 2
+hist(df_percent$ratio_2) #values above 4 or below ~0.05 should be investigated
+
+below0_2_percent<-df_percent%>%filter(ratio_2<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+below0_2_percent
 
 ####################################
 #sanity checks - proportions
@@ -279,10 +297,43 @@ summary((df%>%filter(function_needed=="proportion_method2"))$mean_group_2)
 #sanity checks - proportions and SD
 ####################################
 
-#to do
+#check this in the same way you do for mean and SD (use the coefficient of variation)
 
+df_proportion<-df%>%filter(function_needed=="proportion_method2") %>% mutate(ratio_1=variance_group_1/mean_group_1, ratio_2=variance_group_2/mean_group_2)
+summary(df_proportion)
 
+#group 1
+hist(df_proportion$ratio_1) #values above 4 or below ~0.05 should be investigated
 
+above4_1_prop<-df_proportion%>%filter(ratio_1>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+above4_1_prop
+#studies flagged:
+#Small et al. 1993 -> estimated n and converted 95% CIs to SD
+#Orell et al. 1999 -> converted SE to SD
+#we checked all of these and concluded they are ok
+
+below0_1_prop<-df_proportion%>%filter(ratio_1<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+below0_1_prop
+#studies flagged:
+#Brown et al. 2008 -> extracted values from figure
+#Devillard & Bray 2009 -> extracted values from figure
+#we checked all of these and concluded they are ok
+
+#group 2
+hist(df_proportion$ratio_2) #values above 4 or below zero should be investigated
+
+above4_2_prop<-df_proportion%>%filter(ratio_2>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+above4_2_prop
+#studies flagged:
+#Orell et al. 1999 -> converted SE to SD
+#we checked all of these and concluded they are ok
+
+below0_2_prop<-df_proportion%>%filter(ratio_2<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
+below0_2_prop
+#studies flagged:
+#Brown et al. 2008 -> extracted values from figure
+#Devillard & Bray 2009 -> extracted values from figure
+#we checked all of these and concluded they are ok
 
 
 ####################################
