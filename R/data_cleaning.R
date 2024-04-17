@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited April 5, 2024 by A. R. Martinig
+#last edited April 17, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -118,7 +118,7 @@ length(unique(df$species_cleaned)) #146
 
 #extracted data
 df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #603 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #600 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -127,8 +127,8 @@ df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow()
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #11 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #21 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #13 studies
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #30 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -271,9 +271,6 @@ hist(df_percent$ratio_1) #values above 4 or below ~0.05 should be investigated
 
 below0_1_percent<-df_percent%>%filter(ratio_1<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_1_percent
-#studies flagged:
-#Spence-Jones et al. 2021 -> converted SE to SD
-#we checked and concluded it is ok
 
 #group 2
 hist(df_percent$ratio_2) #values above 4 or below ~0.05 should be investigated
@@ -307,33 +304,24 @@ hist(df_proportion$ratio_1) #values above 4 or below ~0.05 should be investigate
 
 above4_1_prop<-df_proportion%>%filter(ratio_1>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 above4_1_prop
-#studies flagged:
-#Small et al. 1993 -> estimated n and converted 95% CIs to SD
-#Orell et al. 1999 -> converted SE to SD
-#we checked all of these and concluded they are ok
 
 below0_1_prop<-df_proportion%>%filter(ratio_1<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_1_prop
 #studies flagged:
-#Brown et al. 2008 -> extracted values from figure
 #Devillard & Bray 2009 -> extracted values from figure
-#we checked all of these and concluded they are ok
+#we checked and concluded they are ok
 
 #group 2
 hist(df_proportion$ratio_2) #values above 4 or below zero should be investigated
 
 above4_2_prop<-df_proportion%>%filter(ratio_2>3.9) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 above4_2_prop
-#studies flagged:
-#Orell et al. 1999 -> converted SE to SD
-#we checked all of these and concluded they are ok
 
 below0_2_prop<-df_proportion%>%filter(ratio_2<0.05) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_2_prop
 #studies flagged:
-#Brown et al. 2008 -> extracted values from figure
 #Devillard & Bray 2009 -> extracted values from figure
-#we checked all of these and concluded they are ok
+#we checked and concluded they are ok
 
 
 ####################################
