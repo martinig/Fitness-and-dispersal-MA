@@ -12,9 +12,9 @@ ci_to_sd <-function(upper, lower, n){
 }
 
 # testing code for ci_to_sd
-ci_to_sd(upper = 5.44, lower = 3.54, n = 157)
-ci_to_sd(upper = 15.27, lower = 3.53, n = 4)
+ci_to_sd(upper = 2.11, lower = 1.60, n = 837)
+ci_to_sd(upper = 2.61, lower = 1.64, n = 264)
 
 
-ci_to_sd(upper = 0.23, lower = 0.15, n = 105)
-ci_to_sd(upper = 0.34, lower = 0.11, n = 19)
+ci_to_sd(upper = 2.33, lower = 2.02, n = 913)
+ci_to_sd(upper = 3.49, lower = 2.03, n = 276)

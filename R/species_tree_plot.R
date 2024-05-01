@@ -1,5 +1,6 @@
 #code to create my phylogenetic plot
-#last edited Jan 11, 2024 by A. R. Martinig
+#code written by P. Pottier and A. R. Martinig
+#last edited March 27, 2024 by A. R. Martinig
 
 #basic plots that do work
 
@@ -92,8 +93,8 @@ p4 <- p3 +
 	guides(fill = guide_legend(order = 1))  
 p4
 
- ggsave("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")
-
+ggsave("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")
+#export image as 800x700
 
 
 library(ggimage)
