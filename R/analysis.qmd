@@ -275,14 +275,19 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
   
   } 
   
-    if(r >= 1){
-    # if over 1, we use 0.99 
-    Zr <- atanh(0.99)
-    }else if(r <= -1){
-    Zr <- atanh(-0.99) # r = correlation
-    } else {
+    # if(r >= 1){
+    # # if over 1, we use 0.99 
+    # Zr <- atanh(0.99)
+    # 
+    # }else if(r <= -1){
+    #   
+    # Zr <- atanh(-0.99) # r = correlation
+    # 
+    # } else {
+    #   
     Zr <- atanh(r) # r = correlation
-    } 
+    
+#    } 
   
   VZr <- 1 /(n - 3)
   
@@ -516,7 +521,7 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
                          dat$n_group_1, dat$n_group_2, dat$n, 
                          dat$effect_size_value, dat$effect_size_variance, 
                          dat$effect_size_p_value_numeric, 
-                         dat$direction_change, dat$function_needed), 
+                         dat$direction_change, factor(dat$function_needed)), 
                     effect_size)                    
 
 
@@ -565,6 +570,8 @@ VCV <- nearPD(VCV)$mat
 
 
 # creating VCV for absolute values
+# TODO - this seems to create an issue -
+
 VCV_abs <- vcalc(vi = dat$abs_vi, cluster = dat$shared_group, rho = 0.5)
 VCV_abs <- nearPD(VCV_abs)$mat
 
@@ -1109,6 +1116,112 @@ tab_focusA1 <-readRDS(here("Rdata", "tab_focusA1.RDS"))
 
 tab_focusA1
 ```
+:::
+## Interaction meta-regression models (2 moderators)
+
+::: panel-tabset
+
+## Sex x Species class
+
+```{r}
+
+# the interaction between 2 categorical variables are the same as creating a new variable with 2 categories combined so we use that approach 
+
+dat$sex_species_class <- paste(dat$sex, dat$species_class ,sep = "_")
+
+mod_int1 <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ sex_species_class - 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              test = "t",
+              sparse = TRUE)
+summary(mod_int1)
+
+r2_ml(mod_int1)
+
+orchard_plot(mod_int1, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+```
+
+## Sex x Whose fitness
+
+```{r}
+
+dat$sex_whose_fitness <- paste(dat$sex, dat$whose_fitness ,sep = "_")
+
+mod_int2 <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ sex_whose_fitness - 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              test = "t",
+              sparse = TRUE)
+summary(mod_int2)
+
+r2_ml(mod_int2)
+
+orchard_plot(mod_int2, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+```
+
+
+## Sex x Fitness (higer level)
+
+```{r}
+
+
+dat$sex_fitness_higher_level <- paste(dat$sex, dat$fitness_higher_level ,sep = "_")
+
+mod_int3 <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ sex_fitness_higher_level - 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              test = "t",
+              sparse = TRUE)
+summary(mod_int3)
+
+r2_ml(mod_int3)
+
+orchard_plot(mod_int3, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+```
+
+
+## Sex x Dispersal type
+
+```{r}
+
+dat$sex_dispersal_type <- paste(dat$sex, dat$dispersal_type ,sep = "_")
+
+mod_int4 <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ sex_dispersal_type - 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              test = "t",
+              sparse = TRUE)
+summary(mod_int4)
+
+r2_ml(mod_int4)
+
+orchard_plot(mod_int4, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 45)
+
+```
+
 :::
 
 ## Multi-moderator-regression model
