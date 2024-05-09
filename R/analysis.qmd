@@ -275,19 +275,19 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
   
   } 
   
-    # if(r >= 1){
-    # # if over 1, we use 0.99 
-    # Zr <- atanh(0.99)
-    # 
-    # }else if(r <= -1){
-    #   
-    # Zr <- atanh(-0.99) # r = correlation
-    # 
-    # } else {
-    #   
+    if(r >= 1){
+    # if over 1, we use 0.99
+    Zr <- atanh(0.99)
+
+    }else if(r <= -1){
+
+    Zr <- atanh(-0.99) # r = correlation
+
+    } else {
+
     Zr <- atanh(r) # r = correlation
-    
-#    } 
+
+    }
   
   VZr <- 1 /(n - 3)
   
