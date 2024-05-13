@@ -141,7 +141,143 @@ mod1 <- rma.mv(yi = yi,
 summary(mod1)
 
 round(i2_ml(mod1),2)   
+# Install the necessary packages if not already installed
+if (!require(coxme)) {
+    install.packages("coxme")
+}
 
+# Load the necessary package
+library(coxme)
+
+# Define the function
+get_ci_coxme <- function(model, n = 100) {
+    # Define a sequence of variance values
+    estvar <- seq(0.01, 1, length = n)^2
+    
+    # Initialize a vector to store the log-likelihood values
+    loglik <- double(n)
+    
+    # Loop over the variance values
+    for (i in seq_len(n)) {
+        # Fit a coxme model with fixed variance
+        tfit <- update(model, vfixed = estvar[i])
+        
+        # Compute the log-likelihood
+        loglik[i] <- 2 * diff(tfit$loglik)[1]
+    }
+    
+    # Compute the threshold for the 95% confidence interval
+    threshold <- 2 * diff(model$loglik)[1] - qchisq(0.95, 1)
+    
+    # Find the variance values that correspond to the threshold
+    lower <- approx(loglik[1:(n/2)], sqrt(estvar[1:(n/2)]), threshold)$y
+    upper <- approx(loglik[(n/2 + 1):n], sqrt(estvar[(n/2 + 1):n]), threshold)$y
+    
+    # Return the 95% confidence interval
+    return(c(lower, upper))
+}# Install the necessary packages if not already installed
+if (!require(coxme)) {
+  install.packages("coxme")
+}
+
+# Load the necessary package
+library(coxme)
+
+# Define the function
+get_ci_coxme <- function(model, n = 100) {
+  # Define a sequence of variance values
+  estvar <- seq(0.01, 1, length = n)^2
+  
+  # Initialize a vector to store the log-likelihood values
+  loglik <- double(n)
+  
+  # Loop over the variance values
+  for (i in seq_len(n)) {
+    # Fit a coxme model with fixed variance
+    tfit <- update(model, vfixed = estvar[i])
+    
+    # Compute the log-likelihood
+    loglik[i] <- 2 * diff(tfit$loglik)[1]
+  }
+  
+  # Compute the threshold for the 95% confidence interval
+  threshold <- 2 * diff(model$loglik)[1] - qchisq(0.95, 1)
+  
+  # Find the variance values that correspond to the threshold
+  lower <- approx(loglik[1:(n/2)], sqrt(estvar[1:(n/2)]), threshold)$y
+  upper <- approx(loglik[(n/2 + 1):n], sqrt(estvar[(n/2 + 1):n]), threshold)$y
+  
+  # Return the 95% confidence interval
+  return(c(lower, upper))
+}# Install the necessary packages if not already installed
+if (!require(coxme)) {
+  install.packages("coxme")
+}
+
+# Load the necessary package
+library(coxme)
+
+# Define the function
+get_ci_coxme <- function(model, n = 100) {
+  # Define a sequence of variance values
+  estvar <- seq(0.01, 1, length = n)^2
+  
+  # Initialize a vector to store the log-likelihood values
+  loglik <- double(n)
+  
+  # Loop over the variance values
+  for (i in seq_len(n)) {
+    # Fit a coxme model with fixed variance
+    tfit <- update(model, vfixed = estvar[i])
+    
+    # Compute the log-likelihood
+    loglik[i] <- 2 * diff(tfit$loglik)[1]
+  }
+  
+  # Compute the threshold for the 95% confidence interval
+  threshold <- 2 * diff(model$loglik)[1] - qchisq(0.95, 1)
+  
+  # Find the variance values that correspond to the threshold
+  lower <- approx(loglik[1:(n/2)], sqrt(estvar[1:(n/2)]), threshold)$y
+  upper <- approx(loglik[(n/2 + 1):n], sqrt(estvar[(n/2 + 1):n]), threshold)$y
+  
+  # Return the 95% confidence interval
+  return(c(lower, upper))
+}# Install the necessary packages if not already installed
+if (!require(coxme)) {
+  install.packages("coxme")
+}
+
+# Load the necessary package
+library(coxme)
+
+# Define the function
+get_ci_coxme <- function(model, n = 100) {
+  # Define a sequence of variance values
+  estvar <- seq(0.01, 1, length = n)^2
+  
+  # Initialize a vector to store the log-likelihood values
+  loglik <- double(n)
+  
+  # Loop over the variance values
+  for (i in seq_len(n)) {
+    # Fit a coxme model with fixed variance
+    tfit <- update(model, vfixed = estvar[i])
+    
+    # Compute the log-likelihood
+    loglik[i] <- 2 * diff(tfit$loglik)[1]
+  }
+  
+  # Compute the threshold for the 95% confidence interval
+  threshold <- 2 * diff(model$loglik)[1] - qchisq(0.95, 1)
+  
+  # Find the variance values that correspond to the threshold
+  lower <- approx(loglik[1:(n/2)], sqrt(estvar[1:(n/2)]), threshold)$y
+  upper <- approx(loglik[(n/2 + 1):n], sqrt(estvar[(n/2 + 1):n]), threshold)$y
+  
+  # Return the 95% confidence interval
+  return(c(lower, upper))
+}
 orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID")
 
 #####
