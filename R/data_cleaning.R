@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited April 17, 2024 by A. R. Martinig
+#last edited July 16, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
