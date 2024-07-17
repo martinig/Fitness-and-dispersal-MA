@@ -1072,6 +1072,7 @@ mod_focusA <- rma.mv(yi = abs_yi2,
                   ~ 1 | paperID,
                   ~ 1 | species_cleaned),
                 test = "t",
+                method = "ML",
                 sparse = TRUE)
 summary(mod_focusA)
 r2_ml(mod_focusA)
@@ -1089,9 +1090,11 @@ mod_focusA1 <- rma.mv(yi = abs_yi2,
                  method = "ML",
                  test = "t",
                  sparse = TRUE,
-                 control = list(optimizer = "Nelder-Mead"))
+                  control=list(optimizer="nlminb", rel.tol=1e-8))
 summary(mod_focusA1)
 #r2_ml(mod_focusA1)
+
+anova(mod_focusA, mod_focusA1)
 
 # homo
 orchard_plot(mod_focusA, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
@@ -1159,6 +1162,9 @@ tab_confirm
 
 ```{r}
 
+
+
+
 # homo
 mod_confirmA <- rma.mv(yi = abs_yi2, 
                 V = VCV_abs,
@@ -1186,9 +1192,11 @@ mod_confirmA1 <- rma.mv(yi = abs_yi2,
                  method = "ML",
                  test = "t",
                  sparse = TRUE,
-                 control = list(optimizer = "Nelder-Mead"))
+                control=list(optimizer="nlminb", rel.tol=1e-8))
 summary(mod_confirmA1)
-#r2_ml(mod_confirmA1)
+
+
+anova(mod_confirmA, mod_confirmA1)
 
 # homo
 orchard_plot(mod_confirmA, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
