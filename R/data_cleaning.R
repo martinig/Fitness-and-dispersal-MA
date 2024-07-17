@@ -112,6 +112,12 @@ df %>% as_tibble() %>% count(paperID) %>% nrow() #202 studies
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
 length(unique(df$species_cleaned)) #146
 
+table(df$fitness_main_focus)
+table(df$confirmation_bias)
+
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus)
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias)
+
 ####################################
 #summary stats - observer-level
 ####################################
