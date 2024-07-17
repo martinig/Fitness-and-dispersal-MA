@@ -1,5 +1,5 @@
 #code to create my world map plot
-#last edited July 16, 2024 by A. R. Martinig
+#last edited July 17, 2024 by A. R. Martinig
 
 # Load the necessary packages
   pacman::p_load(  
@@ -29,10 +29,9 @@
 map_df<-read.csv("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/clean_data.csv") %>%
 	group_by(species_cleaned) %>%
 	mutate(n_es = sum(n = n()),
-	       n_set=ifelse(n_es>19, 20, n_es),
-	       n_log=log(n_es)) %>%
+	       n_set=ifelse(n_es>19, 20, n_es)) %>%
 	ungroup() %>%
-	dplyr::select(species_cleaned, species_class, country, lon, lat, dispersal_type, fitness_metric_clean, n_es, n_set, n_log) %>%
+	dplyr::select(species_cleaned, species_class, country, lon, lat, dispersal_type, fitness_metric_clean, n_es, n_set) %>%
 	distinct()
 
 names(map_df)
@@ -56,18 +55,12 @@ map <- ggplot() +
   coord_map("moll") +
   geom_point(
     data = map_df,
-    aes(lon, lat, color = n_log),
+    aes(lon, lat, color = log(n_es)),
     alpha = 0.7, size = 3) + 
   labs(x = "Longitude", y = "Latitude", color = TeX("Effect sizes")) + 
-   #scale_color_gradientn(
-    #colors = brewer.pal(11, "RdYlBu"),
-    #colors = brewer.pal(11, "PiYG"),
-    #limits = c(min(map_df$n_es), max(map_df$n_es))) +
-  scale_color_viridis(option="viridis", direction=-1) + 
+  scale_color_viridis(option="viridis", direction=-1, breaks=c(0, 1, 2, 3, 4), labels=c(1, 3, 7, 20, 55)) + 
   theme_map(base_size = 15)
 map  
-
-#0 = 1, 1=2.71, 2= 7.389056, 3= 20.08554, 4= 54.59815
   
 map  + theme(legend.justification=c(0,-1)) +  theme(plot.margin = unit(c(-4, -1, -5, 0), "cm"))
 
