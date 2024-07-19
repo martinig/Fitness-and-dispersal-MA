@@ -1,6 +1,7 @@
 #code to create my phylogenetic plot
 #code written by P. Pottier and A. R. Martinig
-#last edited March 27, 2024 by A. R. Martinig
+#last edited July 18, 2024 by A. R. Martinig
+
 
 #basic plots that do work
 
@@ -52,36 +53,51 @@ head(data_for_tree)
 data_for_tree_plot<-left_join(data_for_tree, (df%>%select(species_cleaned, species_class)), by ="species_cleaned") %>%
   distinct()
 
-p <- ggtree(mytree, layout = "circular", lwd = 0.75) %<+% data_for_tree_plot  # link plot to data
+p <- ggtree(mytree, layout = "circular", lwd = 0.75, aes(colour=species_class))
+p <- p %<+% data_for_tree_plot + # link plot to data
+  scale_colour_manual(values = c("#EE3377", "#332288", "#EECC66", "#6699CC", "#EE7733", "#882255"), #colours for taxa
+      name="Class", 
+      breaks=c( "Arachnida", "Insecta", "Actinopterygii", "Mammalia", "Reptilia", "Aves")) + 
+  guides(colour=guide_legend(order = 1))
 p # Circular tree
 
 p2 <- p + 
 	geom_fruit(geom = geom_tile, mapping = aes(fill = dispersal_pattern), width = 2, offset = 0.085) + 
-    	scale_fill_manual(values = c("#8c510a", "#bf812d", "#dfc27d"), name="Dispersal type")  # Create tiles to indicate which metric was used for this species
-#p2
+  scale_fill_manual(values = c("#dfc27d", "#bf812d", "#8c510a"), 
+      name="Dispersal type", 
+      breaks=c("Natal dispersal", "Breeding dispersal", "Both types")) + # Create tiles to indicate which dispersal type occurred for this species
+  guides(fill=guide_legend(order = 2))
+p2
 
-p3 <- p2 + new_scale_fill() + 
+p3 <- p2 + 
+  new_scale_fill() + 
 	geom_fruit(geom = geom_tile, 
 		mapping = aes(fill = fitness_measure), 
 		offset = 0.1, 
 		width = 2) + 
-	scale_fill_manual(values = c("#01665e", "#80cdc1", "#c7eae5"), name="Fitness measure")  # Create tiles to indicate which metric was used for this species
-#p3
+	scale_fill_manual(values = c("#c7eae5", "#80cdc1", "#01665e"), 
+	 name="Fitness measure", 
+	 breaks=c("Survival", "Reproduction", "Multiple"))+ # Create tiles to indicate which fitness metric was used for this species
+  guides(fill=guide_legend(order = 3))
 
-# Display number of effect sizes and species classes
+p3
+
+# Display number of effect sizes and species classes as bars
 p4 <- p3 + 
 	new_scale_fill() + 
 	geom_fruit(geom = geom_bar, 
-		mapping = aes(x = n_es, fill=species_class), 
+	  mapping = aes(x = n_es), 
+		#mapping = aes(x = n_es, fill=species_class), 
 		stat = "identity", 
 		col = "gray97", 
+		fill="black",
 		orientation = "y", 
 		axis.params = list(axis = "x", text.angle = -90, hjust = 0, text.size = 3), 
 		grid.params = list(alpha = 0.35), 
 		offset = 0.085, 
 		pwidth = 0.55, 
 		alpha = 0.8) + 
-	scale_fill_manual(values = c("#762a83", "black", "#c51b7d", "gray47", "#f1b6da", "#c2a5cf"), name = "Class", breaks=c( "Arachnida", "Insecta", "Actinopterygii", "Mammalia", "Reptilia", "Aves")) + 
+	#scale_fill_manual(values = c("#EE3377", "#332288", "#EECC66", "#6699CC", "#EE7733", "#882255"), name = "Class", breaks=c( "Arachnida", "Insecta", "Actinopterygii", "Mammalia", "Reptilia", "Aves")) + 
 	theme(legend.position = "right", 
 		legend.spacing.y = unit(5, "pt"), 
 		legend.box = "vertical", 
@@ -89,9 +105,10 @@ p4 <- p3 +
 		legend.box.spacing = unit(-5, "pt"), 
 		legend.text = element_text(size = 12), 
 		legend.title = element_text(size = 14, face = "bold"), 
-		legend.key.size = unit(20, "pt")) + 
-	guides(fill = guide_legend(order = 1))  
+		legend.key.size = unit(20, "pt")) #+ 
+	#guides(fill = guide_legend(order = 4))
 p4
+
 
 ggsave("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")
 #export image as 800x700
