@@ -297,29 +297,6 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
 
 
 ##########
-# functions for absolute values
-
-
-# folded mean
-folded_mu <-function(mean, variance){
-  mu <- mean
-  sigma <- sqrt(variance)
-  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
-  fold_mu
-} 
-
-# folded variance
-folded_v <-function(mean, variance){
-  mu <- mean
-  sigma <- sqrt(variance)
-  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
-  fold_se <- sqrt(mu^2 + sigma^2 - fold_mu^2)
-  # adding se to make bigger mean
-  fold_v <-fold_se^2
-  fold_v
-} 
-
-
 
 #' Title: Contrast name generator
 #'
@@ -476,7 +453,7 @@ all_models <- function(model, mod = " ", type = "normal") {
 
 
 # results of meta-regression including all contrast results; taking the last level out ([-length(level_names)])
-# this does not work for hetero model?
+# use different specifications for aboslute and hetero models 
 if (type == "normal"){
 
     model_all <- purrr::map(level_names[-length(level_names)], run_rma1)
@@ -528,19 +505,6 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
 # merging two data frames
 dat <- cbind(dat, effect2)
 
-# adding absolute value (effect sizes) too
-dat <- dat %>% mutate(
-  abs_yi = abs(yi), # we use this one (conservative)
-  abs_yi2 = folded_mu(yi, vi), # alternative way
-  abs_vi = folded_v(yi, vi)) %>% 
-  mutate_if(is.character, as.factor) # changing all character to factor
-
-
-# dat$Zr <- unlist(effect1[1,])
-# dat$VZr <- unlist(effect1[2,])
-
-
-
 # renaming X to effectID
 colnames(dat)[colnames(dat) == "X"] <- "effectID"
 
@@ -565,15 +529,11 @@ tree <- compute.brlen(tree)
 cor_tree <- vcv(tree,corr=T) 
 # creating a VCV for sampling error variances 
 # we assure shared groups will have r = 0.5
+# it is fine if these are not positive definite but changing this
 VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+# focing the matrix to be positive definite
+# this should be in the method
 VCV <- nearPD(VCV)$mat
-
-
-# creating VCV for absolute values
-# TODO - this seems to create an issue -
-
-VCV_abs <- vcalc(vi = dat$abs_vi, cluster = dat$shared_group, rho = 0.5)
-VCV_abs <- nearPD(VCV_abs)$mat
 
 
 ```
@@ -920,7 +880,7 @@ tab_disp1
 ## Dispersal phase
 
 ```{r}
-mod_disp2 <- rma.mv(yi = yi, V = vi,
+mod_disp2 <- rma.mv(yi = yi, V = VCV,
                mod = ~ dispersal_phase - 1,
                data = dat, 
                random = list(
@@ -954,7 +914,7 @@ tab_disp2
 ## Species class
 
 ```{r}
-mod_class <- rma.mv(yi = yi, V = vi,
+mod_class <- rma.mv(yi = yi, V = VCV,
                mod = ~ species_class - 1,
                data = dat, 
                random = list(
@@ -989,7 +949,7 @@ tab_class
 ## Study design
 
 ```{r}
-mod_design <- rma.mv(yi = yi, V = vi,
+mod_design <- rma.mv(yi = yi, V = VCV,
                mod = ~ study_design - 1,
                data = dat, 
                random = list(
@@ -1058,13 +1018,13 @@ tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
 tab_focus
 ```
 
-### Absolute value analysis
+### Commparing normal model vs. heteoscadastic model
 
 ```{r}
 
 # homo
-mod_focusA <- rma.mv(yi = abs_yi2, 
-                V = VCV_abs,
+mod_focus1 <- rma.mv(yi = yi, 
+                V = VCV,
                 mod = ~ fitness_main_focus - 1,
                 data = dat, 
                 random = list(
@@ -1074,12 +1034,12 @@ mod_focusA <- rma.mv(yi = abs_yi2,
                 test = "t",
                 method = "ML",
                 sparse = TRUE)
-summary(mod_focusA)
-r2_ml(mod_focusA)
+summary(mod_focus1)
+r2_ml(mod_focus1)
 
 # hetero
-mod_focusA1 <- rma.mv(yi = abs_yi2, 
-                 V = VCV_abs,
+mod_focus2 <- rma.mv(yi = yi, 
+                 V = VCV,
                  mod = ~ fitness_main_focus,
                  data = dat, 
                  random = list(
@@ -1091,38 +1051,21 @@ mod_focusA1 <- rma.mv(yi = abs_yi2,
                  test = "t",
                  sparse = TRUE,
                   control=list(optimizer="nlminb", rel.tol=1e-8))
-summary(mod_focusA1)
+summary(mod_focus2)
 #r2_ml(mod_focusA1)
 
-anova(mod_focusA, mod_focusA1)
+# they are not sig. different
+anova(mod_focus1, mod_focus2)
 
 # homo
-orchard_plot(mod_focusA, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+orchard_plot(mod_focus1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
 # hetero
-orchard_plot(mod_focusA1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+orchard_plot(mod_focus2, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
-```
-
-```{r}
-#| eval: false
-
-tab_focusA1 <- all_models(mod_focusA1,  mod = "fitness_main_focus", type = "hetero")
-
-# saving tab_focusA1 as RDS
-saveRDS(tab_focusA1, here("Rdata", "tab_focusA1.RDS"))
-        
-```
-
-```{r}
-tab_focusA1 <-readRDS(here("Rdata", "tab_focusA1.RDS"))
-
-tab_focusA1
 ```
 
 ## Confirmation bias
-
-### Normal analysis
 
 ```{r}
 
@@ -1156,70 +1099,6 @@ saveRDS(tab_confirm, here("Rdata", "tab_confirm.RDS"))
 tab_confirm <-readRDS(here("Rdata", "tab_confirm.RDS"))
 
 tab_confirm
-```
-
-### Absolute value analysis
-
-```{r}
-
-
-
-
-# homo
-mod_confirmA <- rma.mv(yi = abs_yi2, 
-                V = VCV_abs,
-                mod = ~ confirmation_bias - 1,
-                data = dat, 
-                random = list(
-                  ~ 1 | effectID,
-                  ~ 1 | paperID,
-                  ~ 1 | species_cleaned),
-                test = "t",
-                sparse = TRUE)
-summary(mod_confirmA)
-r2_ml(mod_confirmA)
-
-# hetero
-mod_confirmA1 <- rma.mv(yi = abs_yi2, 
-                 V = VCV_abs,
-                 mod = ~ confirmation_bias,
-                 data = dat, 
-                 random = list(
-                   ~ confirmation_bias | effectID,
-                   ~ 1 | paperID,
-                   ~ 1 | species_cleaned),
-                 struct = "DIAG",
-                 method = "ML",
-                 test = "t",
-                 sparse = TRUE,
-                control=list(optimizer="nlminb", rel.tol=1e-8))
-summary(mod_confirmA1)
-
-
-anova(mod_confirmA, mod_confirmA1)
-
-# homo
-orchard_plot(mod_confirmA, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-
-# hetero
-orchard_plot(mod_confirmA1, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-
-```
-
-```{r}
-#| eval: false
-
-tab_confirmA1 <- all_models(mod_focusA1,  mod = "confirmation_bias", type = "hetero")
-
-# saving tab_confirmA1 as RDS
-saveRDS(tab_confirmA1, here("Rdata", "tab_confirmA1.RDS"))
-        
-```
-
-```{r}
-tab_confirmA1 <-readRDS(here("Rdata", "tab_confirmA1.RDS"))
-
-tab_confirmA1
 ```
 
 :::
