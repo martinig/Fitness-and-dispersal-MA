@@ -1,6 +1,6 @@
 #code to create my phylogenetic plot
 #code written by P. Pottier and A. R. Martinig
-#last edited July 18, 2024 by A. R. Martinig
+#last edited July 19, 2024 by A. R. Martinig
 
 
 #basic plots that do work
@@ -53,7 +53,7 @@ head(data_for_tree)
 data_for_tree_plot<-left_join(data_for_tree, (df%>%select(species_cleaned, species_class)), by ="species_cleaned") %>%
   distinct()
 
-p <- ggtree(mytree, layout = "circular", lwd = 0.75, aes(colour=species_class))
+p <- ggtree(mytree, layout = "circular", lwd = 0.75, aes(colour=species_class), key_glyph = 'rect')
 p <- p %<+% data_for_tree_plot + # link plot to data
   scale_colour_manual(values = c("#EE3377", "#332288", "#EECC66", "#6699CC", "#EE7733", "#882255"), #colours for taxa
       name="Class", 
@@ -79,14 +79,13 @@ p3 <- p2 +
 	 name="Fitness measure", 
 	 breaks=c("Survival", "Reproduction", "Multiple"))+ # Create tiles to indicate which fitness metric was used for this species
   guides(fill=guide_legend(order = 3))
-
 p3
 
 # Display number of effect sizes and species classes as bars
 p4 <- p3 + 
 	new_scale_fill() + 
 	geom_fruit(geom = geom_bar, 
-	  mapping = aes(x = n_es), 
+	  mapping = aes(x = log(n_es+0.25)), 
 		#mapping = aes(x = n_es, fill=species_class), 
 		stat = "identity", 
 		col = "gray97", 
@@ -108,6 +107,8 @@ p4 <- p3 +
 		legend.key.size = unit(20, "pt")) #+ 
 	#guides(fill = guide_legend(order = 4))
 p4
+
+#0 = 1, 1=2.718282, 2=7.389056, 3=20.08554, 4=54.59815, 5=148.4132
 
 
 ggsave("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")

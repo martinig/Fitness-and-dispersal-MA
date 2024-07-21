@@ -1,6 +1,6 @@
 #code to creat a taxonomic tree
 #written by M. Lagisz and A. R. Martinig
-#last edited March 27, 2024 by A. R. Martinig
+#last edited July 19, 2024 by A. R. Martinig
 
 
 # Specify the URL of your Google Sheet
@@ -62,7 +62,14 @@ plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
 str(mytree) #290 tips
 
 
-write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
+####################################
+#final data export
+####################################
+
+write.tree(mytree, here("data", "species_tree.csv"))
+
+
+#write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
 # mytree <- read.tree(file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #if you need to read the tree
 
 
