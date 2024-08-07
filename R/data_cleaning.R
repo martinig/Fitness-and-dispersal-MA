@@ -1,12 +1,9 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited July 18, 2024 by A. R. Martinig
+#last edited August 7, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
-
-##set wd to the folder with all your csv's in it
-#setwd("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1")
 
 options(scipen=999, dplyr.width = Inf, tibble.print_min = 50, repos='http://cran.rstudio.com/') #scipen forces outputs to not be in scientific notation #dplyr.width will show all columns for head() function and tibble.print_min sets how many rows are printed and repos sets the cran mirror
 
@@ -85,7 +82,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 				TRUE ~ fitness_metric_clean)),
 
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual"))) %>%
-  	select(-c(title, DOI, journal, year, composite_variable, effect_size_p_value, data_source, comments))
+  	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments))
   		  			 
 summary(df)
   			
@@ -98,6 +95,10 @@ table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
 table(df$fitness_higher_level)
+table(df$year)
+table(df$publication_year)
+table(df$age_class)
+table(df$age_class_clean)
 
 hist(df$publication_year, breaks=50)
 
@@ -112,11 +113,17 @@ df %>% as_tibble() %>% count(paperID) %>% nrow() #202 studies
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
 length(unique(df$species_cleaned)) #146
 
-table(df$fitness_main_focus)
-table(df$confirmation_bias)
+df %>% as_tibble() %>% count(species_class) %>% nrow() #6 taxonomic classes		
+table(df$species_class)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus)
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias)
+table(df$fitness_higher_level)
+
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #202 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #202 total
+
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #204 total 
+#because some studies include both natural and semi-natural conditions
+
 
 ####################################
 #summary stats - observer-level

@@ -1,7 +1,7 @@
 ---
-title: "**Title**"
+title: "**Does philopatry pay? Meta-analysis reveals little empirical support for dispersal being costly. **"
 subtitle: "**Supplmentary Material**"
-author: "**Co-author names**"
+author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S, Nakagawa"
 date: "`r Sys.Date()`"
 format:
   html:
@@ -605,42 +605,39 @@ orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ## Uni-moderator meta-regression models
 
 ::: panel-tabset
-## Sex
+## Species class
 
 ```{r}
-mod_sex <- rma.mv(yi = yi, 
-               V = VCV,
-              mod = ~ sex - 1,
-              data = dat, 
-              random = list(
-                ~ 1 | effectID,
-                ~ 1 | paperID,
-                ~ 1 | species_cleaned),
-              test = "t",
-              sparse = TRUE)
-summary(mod_sex)
+mod_class <- rma.mv(yi = yi, V = VCV,
+               mod = ~ species_class - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_class)
+r2_ml(mod_class)
 
-r2_ml(mod_sex)
-
-orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
 ```
 
 ```{r}
 #| eval: false
 
-tab_sex <- all_models(mod_sex,  mod = "sex", type = "normal")
+tab_class <- all_models(mod_class,  mod = "species_class", type = "normal")
 
 # saving tab_sex as RDS
-saveRDS(tab_sex, here("Rdata", "tab_sex.RDS"))
+saveRDS(tab_class, here("Rdata", "tab_class.RDS"))
         
 ```
 
 ```{r}
-tab_sex <-readRDS(here("Rdata", "tab_sex.RDS"))
+tab_class <-readRDS(here("Rdata", "tab_class.RDS"))
 
-tab_sex
-
+tab_class
 ```
 
 ## Study type
@@ -681,14 +678,11 @@ tab_type
 
 ```
 
-## Age classes
-
-### Higher age grouping
+## Study design
 
 ```{r}
-mod_age1 <- rma.mv(yi = yi,
-               V = VCV,
-               mod = ~ age_class_clean - 1,
+mod_design <- rma.mv(yi = yi, V = VCV,
+               mod = ~ study_design - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
@@ -696,150 +690,26 @@ mod_age1 <- rma.mv(yi = yi,
                  ~ 1 | species_cleaned),
                test = "t",
                sparse = TRUE)
-summary(mod_age1)
-r2_ml(mod_age1)
+summary(mod_design)
+r2_ml(mod_design)
 
-
-orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
 ```{r}
 #| eval: false
 
-tab_age1 <- all_models(mod_age1,  mod = "age_class_clean", type = "normal")
+tab_design <- all_models(mod_design,  mod = "study_design", type = "normal")
 
 # saving tab_sex as RDS
-saveRDS(tab_age1, here("Rdata", "tab_age1.RDS"))
+saveRDS(tab_design, here("Rdata", "tab_design.RDS"))
         
 ```
 
 ```{r}
-tab_age1 <-readRDS(here("Rdata", "tab_age1.RDS"))
+tab_design <-readRDS(here("Rdata", "tab_design.RDS"))
 
-tab_age1
-```
-
-### Finer age grouping
-
-```{r}
-
-# age_class
-
-mod_age2 <- rma.mv(yi = yi,
-               V = VCV,
-               mod = ~ age_class - 1,
-               data = dat, 
-               random = list(
-                 ~ 1 | effectID,
-                 ~ 1 | paperID,
-                 ~ 1 | species_cleaned),
-               test = "t",
-               sparse = TRUE)
-summary(mod_age2)
-r2_ml(mod_age2)
-
-
-orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-
-# table not created for this (not meaningful for some levels)
-
-```
-
-## Adult or offspring fitness?
-
-```{r}
-mod_gen <- rma.mv(yi = yi, 
-                V = VCV,
-               mod = ~ whose_fitness - 1,
-               data = dat, 
-               random = list(
-                 ~ 1 | effectID,
-                 ~ 1 | paperID,
-                 ~ 1 | species_cleaned),
-               test = "t",
-               sparse = TRUE)
-summary(mod_gen)
-
-orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-
-```
-
-```{r}
-#| eval: false
-
-tab_gen <- all_models(mod_gen,  mod = "whose_fitness", type = "normal")
-
-# saving tab_sex as RDS
-saveRDS(tab_gen, here("Rdata", "tab_gen.RDS"))
-        
-```
-
-```{r}
-tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
-
-tab_gen
-```
-
-## Fitness metric
-
-### Higher level
-
-```{r}
-mod_fit1 <- rma.mv(yi = yi, 
-               V = VCV,
-               mod = ~ fitness_higher_level - 1,
-               data = dat, 
-               random = list(
-                 ~ 1 | effectID,
-                 ~ 1 | paperID,
-                 ~ 1 | species_cleaned),
-               test = "t",
-               sparse = TRUE)
-summary(mod_fit1)
-r2_ml(mod_fit1)
-
-orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-```
-
-```{r}
-#| eval: false
-
-tab_fit1 <- all_models(mod_fit1,  mod = "fitness_higher_level", type = "normal")
-
-# saving tab_sex as RDS
-saveRDS(tab_fit1, here("Rdata", "tab_fit1.RDS"))
-        
-```
-
-```{r}
-tab_fit1 <-readRDS(here("Rdata", "tab_fit1.RDS"))
-
-tab_fit1
-```
-
-### Finer level
-
--   need to think what to do with classes less than 5 studies
-
-```{r}
-mod_fit2 <- rma.mv(yi = yi, 
-               V = VCV,
-               mod = ~ fitness_metric_clean - 1,
-               data = dat, 
-               random = list(
-                 ~ 1 | effectID,
-                 ~ 1 | paperID,
-                 ~ 1 | species_cleaned),
-               test = "t",
-               sparse = TRUE)
-summary(mod_fit2)
-r2_ml(mod_fit2)
-
-orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-
-
-# table not created for this (not meaningful for some levels)
-
+tab_design
 ```
 
 ## Dispersal type
@@ -911,11 +781,52 @@ tab_disp2 <-readRDS(here("Rdata", "tab_disp2.RDS"))
 tab_disp2
 ```
 
-## Species class
+## Sex
 
 ```{r}
-mod_class <- rma.mv(yi = yi, V = VCV,
-               mod = ~ species_class - 1,
+mod_sex <- rma.mv(yi = yi, 
+               V = VCV,
+              mod = ~ sex - 1,
+              data = dat, 
+              random = list(
+                ~ 1 | effectID,
+                ~ 1 | paperID,
+                ~ 1 | species_cleaned),
+              test = "t",
+              sparse = TRUE)
+summary(mod_sex)
+
+r2_ml(mod_sex)
+
+orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+```
+
+```{r}
+#| eval: false
+
+tab_sex <- all_models(mod_sex,  mod = "sex", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_sex, here("Rdata", "tab_sex.RDS"))
+        
+```
+
+```{r}
+tab_sex <-readRDS(here("Rdata", "tab_sex.RDS"))
+
+tab_sex
+
+```
+
+## Life history stage
+
+### Higher life history grouping
+
+```{r}
+mod_age1 <- rma.mv(yi = yi,
+               V = VCV,
+               mod = ~ age_class_clean - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
@@ -923,34 +834,38 @@ mod_class <- rma.mv(yi = yi, V = VCV,
                  ~ 1 | species_cleaned),
                test = "t",
                sparse = TRUE)
-summary(mod_class)
-r2_ml(mod_class)
+summary(mod_age1)
+r2_ml(mod_age1)
 
-orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
+orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
 ```{r}
 #| eval: false
 
-tab_class <- all_models(mod_class,  mod = "species_class", type = "normal")
+tab_age1 <- all_models(mod_age1,  mod = "age_class_clean", type = "normal")
 
 # saving tab_sex as RDS
-saveRDS(tab_class, here("Rdata", "tab_class.RDS"))
+saveRDS(tab_age1, here("Rdata", "tab_age1.RDS"))
         
 ```
 
 ```{r}
-tab_class <-readRDS(here("Rdata", "tab_class.RDS"))
+tab_age1 <-readRDS(here("Rdata", "tab_age1.RDS"))
 
-tab_class
+tab_age1
 ```
 
-## Study design
+### Finer life stage grouping
 
 ```{r}
-mod_design <- rma.mv(yi = yi, V = VCV,
-               mod = ~ study_design - 1,
+
+# age_class
+
+mod_age2 <- rma.mv(yi = yi,
+               V = VCV,
+               mod = ~ age_class - 1,
                data = dat, 
                random = list(
                  ~ 1 | effectID,
@@ -958,26 +873,111 @@ mod_design <- rma.mv(yi = yi, V = VCV,
                  ~ 1 | species_cleaned),
                test = "t",
                sparse = TRUE)
-summary(mod_design)
-r2_ml(mod_design)
+summary(mod_age2)
+r2_ml(mod_age2)
 
-orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+# table not created for this (not meaningful for some levels)
+
+```
+
+## Fitness metric
+
+### Higher level
+
+```{r}
+mod_fit1 <- rma.mv(yi = yi, 
+               V = VCV,
+               mod = ~ fitness_higher_level - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_fit1)
+r2_ml(mod_fit1)
+
+orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
 ```{r}
 #| eval: false
 
-tab_design <- all_models(mod_design,  mod = "study_design", type = "normal")
+tab_fit1 <- all_models(mod_fit1,  mod = "fitness_higher_level", type = "normal")
 
 # saving tab_sex as RDS
-saveRDS(tab_design, here("Rdata", "tab_design.RDS"))
+saveRDS(tab_fit1, here("Rdata", "tab_fit1.RDS"))
         
 ```
 
 ```{r}
-tab_design <-readRDS(here("Rdata", "tab_design.RDS"))
+tab_fit1 <-readRDS(here("Rdata", "tab_fit1.RDS"))
 
-tab_design
+tab_fit1
+```
+
+### Finer level
+
+-   need to think what to do with classes less than 5 studies
+
+```{r}
+mod_fit2 <- rma.mv(yi = yi, 
+               V = VCV,
+               mod = ~ fitness_metric_clean - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_fit2)
+r2_ml(mod_fit2)
+
+orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+
+# table not created for this (not meaningful for some levels)
+
+```
+
+## Adult or offspring fitness?
+
+```{r}
+mod_gen <- rma.mv(yi = yi, 
+                V = VCV,
+               mod = ~ whose_fitness - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_gen)
+
+orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+
+```
+
+```{r}
+#| eval: false
+
+tab_gen <- all_models(mod_gen,  mod = "whose_fitness", type = "normal")
+
+# saving tab_sex as RDS
+saveRDS(tab_gen, here("Rdata", "tab_gen.RDS"))
+        
+```
+
+```{r}
+tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
+
+tab_gen
 ```
 
 ## Study focus

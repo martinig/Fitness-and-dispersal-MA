@@ -1,6 +1,6 @@
 #code to creat a taxonomic tree
 #written by M. Lagisz and A. R. Martinig
-#last edited July 19, 2024 by A. R. Martinig
+#last edited August 7, 2024 by A. R. Martinig
 
 
 # Specify the URL of your Google Sheet
@@ -31,7 +31,7 @@ names(taxa)
 taxa$unique_name # main TOL names
 table(taxa$approximate_match) ##0 approximate match
 taxa %>% filter(approximate_match==TRUE)
-table(taxa$flags) # flags 22 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
+table(taxa$flags) # flags 23 names with problems (hidden, hybrid, incertae_sedis_inherited, infraspecific, infraspecific) - will need fixing
 
 mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") 
 #this will fail
