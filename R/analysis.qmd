@@ -540,9 +540,10 @@ VCV <- nearPD(VCV)$mat
 
 ## Meta-analysis
 
+### Phylogenetic multilevel models
 ::: panel-tabset
 
-## Phylogenetic multilevel model: with all five random effects
+#### With all five random effects
 
 ```{r}
 #| eval: false
@@ -575,7 +576,7 @@ summary(mod)
 round(i2_ml(mod),2)   
 ```
 
-## Phylogenetic multilevel model: Reduced multilevel model
+#### Reduced multilevel model
 
 ```{r}
 
