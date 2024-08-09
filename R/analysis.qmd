@@ -1,7 +1,7 @@
 ---
 title: "**Does philopatry pay? Meta-analysis reveals little empirical support for dispersal being costly. **"
 subtitle: "**Supplmentary Material**"
-author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S, Nakagawa"
+author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S. Nakagawa"
 date: "`r Sys.Date()`"
 format:
   html:
@@ -540,9 +540,11 @@ VCV <- nearPD(VCV)$mat
 
 ## Meta-analysis
 
+### Phylogenetic multilevel models
+
 ::: panel-tabset
 
-## Phylogenetic multilevel model: all random effects (5)
+### With all five random effects
 
 ```{r}
 #| eval: false
@@ -575,7 +577,7 @@ summary(mod)
 round(i2_ml(mod),2)   
 ```
 
-## Phylogenetic multilevel model: Reduced multilevel model
+### Reduced multilevel model
 
 ```{r}
 
