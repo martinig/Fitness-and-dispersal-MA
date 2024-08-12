@@ -1019,7 +1019,7 @@ tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
 tab_focus
 ```
 
-### Commparing normal model vs. heteoscadastic model
+### Commparing normal model to heteroscedastic model
 
 ```{r}
 
