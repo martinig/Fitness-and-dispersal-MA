@@ -959,6 +959,7 @@ mod_gen <- rma.mv(yi = yi,
                test = "t",
                sparse = TRUE)
 summary(mod_gen)
+r2_ml(mod_gen)
 
 orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
