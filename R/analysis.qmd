@@ -44,7 +44,7 @@ Things to do for April
 
 ## Setting up
 
-### Loading packages
+### Load packages
 
 ```{r}
 pacman::p_load(tidyverse, # tidy family and related pacakges below
@@ -66,19 +66,21 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
 eval(metafor:::.MuMIn)
 ```
 
-### Loading data: paper and tree data
+### Load data: paper and tree data
 
 ```{r}
+#the dataset with effect sizes
 dat <- read.csv(here("data", "clean_data.csv"))
 
 #dim(dat)
 #head(dat)
 
+#the phylogenetic tree
 tree <- read.tree(here("data", "species_tree.tre"))
 
 ```
 
-### Custom functions
+### Calculate effect sizes and sampling variances using custom functions
 
 ```{r}
 # function to calculate effect sizes
@@ -489,10 +491,10 @@ if (type == "normal"){
 
 ```
 
-### Preparing data: obtaining effect sizes etc.
+### Preparing final dataset
 
 ```{r}
-# calcuating effect sizes
+# adding effect sizes to dataset
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                          dat$variance_group_1, dat$variance_group_2, 
                          dat$n_group_1, dat$n_group_2, dat$n, 
@@ -500,7 +502,6 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
                          dat$effect_size_p_value_numeric, 
                          dat$direction_change, factor(dat$function_needed)), 
                     effect_size)                    
-
 
 # merging two data frames
 dat <- cbind(dat, effect2)
@@ -538,7 +539,7 @@ VCV <- nearPD(VCV)$mat
 
 ```
 
-## Meta-analysis
+## Intercept meta-analytic model
 
 ### Phylogenetic multilevel models
 ::: panel-tabset
@@ -567,20 +568,33 @@ saveRDS(mod, here("Rdata", "mod.RDS"))
 ```
 
 ```{r}
-# getting the save model
+# getting the saved model
 mod <- readRDS(here("Rdata", "mod.RDS"))
 
 summary(mod)
 
-# hardly any phlogenetic effects so taking it out
+# Phylogeney accounts for nothing (0.00%), so we can take it out. 
 round(i2_ml(mod),2)   
+```
+
+```{r}
+tab_mod <- all_models(mod,  mod = "species_class", type = "normal") #what do I need to put here for the "mod=" argument? 
+
+# saving tab_sex as RDS
+saveRDS(tab_mod, here("Rdata", "tab_mod.RDS"))
+```
+
+```{r}
+tab_mod <-readRDS(here("Rdata", "tab_mod.RDS"))
+
+tab_mod
 ```
 
 #### Reduced multilevel model
 
 ```{r}
 
-# phylogeney accounts nothing (0) so we can take it out
+# We remove phylogeny as a random effect from our meta-analytic model because phylogeny accounts for nothing (0%)
 mod1 <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ 1,
@@ -600,14 +614,30 @@ orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 ```
 
+```{r}
+tab_mod1 <- all_models(mod1,  mod = "species_class", type = "normal") #what do I need to put here for the "mod=" argument? 
+
+# saving tab_sex as RDS
+saveRDS(tab_mod1, here("Rdata", "tab_mod1.RDS"))
+```
+
+```{r}
+tab_mod1 <-readRDS(here("Rdata", "tab_mod1.RDS"))
+
+tab_mod1
+```
+
+
 :::
 
-## Uni-moderator meta-regression models
+## Uni-moderator meta-regression models 
 
 ::: panel-tabset
 ## Species class
 
 ```{r}
+#I want to move this up
+#For each of our moderators, we run a uni-moderator meta-regression model
 mod_class <- rma.mv(yi = yi, V = VCV,
                mod = ~ species_class - 1,
                data = dat, 
@@ -981,7 +1011,7 @@ tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
 tab_gen
 ```
 
-## Study focus
+## Selection bias
 
 ### Normal analysis
 
@@ -1019,7 +1049,7 @@ tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
 tab_focus
 ```
 
-### Commparing normal model to heteroscedastic model
+### Comparing normal model to heteroscedastic model
 
 ```{r}
 
@@ -1068,6 +1098,8 @@ orchard_plot(mod_focus2, mod = "fitness_main_focus", xlab = "Effect Size: Zr", g
 
 ## Confirmation bias
 
+### Normal analysis
+
 ```{r}
 
 mod_confirm <- rma.mv(yi = yi, 
@@ -1100,6 +1132,52 @@ saveRDS(tab_confirm, here("Rdata", "tab_confirm.RDS"))
 tab_confirm <-readRDS(here("Rdata", "tab_confirm.RDS"))
 
 tab_confirm
+```
+
+### Comparing normal model to heteroscedastic model
+
+```{r}
+
+# homo
+mod_confirm1 <- rma.mv(yi = yi, 
+                V = VCV,
+                mod = ~ confirmation_bias - 1,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                test = "t",
+                method = "ML",
+                sparse = TRUE)
+summary(mod_confirm1)
+r2_ml(mod_confirm1)
+
+# hetero
+mod_confirm2 <- rma.mv(yi = yi, 
+                 V = VCV,
+                 mod = ~ confirmation_bias,
+                 data = dat, 
+                 random = list(
+                   ~ confirmation_bias | effectID,
+                   ~ 1 | paperID,
+                   ~ 1 | species_cleaned),
+                 struct = "DIAG",
+                 method = "ML",
+                 test = "t",
+                 sparse = TRUE,
+                  control=list(optimizer="nlminb", rel.tol=1e-8))
+summary(mod_confirm2)
+
+# they are not sig. different
+anova(mod_confirm1, mod_confirm2)
+
+# homo
+orchard_plot(mod_confirm1, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
+# hetero
+orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
 ```
 
 :::
