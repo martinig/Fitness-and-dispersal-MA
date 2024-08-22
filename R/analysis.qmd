@@ -578,7 +578,24 @@ round(i2_ml(mod),2)
 ```
 
 ```{r}
-tab_mod <- all_models(mod,  mod = "species_class", type = "normal") #what do I need to put here for the "mod=" argument? 
+pred_mod <- predict.rma(mod)
+
+  estimate <- pred_mod$pred
+  lowerCL <- pred_mod$ci.lb
+  upperCL <- pred_mod$ci.ub 
+  lowerPR <- pred_mod$cr.lb
+  upperPR <- pred_mod$cr.ub 
+  
+  table_mod <- tibble("Fixed effect" = "intercept", estimate = estimate,
+                  lowerCL = lowerCL, upperCL = upperCL,
+                  pval = mod$pval,
+                  lowerPR = lowerPR, upperPR = upperPR)
+
+# creating a table
+tab_mod <- table_mod %>%
+  kable("html",  digits = 3) %>%
+  kable_styling("striped", position = "left") %>%
+  scroll_box(width = "100%")
 
 # saving tab_sex as RDS
 saveRDS(tab_mod, here("Rdata", "tab_mod.RDS"))
@@ -615,7 +632,24 @@ orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
 ```{r}
-tab_mod1 <- all_models(mod1,  mod = "species_class", type = "normal") #what do I need to put here for the "mod=" argument? 
+pred_mod1 <- predict.rma(mod1)
+
+  estimate <- pred_mod1$pred
+  lowerCL <- pred_mod1$ci.lb
+  upperCL <- pred_mod1$ci.ub 
+  lowerPR <- pred_mod1$cr.lb
+  upperPR <- pred_mod1$cr.ub 
+  
+  table_mod1 <- tibble("Fixed effect" = "intercept", estimate = estimate,
+                  lowerCL = lowerCL, upperCL = upperCL,
+                  pval = mod1$pval,
+                  lowerPR = lowerPR, upperPR = upperPR)
+
+# creating a table
+tab_mod1 <- table_mod1 %>%
+  kable("html",  digits = 3) %>%
+  kable_styling("striped", position = "left") %>%
+  scroll_box(width = "100%")
 
 # saving tab_sex as RDS
 saveRDS(tab_mod1, here("Rdata", "tab_mod1.RDS"))
@@ -626,7 +660,6 @@ tab_mod1 <-readRDS(here("Rdata", "tab_mod1.RDS"))
 
 tab_mod1
 ```
-
 
 :::
 
