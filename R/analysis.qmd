@@ -10,9 +10,9 @@ format:
     toc-depth: 3
     toc-title: "**Table of Contents**"
     output-file: "index.html"
-    theme: 
-      light: cosmo
+    theme:
       dark: darkly
+      light: flatly
     embed-resources: true
     code-fold: true
     code-tools: true
