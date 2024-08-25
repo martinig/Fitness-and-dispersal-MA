@@ -629,9 +629,15 @@ summary(mod1)
 
 round(i2_ml(mod1),2)   
 
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
-
 ```
+
+
+```{r}
+#| fig-cap: "Test caption"
+
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+```
+
 
 ```{r}
 pred_mod1 <- predict.rma(mod1)
@@ -1602,11 +1608,12 @@ leaveoneout
 ## Figure gallery
 
 ::: panel-tabset
-## Figure ---
+## Figure 1
 
 ```{r}
-# TODO - April to put figure code...
+#| fig-cap: "Test caption"
 
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
 ## Figure ---
