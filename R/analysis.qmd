@@ -633,7 +633,7 @@ round(i2_ml(mod1),2)
 
 
 ```{r}
-#| fig-cap: "Test caption"
+#| fig-cap: "Figure S1. Overall meta-analytic mean effect size (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
@@ -690,6 +690,11 @@ mod_class <- rma.mv(yi = yi, V = VCV,
                sparse = TRUE)
 summary(mod_class)
 r2_ml(mod_class)
+```
+
+
+```{r}
+#| fig-cap: "Figure S2. Mean fitness effect of different taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -727,6 +732,11 @@ mod_type <- rma.mv(yi = yi,
 summary(mod_type)
 
 r2_ml(mod_type)
+```
+
+
+```{r}
+#| fig-cap: "Figure S3. Mean fitness effect of X and X. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -763,6 +773,11 @@ mod_design <- rma.mv(yi = yi, V = VCV,
                sparse = TRUE)
 summary(mod_design)
 r2_ml(mod_design)
+```
+
+
+```{r}
+#| fig-cap: "Figure S4. Mean fitness effect of X and X. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -798,6 +813,11 @@ mod_disp1 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_disp1)
 r2_ml(mod_disp1)
+```
+
+
+```{r}
+#| fig-cap: "Figure S5. Mean fitness effect of natal and breeding dispersal. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_disp1, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -832,7 +852,11 @@ mod_disp2 <- rma.mv(yi = yi, V = VCV,
                sparse = TRUE)
 summary(mod_disp2)
 r2_ml(mod_disp2)
+```
 
+
+```{r}
+#| fig-cap: "Figure S6. Mean fitness effect of prospection and settlement dispersal phases. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 orchard_plot(mod_disp2, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
@@ -868,7 +892,11 @@ mod_sex <- rma.mv(yi = yi,
 summary(mod_sex)
 
 r2_ml(mod_sex)
+```
 
+
+```{r}
+#| fig-cap: "Figure S7. Mean fitness effect of females, males, or both sexes grouped. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 ```
@@ -907,7 +935,11 @@ mod_age1 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_age1)
 r2_ml(mod_age1)
+```
 
+
+```{r}
+#| fig-cap: "Figure S9. Mean fitness effect of life history stage. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
@@ -946,7 +978,11 @@ mod_age2 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_age2)
 r2_ml(mod_age2)
+```
 
+
+```{r}
+#| fig-cap: "Figure S10. Mean fitness effect of life history stage. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -971,6 +1007,12 @@ mod_fit1 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_fit1)
 r2_ml(mod_fit1)
+```
+
+
+```{r}
+#| fig-cap: "Figure S11. Mean fitness effect of different fitness components. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+
 
 orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -1008,6 +1050,11 @@ mod_fit2 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_fit2)
 r2_ml(mod_fit2)
+```
+
+
+```{r}
+#| fig-cap: "Figure S12. Mean fitness effect of different fitness components. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -1031,6 +1078,11 @@ mod_gen <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_gen)
 r2_ml(mod_gen)
+```
+
+
+```{r}
+#| fig-cap: "Figure S13. Mean fitness effect of individual and subsequent generations. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
