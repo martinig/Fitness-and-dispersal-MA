@@ -61,6 +61,7 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
                patchwork,   # putting ggplots together - you need to install via devtool
                here,         # making reading files easy
                orchaRd # plotting orchard plots
+               matrixcalc, # matrix calculations
                # more too add
 
 )
@@ -490,6 +491,27 @@ if (type == "normal"){
 
 }
 
+# absolute value analyses
+
+# folded mean
+folded_mu <-function(mean, variance){
+  mu <- mean
+  sigma <- sqrt(variance)
+  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
+  fold_mu
+} 
+
+# folded variance
+folded_v <-function(mean, variance){
+  mu <- mean
+  sigma <- sqrt(variance)
+  fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
+  fold_se <- sqrt(mu^2 + sigma^2 - fold_mu^2)
+  # adding se to make bigger mean
+  fold_v <-fold_se^2
+  fold_v
+} 
+
 
 ```
 
@@ -515,6 +537,12 @@ colnames(dat)[colnames(dat) == "X"] <- "effectID"
 
 dat$phylogeny <-  gsub(" ", "_", dat$species_cleaned)
 
+# absolute values for the effect sizes
+
+dat$yi_abs <- folded_mu(dat$yi, dat$vi)
+dat$vi_abs <- folded_v(dat$yi, dat$vi)
+
+
 # checking species names match between tree and dataset
 
 # match(unique(dat$phylogeny), tree$tip.label)
@@ -534,9 +562,18 @@ cor_tree <- vcv(tree,corr=T)
 # we assure shared groups will have r = 0.5
 # it is fine if these are not positive definite but changing this
 VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+
+#is.positive.definite(as.matrix(VCV), tol=1e-8)
 # focing the matrix to be positive definite
-# this should be in the method
+# this should be in the method section
 VCV <- nearPD(VCV)$mat
+
+# VCV for aboslute values
+
+VCVa <- vcalc(vi = dat$vi_abs, cluster = dat$shared_group, rho = 0.5)
+
+# this should be in the method section
+VCVa <- nearPD(VCVa)$mat
 
 
 ```
@@ -1104,6 +1141,96 @@ tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
 tab_gen
 ```
 
+## Study duration
+
+```{r}
+
+# we do not really need to put in
+
+# getting aboslute values for effect sizes as we expect shorter years one have more frqtuations
+dat$ln_study_duration <- log(dat$study_duration+1)
+
+mod_dur <- rma.mv(yi = yi, 
+                V = VCV,
+               mod = ~ ln_study_duration,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_dur)
+r2_ml(mod_dur)
+
+bubble_plot(mod_dur,
+                mod = "ln_study_duration",
+                group = "paperID",
+                xlab = "Study duration",
+                ylab = "Effect Size: Zr",
+                       g = TRUE)
+
+# absolute value analysis
+mod_dur1 <- rma.mv(yi = yi_abs,
+                V = VCVa,
+               mod = ~ ln_study_duration,
+               data = dat,
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_dur1)
+r2_ml(mod_dur1)
+
+bubble_plot(mod_dur1,
+                mod = "ln_study_duration",
+                group = "paperID",
+                xlab = "Study duration",
+                ylab = "Effect Size: Zr",
+                       g = TRUE)
+
+
+```
+
+```
+
+### Comparing normal model to heteroscedastic model
+
+```{r}
+
+# homo
+mod_dur1 <- rma.mv(yi = yi, 
+                V = VCV,
+                mod = ~ study_duration,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                test = "t",
+                method = "ML",
+                sparse = TRUE)
+summary(mod_dur)
+r2_ml(mod_dur)
+
+# hetero
+mod_dur2 <- rma.mv(yi = yi, 
+                 V = VCV,
+                 mod = ~ study_duration,
+                 data = dat, 
+                 random = list(
+                   ~ study_duration | effectID,
+                   ~ 1 | paperID,
+                   ~ 1 | species_cleaned),
+                 struct = "DIAG",
+                 method = "ML",
+                 test = "t",
+                 sparse = TRUE,
+                  control=list(optimizer="nlminb", rel.tol=1e-8))
+summary(mod_dur2)
+```
 ## Selection bias
 
 ### Normal analysis
