@@ -10,7 +10,9 @@ format:
     toc-depth: 3
     toc-title: "**Table of Contents**"
     output-file: "index.html"
-    theme: simplex
+    theme:
+      dark: darkly
+      light: flatly
     embed-resources: true
     code-fold: true
     code-tools: true
@@ -44,7 +46,7 @@ Things to do for April
 
 ## Setting up
 
-### Loading packages
+### Load packages
 
 ```{r}
 pacman::p_load(tidyverse, # tidy family and related pacakges below
@@ -66,19 +68,21 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
 eval(metafor:::.MuMIn)
 ```
 
-### Loading data: paper and tree data
+### Load data: paper and tree data
 
 ```{r}
+#the dataset with effect sizes
 dat <- read.csv(here("data", "clean_data.csv"))
 
 #dim(dat)
 #head(dat)
 
+#the phylogenetic tree
 tree <- read.tree(here("data", "species_tree.tre"))
 
 ```
 
-### Custom functions
+### Calculate effect sizes and sampling variances using custom functions
 
 ```{r}
 # function to calculate effect sizes
@@ -489,10 +493,10 @@ if (type == "normal"){
 
 ```
 
-### Preparing data: obtaining effect sizes etc.
+### Preparing final dataset
 
 ```{r}
-# calcuating effect sizes
+# adding effect sizes to dataset
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                          dat$variance_group_1, dat$variance_group_2, 
                          dat$n_group_1, dat$n_group_2, dat$n, 
@@ -500,7 +504,6 @@ effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2,
                          dat$effect_size_p_value_numeric, 
                          dat$direction_change, factor(dat$function_needed)), 
                     effect_size)                    
-
 
 # merging two data frames
 dat <- cbind(dat, effect2)
@@ -538,7 +541,7 @@ VCV <- nearPD(VCV)$mat
 
 ```
 
-## Meta-analysis
+## Intercept meta-analytic model
 
 ### Phylogenetic multilevel models
 ::: panel-tabset
@@ -567,20 +570,50 @@ saveRDS(mod, here("Rdata", "mod.RDS"))
 ```
 
 ```{r}
-# getting the save model
+# getting the saved model
 mod <- readRDS(here("Rdata", "mod.RDS"))
 
 summary(mod)
 
-# hardly any phlogenetic effects so taking it out
+# Phylogeney accounts for nothing (0.00%), so we can take it out. 
 round(i2_ml(mod),2)   
+```
+
+```{r}
+pred_mod <- predict.rma(mod)
+
+  estimate <- pred_mod$pred
+  lowerCL <- pred_mod$ci.lb
+  upperCL <- pred_mod$ci.ub 
+  lowerPR <- pred_mod$cr.lb
+  upperPR <- pred_mod$cr.ub 
+  
+  table_mod <- tibble("Fixed effect" = "intercept", estimate = estimate,
+                  lowerCL = lowerCL, upperCL = upperCL,
+                  pval = mod$pval,
+                  lowerPR = lowerPR, upperPR = upperPR)
+
+# creating a table
+tab_mod <- table_mod %>%
+  kable("html",  digits = 3) %>%
+  kable_styling("striped", position = "left") %>%
+  scroll_box(width = "100%")
+
+# saving tab_sex as RDS
+saveRDS(tab_mod, here("Rdata", "tab_mod.RDS"))
+```
+
+```{r}
+tab_mod <-readRDS(here("Rdata", "tab_mod.RDS"))
+
+tab_mod
 ```
 
 #### Reduced multilevel model
 
 ```{r}
 
-# phylogeney accounts nothing (0) so we can take it out
+# We remove phylogeny as a random effect from our meta-analytic model because phylogeny accounts for nothing (0%)
 mod1 <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ 1,
@@ -596,18 +629,56 @@ summary(mod1)
 
 round(i2_ml(mod1),2)   
 
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+```
 
+
+```{r}
+#| fig-cap: "Figure S1. Overall meta-analytic mean effect size (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+```
+
+
+```{r}
+pred_mod1 <- predict.rma(mod1)
+
+  estimate <- pred_mod1$pred
+  lowerCL <- pred_mod1$ci.lb
+  upperCL <- pred_mod1$ci.ub 
+  lowerPR <- pred_mod1$cr.lb
+  upperPR <- pred_mod1$cr.ub 
+  
+  table_mod1 <- tibble("Fixed effect" = "intercept", estimate = estimate,
+                  lowerCL = lowerCL, upperCL = upperCL,
+                  pval = mod1$pval,
+                  lowerPR = lowerPR, upperPR = upperPR)
+
+# creating a table
+tab_mod1 <- table_mod1 %>%
+  kable("html",  digits = 3) %>%
+  kable_styling("striped", position = "left") %>%
+  scroll_box(width = "100%")
+
+# saving tab_sex as RDS
+saveRDS(tab_mod1, here("Rdata", "tab_mod1.RDS"))
+```
+
+```{r}
+tab_mod1 <-readRDS(here("Rdata", "tab_mod1.RDS"))
+
+tab_mod1
 ```
 
 :::
 
-## Uni-moderator meta-regression models
+## Uni-moderator meta-regression models 
 
 ::: panel-tabset
 ## Species class
 
 ```{r}
+#I want to move this up
+#For each of our moderators, we run a uni-moderator meta-regression model
 mod_class <- rma.mv(yi = yi, V = VCV,
                mod = ~ species_class - 1,
                data = dat, 
@@ -619,6 +690,11 @@ mod_class <- rma.mv(yi = yi, V = VCV,
                sparse = TRUE)
 summary(mod_class)
 r2_ml(mod_class)
+```
+
+
+```{r}
+#| fig-cap: "Figure S2. Mean fitness effect of different taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -656,6 +732,11 @@ mod_type <- rma.mv(yi = yi,
 summary(mod_type)
 
 r2_ml(mod_type)
+```
+
+
+```{r}
+#| fig-cap: "Figure S3. Mean fitness effect of X and X. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -692,6 +773,11 @@ mod_design <- rma.mv(yi = yi, V = VCV,
                sparse = TRUE)
 summary(mod_design)
 r2_ml(mod_design)
+```
+
+
+```{r}
+#| fig-cap: "Figure S4. Mean fitness effect of X and X. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -727,6 +813,11 @@ mod_disp1 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_disp1)
 r2_ml(mod_disp1)
+```
+
+
+```{r}
+#| fig-cap: "Figure S5. Mean fitness effect of natal and breeding dispersal. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_disp1, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -761,7 +852,11 @@ mod_disp2 <- rma.mv(yi = yi, V = VCV,
                sparse = TRUE)
 summary(mod_disp2)
 r2_ml(mod_disp2)
+```
 
+
+```{r}
+#| fig-cap: "Figure S6. Mean fitness effect of prospection and settlement dispersal phases. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 orchard_plot(mod_disp2, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
@@ -797,7 +892,11 @@ mod_sex <- rma.mv(yi = yi,
 summary(mod_sex)
 
 r2_ml(mod_sex)
+```
 
+
+```{r}
+#| fig-cap: "Figure S7. Mean fitness effect of females, males, or both sexes grouped. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 ```
@@ -836,7 +935,11 @@ mod_age1 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_age1)
 r2_ml(mod_age1)
+```
 
+
+```{r}
+#| fig-cap: "Figure S9. Mean fitness effect of life history stage. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
@@ -875,7 +978,11 @@ mod_age2 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_age2)
 r2_ml(mod_age2)
+```
 
+
+```{r}
+#| fig-cap: "Figure S10. Mean fitness effect of life history stage. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -900,6 +1007,12 @@ mod_fit1 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_fit1)
 r2_ml(mod_fit1)
+```
+
+
+```{r}
+#| fig-cap: "Figure S11. Mean fitness effect of different fitness components. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+
 
 orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -937,6 +1050,11 @@ mod_fit2 <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_fit2)
 r2_ml(mod_fit2)
+```
+
+
+```{r}
+#| fig-cap: "Figure S12. Mean fitness effect of different fitness components. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -960,6 +1078,11 @@ mod_gen <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_gen)
 r2_ml(mod_gen)
+```
+
+
+```{r}
+#| fig-cap: "Figure S13. Mean fitness effect of individual and subsequent generations. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -981,7 +1104,7 @@ tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
 tab_gen
 ```
 
-## Study focus
+## Selection bias
 
 ### Normal analysis
 
@@ -1019,7 +1142,7 @@ tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
 tab_focus
 ```
 
-### Commparing normal model to heteroscedastic model
+### Comparing normal model to heteroscedastic model
 
 ```{r}
 
@@ -1068,6 +1191,8 @@ orchard_plot(mod_focus2, mod = "fitness_main_focus", xlab = "Effect Size: Zr", g
 
 ## Confirmation bias
 
+### Normal analysis
+
 ```{r}
 
 mod_confirm <- rma.mv(yi = yi, 
@@ -1100,6 +1225,52 @@ saveRDS(tab_confirm, here("Rdata", "tab_confirm.RDS"))
 tab_confirm <-readRDS(here("Rdata", "tab_confirm.RDS"))
 
 tab_confirm
+```
+
+### Comparing normal model to heteroscedastic model
+
+```{r}
+
+# homo
+mod_confirm1 <- rma.mv(yi = yi, 
+                V = VCV,
+                mod = ~ confirmation_bias - 1,
+                data = dat, 
+                random = list(
+                  ~ 1 | effectID,
+                  ~ 1 | paperID,
+                  ~ 1 | species_cleaned),
+                test = "t",
+                method = "ML",
+                sparse = TRUE)
+summary(mod_confirm1)
+r2_ml(mod_confirm1)
+
+# hetero
+mod_confirm2 <- rma.mv(yi = yi, 
+                 V = VCV,
+                 mod = ~ confirmation_bias,
+                 data = dat, 
+                 random = list(
+                   ~ confirmation_bias | effectID,
+                   ~ 1 | paperID,
+                   ~ 1 | species_cleaned),
+                 struct = "DIAG",
+                 method = "ML",
+                 test = "t",
+                 sparse = TRUE,
+                  control=list(optimizer="nlminb", rel.tol=1e-8))
+summary(mod_confirm2)
+
+# they are not sig. different
+anova(mod_confirm1, mod_confirm2)
+
+# homo
+orchard_plot(mod_confirm1, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
+# hetero
+orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+
 ```
 
 :::
@@ -1489,11 +1660,12 @@ leaveoneout
 ## Figure gallery
 
 ::: panel-tabset
-## Figure ---
+## Figure 1
 
 ```{r}
-# TODO - April to put figure code...
+#| fig-cap: "Test caption"
 
+orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
 ## Figure ---
