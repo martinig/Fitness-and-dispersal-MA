@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited August 7, 2024 by A. R. Martinig
+#last edited September 5, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -35,8 +35,12 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
   separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%	
+  separate(year, into = c("start_year", "end_year"), sep = "-", fill = "right", convert=TRUE) %>%	
 	mutate_if(is.character, as.factor) %>%
 	mutate(
+	  start_year=as.numeric(start_year),
+	  end_year = ifelse(is.na(end_year), start_year, as.numeric(end_year)),
+	  study_duration=end_year-start_year,
 		publication_year =str_sub(reference, start = -4),
 		publication_year = case_when(reference %in% c("Germain et al. 2017a", "Germain et al. 2017b") ~"2017", TRUE~ publication_year),
 		publication_year=as.numeric(publication_year),
@@ -82,14 +86,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 				TRUE ~ fitness_metric_clean)),
 
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual"))) %>%
-  	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments)) %>%
-  separate(year, into = c("start_year", "end_year"), sep = "-", convert = TRUE) %>%	
-    mutate(start_year=as.numeric(start_year),
-           study_duration=end_year-start_year,
-           study_duration=ifelse(is.na(study_duration), 0, study_duration))
-  		  	
-summary(df1$start_year)
-summary(df1$study_duration)
+  	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments)) 
   			
 table(df$function_needed)	
 table(df$effect_size)	
