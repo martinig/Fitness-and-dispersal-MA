@@ -82,9 +82,14 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 				TRUE ~ fitness_metric_clean)),
 
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual"))) %>%
-  	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments))
-  		  			 
-summary(df)
+  	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments)) %>%
+  separate(year, into = c("start_year", "end_year"), sep = "-", convert = TRUE) %>%	
+    mutate(start_year=as.numeric(start_year),
+           study_duration=end_year-start_year,
+           study_duration=ifelse(is.na(study_duration), 0, study_duration))
+  		  	
+summary(df1$start_year)
+summary(df1$study_duration)
   			
 table(df$function_needed)	
 table(df$effect_size)	
