@@ -30,8 +30,7 @@ select<-dplyr::select
 # Read in dataframe
 df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
   filter(
-		!composite_variable=="Y", 	#for now I marked Green & Hatchwell 2018 direct and indirect metrics as composite_variable=="Y" so they are excluded and I will only keep the inclusive fitness metric - if the authors reply with the direct fitness metrics, then I can break it down more and switch what gets excluded (i.e., keep the indirect and the more specific direct measures and exclude the inclusive fitness stuff)
-		!obsID=="TBD", 
+		!composite_variable=="Y",
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
   separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%	
@@ -85,7 +84,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 				fitness_metric_clean %in% c ("age at first reproduction", "lifetime breeding success", "lifetime reproductive success", "offspring reproduction", "reproductive lifespan and/or attempts") ~ "reproduction",
 				TRUE ~ fitness_metric_clean)),
 
-  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "offspring", "individual"))) %>%
+  		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "descendant", "focal"))) %>%
   	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments)) 
   			
 table(df$function_needed)	
