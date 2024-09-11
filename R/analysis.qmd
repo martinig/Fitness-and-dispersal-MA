@@ -48,7 +48,7 @@ Things to do for April
 
 ### Load packages
 
-```{r}
+```{r load packages}
 pacman::p_load(tidyverse, # tidy family and related pacakges below
                kableExtra, # nice tables
                MuMIn,  # multi-model inference
@@ -60,10 +60,9 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
                MuMIn,  # multi-model inference
                patchwork,   # putting ggplots together - you need to install via devtool
                here,         # making reading files easy
-               orchaRd # plotting orchard plots
-               matrixcalc, # matrix calculations
+               orchaRd, # plotting orchard plots
+               matrixcalc # matrix calculations
                # more too add
-
 )
 
 eval(metafor:::.MuMIn)
@@ -71,7 +70,7 @@ eval(metafor:::.MuMIn)
 
 ### Load data: paper and tree data
 
-```{r}
+```{r load data}
 #the dataset with effect sizes
 dat <- read.csv(here("data", "clean_data.csv"))
 
@@ -85,7 +84,7 @@ tree <- read.tree(here("data", "species_tree.tre"))
 
 ### Calculate effect sizes and sampling variances using custom functions
 
-```{r}
+```{r calculate effect sizes}
 # function to calculate effect sizes
 # Zr - correlation
 # there is always n
@@ -517,7 +516,7 @@ folded_v <-function(mean, variance){
 
 ### Preparing final dataset
 
-```{r}
+```{r final dataset}
 # adding effect sizes to dataset
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                          dat$variance_group_1, dat$variance_group_2, 
@@ -585,7 +584,7 @@ VCVa <- nearPD(VCVa)$mat
 
 #### With all five random effects
 
-```{r}
+```{r phylogenetic multilevel models}
 #| eval: false
 #| 
 # takes a while to run
@@ -636,9 +635,11 @@ tab_mod <- table_mod %>%
   kable_styling("striped", position = "left") %>%
   scroll_box(width = "100%")
 
-# saving tab_sex as RDS
+# saving tab_mod as RDS
 saveRDS(tab_mod, here("Rdata", "tab_mod.RDS"))
 ```
+
+**Table S1.** Mean estimate with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval) for intercept meta-analytic model with all five random effects.
 
 ```{r}
 tab_mod <-readRDS(here("Rdata", "tab_mod.RDS"))
@@ -648,9 +649,10 @@ tab_mod
 
 #### Reduced multilevel model
 
+We remove phylogeny as a random effect from our meta-analytic model because phylogeny accounts for nothing (0%)
+
 ```{r}
 
-# We remove phylogeny as a random effect from our meta-analytic model because phylogeny accounts for nothing (0%)
 mod1 <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ 1,
@@ -668,13 +670,11 @@ round(i2_ml(mod1),2)
 
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S1. Overall meta-analytic mean effect size (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S1.** Overall meta-analytic mean effect size (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+reduced_intercept<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
-
 
 ```{r}
 pred_mod1 <- predict.rma(mod1)
@@ -696,9 +696,11 @@ tab_mod1 <- table_mod1 %>%
   kable_styling("striped", position = "left") %>%
   scroll_box(width = "100%")
 
-# saving tab_sex as RDS
+# saving tab_mod1 as RDS
 saveRDS(tab_mod1, here("Rdata", "tab_mod1.RDS"))
 ```
+
+**Table S2.** Mean estimate with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval) for reduced intercept meta-analytic model without phylogeny as a random effect.
 
 ```{r}
 tab_mod1 <-readRDS(here("Rdata", "tab_mod1.RDS"))
@@ -710,12 +712,12 @@ tab_mod1
 
 ## Uni-moderator meta-regression models 
 
+For each of our moderators, we run a uni-moderator meta-regression model
+
 ::: panel-tabset
 ## Species class
 
-```{r}
-#I want to move this up
-#For each of our moderators, we run a uni-moderator meta-regression model
+```{r species class}
 mod_class <- rma.mv(yi = yi, V = VCV,
                mod = ~ species_class - 1,
                data = dat, 
@@ -731,7 +733,7 @@ r2_ml(mod_class)
 
 
 ```{r}
-#| fig-cap: "Figure S2. Mean fitness effect of different taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S2.** Mean fitness effect of different taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -742,10 +744,12 @@ orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group =
 
 tab_class <- all_models(mod_class,  mod = "species_class", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_class as RDS
 saveRDS(tab_class, here("Rdata", "tab_class.RDS"))
         
 ```
+
+**Table S3.** Mean estimates of different taxonomic classes with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_class <-readRDS(here("Rdata", "tab_class.RDS"))
@@ -755,7 +759,7 @@ tab_class
 
 ## Study type
 
-```{r}
+```{r study type}
 mod_type <- rma.mv(yi = yi,  
                V = VCV,
                mod = ~ study_type - 1,
@@ -773,7 +777,7 @@ r2_ml(mod_type)
 
 
 ```{r}
-#| fig-cap: "Figure S3. Mean fitness effect of X and X. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S3.** Mean fitness effect of natural and semi-natural study types. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -784,10 +788,12 @@ orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "pa
 
 tab_type <- all_models(mod_type,  mod = "study_type", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_type as RDS
 saveRDS(tab_type, here("Rdata", "tab_type.RDS"))
         
 ```
+
+**Table S4.** Mean estimates of natural and semi-natural study types with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_type <-readRDS(here("Rdata", "tab_type.RDS"))
@@ -798,7 +804,7 @@ tab_type
 
 ## Study design
 
-```{r}
+```{r study design}
 mod_design <- rma.mv(yi = yi, V = VCV,
                mod = ~ study_design - 1,
                data = dat, 
@@ -812,9 +818,8 @@ summary(mod_design)
 r2_ml(mod_design)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S4. Mean fitness effect of X and X. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S4.** Mean fitness effect of gradient and contrast study designs. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -824,11 +829,11 @@ orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group =
 
 tab_design <- all_models(mod_design,  mod = "study_design", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_design as RDS
 saveRDS(tab_design, here("Rdata", "tab_design.RDS"))
         
 ```
-
+**Table S5.** Mean estimates of gradient and contrast study designs with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
 tab_design <-readRDS(here("Rdata", "tab_design.RDS"))
 
@@ -837,8 +842,8 @@ tab_design
 
 ## Dispersal type
 
-```{r}
-mod_disp1 <- rma.mv(yi = yi, 
+```{r dispersal type}
+mod_disp <- rma.mv(yi = yi, 
                V = VCV,
                mod = ~ dispersal_type - 1,
                data = dat, 
@@ -848,37 +853,39 @@ mod_disp1 <- rma.mv(yi = yi,
                  ~ 1 | species_cleaned),
                test = "t",
                sparse = TRUE)
-summary(mod_disp1)
-r2_ml(mod_disp1)
+summary(mod_disp)
+r2_ml(mod_disp)
 ```
 
 
 ```{r}
-#| fig-cap: "Figure S5. Mean fitness effect of natal and breeding dispersal. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S5.** Mean fitness effect of natal and breeding dispersal. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
-orchard_plot(mod_disp1, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+orchard_plot(mod_disp, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
 ```{r}
 #| eval: false
 
-tab_disp1 <- all_models(mod_disp1,  mod = "dispersal_type", type = "normal")
+tab_disp <- all_models(mod_disp,  mod = "dispersal_type", type = "normal")
 
-# saving tab_sex as RDS
-saveRDS(tab_disp1, here("Rdata", "tab_disp1.RDS"))
+# saving tab_disp as RDS
+saveRDS(tab_disp, here("Rdata", "tab_disp.RDS"))
         
 ```
 
-```{r}
-tab_disp1 <-readRDS(here("Rdata", "tab_disp1.RDS"))
+**Table S6.** Mean estimates of natal and breeding dispersal with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
-tab_disp1
+```{r}
+tab_disp <-readRDS(here("Rdata", "tab_disp.RDS"))
+
+tab_disp
 ```
 
 ## Dispersal phase
 
-```{r}
-mod_disp2 <- rma.mv(yi = yi, V = VCV,
+```{r dispersal phase}
+mod_phase <- rma.mv(yi = yi, V = VCV,
                mod = ~ dispersal_phase - 1,
                data = dat, 
                random = list(
@@ -887,35 +894,34 @@ mod_disp2 <- rma.mv(yi = yi, V = VCV,
                  ~ 1 | species_cleaned),
                test = "t",
                sparse = TRUE)
-summary(mod_disp2)
-r2_ml(mod_disp2)
+summary(mod_phase)
+r2_ml(mod_phase)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S6. Mean fitness effect of prospection and settlement dispersal phases. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
-orchard_plot(mod_disp2, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+#| fig-cap: "**Figure S6.** Mean fitness effect of prospection and settlement dispersal phases. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
 ```{r}
 #| eval: false
 
-tab_disp2 <- all_models(mod_disp2,  mod = "dispersal_phase", type = "normal")
+tab_phase <- all_models(mod_phase,  mod = "dispersal_phase", type = "normal")
 
-# saving tab_sex as RDS
-saveRDS(tab_disp2, here("Rdata", "tab_disp2.RDS"))
+# saving tab_phase as RDS
+saveRDS(tab_phase, here("Rdata", "tab_phase.RDS"))
         
 ```
-
+**Table S7.** Mean estimates of prospection and settlement dispersal phases with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
-tab_disp2 <-readRDS(here("Rdata", "tab_disp2.RDS"))
+tab_phase <-readRDS(here("Rdata", "tab_phase.RDS"))
 
-tab_disp2
+tab_phase
 ```
 
 ## Sex
 
-```{r}
+```{r sex}
 mod_sex <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ sex - 1,
@@ -931,9 +937,8 @@ summary(mod_sex)
 r2_ml(mod_sex)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S7. Mean fitness effect of females, males, or both sexes grouped. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S7.** Mean fitness effect of females, males, or both sexes grouped. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 ```
@@ -947,7 +952,7 @@ tab_sex <- all_models(mod_sex,  mod = "sex", type = "normal")
 saveRDS(tab_sex, here("Rdata", "tab_sex.RDS"))
         
 ```
-
+**Table S8.** Mean estimates of females, males, or both sexes grouped with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
 tab_sex <-readRDS(here("Rdata", "tab_sex.RDS"))
 
@@ -959,7 +964,7 @@ tab_sex
 
 ### Higher life history grouping
 
-```{r}
+```{r life history stage}
 mod_age1 <- rma.mv(yi = yi,
                V = VCV,
                mod = ~ age_class_clean - 1,
@@ -974,9 +979,8 @@ summary(mod_age1)
 r2_ml(mod_age1)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S9. Mean fitness effect of life history stage. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S8.** Mean fitness effect of life history stage (adult, juvenile, or mixed). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
@@ -986,11 +990,11 @@ orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group 
 
 tab_age1 <- all_models(mod_age1,  mod = "age_class_clean", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_age1 as RDS
 saveRDS(tab_age1, here("Rdata", "tab_age1.RDS"))
         
 ```
-
+**Table S9.** Mean estimates of life history stage (adult, juvenile, or mixed) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
 tab_age1 <-readRDS(here("Rdata", "tab_age1.RDS"))
 
@@ -1017,9 +1021,8 @@ summary(mod_age2)
 r2_ml(mod_age2)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S10. Mean fitness effect of life history stage. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S9.** Mean fitness effect of life history stage at the level of precision reported (A: adult, Y: yearling, J: juvenile). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -1031,7 +1034,7 @@ orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "pap
 
 ### Higher level
 
-```{r}
+```{r fitness metric}
 mod_fit1 <- rma.mv(yi = yi, 
                V = VCV,
                mod = ~ fitness_higher_level - 1,
@@ -1046,9 +1049,8 @@ summary(mod_fit1)
 r2_ml(mod_fit1)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S11. Mean fitness effect of different fitness components. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S10.** Mean fitness effect of different fitness components (survival, reproduction, and indirect fitness). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 
 orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
@@ -1059,11 +1061,11 @@ orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", g
 
 tab_fit1 <- all_models(mod_fit1,  mod = "fitness_higher_level", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_fit1 as RDS
 saveRDS(tab_fit1, here("Rdata", "tab_fit1.RDS"))
         
 ```
-
+**Table S10.** Mean estimates of different fitness components (survival, reproduction, and indirect fitness) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
 tab_fit1 <-readRDS(here("Rdata", "tab_fit1.RDS"))
 
@@ -1089,20 +1091,18 @@ summary(mod_fit2)
 r2_ml(mod_fit2)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S12. Mean fitness effect of different fitness components. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S11.** Mean fitness effect of different fitness components at a finer resolution. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-
 
 # table not created for this (not meaningful for some levels)
 
 ```
 
-## Adult or offspring fitness?
+## Multi-generation
 
-```{r}
+```{r multi-generation}
 mod_gen <- rma.mv(yi = yi, 
                 V = VCV,
                mod = ~ whose_fitness - 1,
@@ -1117,9 +1117,8 @@ summary(mod_gen)
 r2_ml(mod_gen)
 ```
 
-
 ```{r}
-#| fig-cap: "Figure S13. Mean fitness effect of individual and subsequent generations. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
+#| fig-cap: "**Figure S12.** Mean fitness effect of non-dispersers and dispersers and their descendants. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (blue circles) scaled by precision (1/SE)."
 
 orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
@@ -1130,11 +1129,11 @@ orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "
 
 tab_gen <- all_models(mod_gen,  mod = "whose_fitness", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_gen as RDS
 saveRDS(tab_gen, here("Rdata", "tab_gen.RDS"))
         
 ```
-
+**Table S11.** Mean estimates of non-dispersers and dispersers and their descendants with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
 tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
 
@@ -1143,11 +1142,10 @@ tab_gen
 
 ## Study duration
 
-```{r}
+### Normal analysis
 
-# we do not really need to put in
-
-# getting aboslute values for effect sizes as we expect shorter years one have more frqtuations
+```{r study duration}
+# getting absolute values for effect sizes as we expect shorter years will have more frqtuations
 dat$ln_study_duration <- log(dat$study_duration+1)
 
 mod_dur <- rma.mv(yi = yi, 
@@ -1162,6 +1160,10 @@ mod_dur <- rma.mv(yi = yi,
                sparse = TRUE)
 summary(mod_dur)
 r2_ml(mod_dur)
+```
+
+```{r}
+#| fig-cap: "**Figure S13.** Add text."
 
 bubble_plot(mod_dur,
                 mod = "ln_study_duration",
@@ -1169,9 +1171,31 @@ bubble_plot(mod_dur,
                 xlab = "Study duration",
                 ylab = "Effect Size: Zr",
                        g = TRUE)
+```
 
+
+```{r}
+#| eval: false
+
+tab_dur <- all_models(mod_dur,  mod = "ln_study_duration", type = "normal")
+
+# saving tab_dur as RDS
+saveRDS(tab_dur, here("Rdata", "tab_dur.RDS"))
+        
+```
+
+**Table S12.** Add text.
+
+```{r}
+tab_dur <-readRDS(here("Rdata", "tab_dur.RDS"))
+
+tab_dur
+```
+
+
+```{r}
 # absolute value analysis
-mod_dur1 <- rma.mv(yi = yi_abs,
+mod_dur_abs <- rma.mv(yi = yi_abs,
                 V = VCVa,
                mod = ~ ln_study_duration,
                data = dat,
@@ -1181,19 +1205,38 @@ mod_dur1 <- rma.mv(yi = yi_abs,
                  ~ 1 | species_cleaned),
                test = "t",
                sparse = TRUE)
-summary(mod_dur1)
-r2_ml(mod_dur1)
+summary(mod_dur_abs)
+r2_ml(mod_dur_abs)
+```
 
-bubble_plot(mod_dur1,
+```{r}
+#| fig-cap: "**Figure S14.** Add text."
+ 
+bubble_plot(mod_dur_abs,
                 mod = "ln_study_duration",
                 group = "paperID",
                 xlab = "Study duration",
                 ylab = "Effect Size: Zr",
                        g = TRUE)
-
-
 ```
 
+
+```{r}
+#| eval: false
+
+tab_dur_abs <- all_models(mod_dur_abs,  mod = "ln_study_duration", type = "normal")
+
+# saving tab_dur_abs as RDS
+saveRDS(tab_dur_abs, here("Rdata", "tab_dur_abs.RDS"))
+        
+```
+
+**Table S12.** Add text.
+
+```{r}
+tab_dur_abs <-readRDS(here("Rdata", "tab_dur_abs.RDS"))
+
+tab_dur_abs
 ```
 
 ### Comparing normal model to heteroscedastic model
@@ -1212,8 +1255,8 @@ mod_dur1 <- rma.mv(yi = yi,
                 test = "t",
                 method = "ML",
                 sparse = TRUE)
-summary(mod_dur)
-r2_ml(mod_dur)
+summary(mod_dur1)
+r2_ml(mod_dur1)
 
 # hetero
 mod_dur2 <- rma.mv(yi = yi, 
@@ -1230,12 +1273,31 @@ mod_dur2 <- rma.mv(yi = yi,
                  sparse = TRUE,
                   control=list(optimizer="nlminb", rel.tol=1e-8))
 summary(mod_dur2)
+
+
+# they are significantly different
+anova(mod_dur1, mod_dur2)
 ```
+
+```{r}
+#| fig-cap: "**Figure S15.** Add text."
+
+# homo
+#orchard_plot(mod_dur1, mod = "study_duration", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
+
+```{r}
+#| fig-cap: "**Figure S16.** Add text."
+
+# hetero
+#orchard_plot(mod_dur2, mod = "study_duration", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
+
 ## Selection bias
 
 ### Normal analysis
 
-```{r}
+```{r selection bias}
 
 mod_focus <- rma.mv(yi = yi, 
                 V = VCV,
@@ -1249,6 +1311,11 @@ mod_focus <- rma.mv(yi = yi,
                 sparse = TRUE)
 summary(mod_focus)
 r2_ml(mod_focus)
+```
+
+```{r}
+#| fig-cap: "**Figure S17.** Add text."
+
 orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
 ```
@@ -1258,10 +1325,12 @@ orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", gr
 
 tab_focus <- all_models(mod_focus,  mod = "fitness_main_focus", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_focus as RDS
 saveRDS(tab_focus, here("Rdata", "tab_focus.RDS"))
         
 ```
+
+**Table S14.** Add text.
 
 ```{r}
 tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
@@ -1305,22 +1374,29 @@ mod_focus2 <- rma.mv(yi = yi,
 summary(mod_focus2)
 #r2_ml(mod_focusA1)
 
-# they are not sig. different
+# they are not significantly different
 anova(mod_focus1, mod_focus2)
+```
+
+```{r}
+#| fig-cap: "**Figure S18.** Add text."
 
 # homo
 orchard_plot(mod_focus1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
+
+```{r}
+#| fig-cap: "**Figure S19.** Add text."
 
 # hetero
 orchard_plot(mod_focus2, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-
 ```
 
 ## Confirmation bias
 
 ### Normal analysis
 
-```{r}
+```{r confirmation bias}
 
 mod_confirm <- rma.mv(yi = yi, 
                 V = VCV,
@@ -1334,8 +1410,12 @@ mod_confirm <- rma.mv(yi = yi,
                 sparse = TRUE)
 summary(mod_confirm)
 r2_ml(mod_confirm)
-orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
 
+```{r}
+#| fig-cap: "**Figure S20.** Add text."
+
+orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 ```
 
 ```{r}
@@ -1343,11 +1423,11 @@ orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", g
 
 tab_confirm <- all_models(mod_confirm,  mod = "confirmation_bias", type = "normal")
 
-# saving tab_sex as RDS
+# saving tab_confirm as RDS
 saveRDS(tab_confirm, here("Rdata", "tab_confirm.RDS"))
         
 ```
-
+**Table S15.** Add text.
 ```{r}
 tab_confirm <-readRDS(here("Rdata", "tab_confirm.RDS"))
 
@@ -1389,15 +1469,22 @@ mod_confirm2 <- rma.mv(yi = yi,
                   control=list(optimizer="nlminb", rel.tol=1e-8))
 summary(mod_confirm2)
 
-# they are not sig. different
+# they are not significantly different
 anova(mod_confirm1, mod_confirm2)
+```
+
+```{r}
+#| fig-cap: "**Figure S21.** Add text."
 
 # homo
 orchard_plot(mod_confirm1, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+```
+
+```{r}
+#| fig-cap: "**Figure S22.** Add text."
 
 # hetero
 orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-
 ```
 
 :::
@@ -1407,13 +1494,13 @@ orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", 
 
 ## Sex x Species class
 
-```{r}
+```{r sex x species class}
 
 # the interaction between 2 categorical variables are the same as creating a new variable with 2 categories combined so we use that approach 
 
 dat$sex_species_class <- paste(dat$sex, dat$species_class ,sep = "_")
 
-mod_int1 <- rma.mv(yi = yi, 
+mod_sex_species_class <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ sex_species_class - 1,
               data = dat, 
@@ -1423,21 +1510,43 @@ mod_int1 <- rma.mv(yi = yi,
                 ~ 1 | species_cleaned),
               test = "t",
               sparse = TRUE)
-summary(mod_int1)
+summary(mod_sex_species_class)
 
-r2_ml(mod_int1)
-
-orchard_plot(mod_int1, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
-
+r2_ml(mod_sex_species_class)
 ```
+
+```{r}
+#| fig-cap: "**Figure S23.** Add text."
+
+orchard_plot(mod_sex_species_class, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```
+
+```{r}
+#| eval: false
+
+tab_sex_species_class <- all_models(mod_sex_species_class,  mod = "sex_species_class", type = "normal")
+
+# saving tab_sex_species_class as RDS
+saveRDS(tab_sex_species_class, here("Rdata", "tab_sex_species_class.RDS"))
+        
+```
+
+**Table S16.** Add text.
+
+```{r}
+tab_sex_species_class <-readRDS(here("Rdata", "tab_sex_species_class.RDS"))
+
+tab_sex_species_class
+```
+
 
 ## Sex x Whose fitness
 
-```{r}
+```{r sex x whose fitness}
 
 dat$sex_whose_fitness <- paste(dat$sex, dat$whose_fitness ,sep = "_")
 
-mod_int2 <- rma.mv(yi = yi, 
+mod_sex_whose_fitness <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ sex_whose_fitness - 1,
               data = dat, 
@@ -1447,23 +1556,45 @@ mod_int2 <- rma.mv(yi = yi,
                 ~ 1 | species_cleaned),
               test = "t",
               sparse = TRUE)
-summary(mod_int2)
+summary(mod_sex_whose_fitness)
 
-r2_ml(mod_int2)
+r2_ml(mod_sex_whose_fitness)
+```
 
-orchard_plot(mod_int2, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```{r}
+#| fig-cap: "**Figure S23.** Add text."
 
+orchard_plot(mod_sex_whose_fitness, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+```
+
+
+```{r}
+#| eval: false
+
+tab_sex_whose_fitness <- all_models(mod_sex_whose_fitness,  mod = "sex_whose_fitness", type = "normal")
+
+# saving tab_sex_whose_fitness as RDS
+saveRDS(tab_sex_whose_fitness, here("Rdata", "tab_sex_whose_fitness.RDS"))
+        
+```
+
+**Table S17.** Add text.
+
+```{r}
+tab_sex_whose_fitness <-readRDS(here("Rdata", "tab_sex_whose_fitness.RDS"))
+
+tab_sex_whose_fitness
 ```
 
 
 ## Sex x Fitness (higher level)
 
-```{r}
-
+```{r sex x fitness}
 
 dat$sex_fitness_higher_level <- paste(dat$sex, dat$fitness_higher_level ,sep = "_")
 
-mod_int3 <- rma.mv(yi = yi, 
+mod_sex_fitness <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ sex_fitness_higher_level - 1,
               data = dat, 
@@ -1473,22 +1604,45 @@ mod_int3 <- rma.mv(yi = yi,
                 ~ 1 | species_cleaned),
               test = "t",
               sparse = TRUE)
-summary(mod_int3)
+summary(mod_sex_fitness)
 
-r2_ml(mod_int3)
+r2_ml(mod_sex_fitness)
+```
 
-orchard_plot(mod_int3, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+```{r}
+#| fig-cap: "**Figure S24.** Add text."
 
+orchard_plot(mod_sex_fitness, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+
+```
+
+
+```{r}
+#| eval: false
+
+tab_sex_fitness <- all_models(mod_sex_fitness,  mod = "sex_fitness_higher_level", type = "normal")
+
+# saving tab_sex_fitness as RDS
+saveRDS(tab_sex_fitness, here("Rdata", "tab_sex_fitness.RDS"))
+        
+```
+
+**Table S18.** Add text.
+
+```{r}
+tab_sex_fitness <-readRDS(here("Rdata", "tab_sex_fitness.RDS"))
+
+tab_sex_fitness
 ```
 
 
 ## Sex x Dispersal type
 
-```{r}
+```{r sex x dispersal type}
 
 dat$sex_dispersal_type <- paste(dat$sex, dat$dispersal_type ,sep = "_")
 
-mod_int4 <- rma.mv(yi = yi, 
+mod_sex_dispersal_type <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ sex_dispersal_type - 1,
               data = dat, 
@@ -1498,13 +1652,37 @@ mod_int4 <- rma.mv(yi = yi,
                 ~ 1 | species_cleaned),
               test = "t",
               sparse = TRUE)
-summary(mod_int4)
+summary(mod_sex_dispersal_type)
 
-r2_ml(mod_int4)
+r2_ml(mod_sex_dispersal_type)
+```
 
-orchard_plot(mod_int4, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 45)
+```{r}
+#| fig-cap: "**Figure S25.** Add text."
+
+orchard_plot(mod_sex_dispersal_type, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 45)
 
 ```
+
+
+```{r}
+#| eval: false
+
+tab_sex_dispersal_type <- all_models(mod_sex_dispersal_type,  mod = "sex_dispersal_type", type = "normal")
+
+# saving tab_sex_dispersal_type as RDS
+saveRDS(tab_sex_dispersal_type, here("Rdata", "tab_sex_dispersal_type.RDS"))
+        
+```
+
+**Table S19.** Add text.
+
+```{r}
+tab_sex_dispersal_type <-readRDS(here("Rdata", "tab_sex_dispersal_type.RDS"))
+
+tab_sex_dispersal_type
+```
+
 
 :::
 
@@ -1513,10 +1691,11 @@ orchard_plot(mod_int4, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", gro
 ::: panel-tabset
 ## Full model
 
-```{r}
+```{r multi-moderator-regression model}
 # use "ML" for model selection
+
 #######################
-# Mulit-variable models
+# Multi-variable models
 #######################
 
 # we need - to
@@ -1537,17 +1716,17 @@ mod_full <- rma.mv(yi = yi,
 summary(mod_full)
 
 round(r2_ml(mod_full)*100, 2)
-
 ```
 
 ## Multi-model inference
 
 ```{r}
 #| eval: false
+
 # multi-model selection
 candidates <- dredge(mod_full, trace = 2)
 
-# saving tab_sex as RDS
+# saving candidates as RDS
 saveRDS(candidates, here("Rdata", "candidates.RDS"))
         
 ```
@@ -1574,10 +1753,9 @@ importance
 ## Publication bias
 
 ::: panel-tabset
-```{r}
-####################
-# publication bias
-####################
+```{r publication bias}
+
+#| fig-cap: "**Figure S26.** Add text."
 
 funnel(mod1, 
        yaxis="seinv",
@@ -1589,22 +1767,11 @@ funnel(mod1,
        digits=c(0,1)
 )
 
-# funnel(mod1, 
-#        #yaxis="seinv",
-#        # = "rstudent",
-#        xlab = "Standarized residuals",
-#        ylab = "Precision (inverse of SE)",
-#        ylim = c(0.001, 16),
-#        xlim = c(-10,15),
-#        digits=c(0,1)
-# )
-
-
 ```
 
 ## Egger regression: uni-moderator
 
-```{r}
+```{r Egger regression}
 # write conditional statement here
 
 # if each group n is avaiable - assume n/2
@@ -1626,7 +1793,9 @@ mod_egger <- rma.mv(yi = yi,
 summary(mod_egger)
 
 round(r2_ml(mod_egger)*100, 2)
+```
 
+```{r}
 small <- bubble_plot(mod_egger,
                      mod = "sqeffectN",
                      group = "paperID",
@@ -1634,12 +1803,14 @@ small <- bubble_plot(mod_egger,
                      ylab = "Effect Size: Zr",
                      g = TRUE)
 
+#| fig-cap: "**Figure S27.** Add text."
+
 small
 ```
 
 ## Decline effect: uni-moderator
 
-```{r}
+```{r decline effect}
 # creating publication year from "reference"
 dat$reference <- as.character(dat$reference)
 dat$year <- with(dat, substr(reference, nchar(reference)-4, nchar(reference)))
@@ -1664,12 +1835,17 @@ decline <- bubble_plot(mod_dec,
                        xlab = "Publication year",
                        ylab = "Effect Size: Zr",
                        g = TRUE)
+```
+
+```{r}
+#| fig-cap: "**Figure S28.** Add text."
+
 decline 
 ```
 
 ## Combined analysis
 
-```{r}
+```{r combined analysis}
 # All together
 
 mod_comb <- rma.mv(yi = yi, 
@@ -1689,6 +1865,11 @@ summary(mod_comb)
 
 round(r2_ml(mod_comb)*100, 2)
 
+```
+
+```{r}
+#| fig-cap: "**Figure S29.** Add text."
+
 # small-study
 bubble_plot(mod_egger,
             mod = "sqeffectN",
@@ -1697,6 +1878,11 @@ bubble_plot(mod_egger,
             ylab = "Effect Size: Zr",
             g = TRUE)
 
+```
+
+```{r}
+#| fig-cap: "**Figure S30.** Add text."
+#| 
 # decline
 bubble_plot(mod_comb,
             mod = "year",
@@ -1709,7 +1895,7 @@ bubble_plot(mod_comb,
 
 ## Leave-1study-out (sensitivity analysis)
 
-```{r}
+```{r leave-1study-out}
 #| eval: false
 
 dat <- dat %>%
@@ -1778,6 +1964,11 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
   theme(panel.grid.minor = element_blank()) + theme_bw() + theme(panel.grid.major = element_blank()) +
   theme(panel.grid.minor.x = element_blank()) + theme(axis.text.y = element_text(size = 6))
 
+```
+
+```{r}
+#| fig-cap: "**Figure S31.** Add text."
+
 leaveoneout
 ```
 
@@ -1792,7 +1983,7 @@ leaveoneout
 ```{r}
 #| fig-cap: "Test caption"
 
-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+reduced_intercept
 ```
 
 ## Figure ---
