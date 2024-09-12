@@ -40,7 +40,7 @@ Things to do for April
 
 1.  Rerun all the models
 2.  Put figures at the end
-3.  Add some texts so the reader can understand
+3.  Add some text so the reader can understand
 4.  Go through code and add more annotations
 5.  Ask questions about things you do not understand
 
@@ -1145,7 +1145,7 @@ tab_gen
 ### Normal analysis
 
 ```{r study duration}
-# getting absolute values for effect sizes as we expect shorter years will have more frqtuations
+# getting absolute values for effect sizes as we expect shorter years will have more fluctuations
 dat$ln_study_duration <- log(dat$study_duration+1)
 
 mod_dur <- rma.mv(yi = yi, 
@@ -1271,7 +1271,7 @@ mod_dur2 <- rma.mv(yi = yi,
                  method = "ML",
                  test = "t",
                  sparse = TRUE,
-                  control=list(optimizer="nlminb", rel.tol=1e-8))
+                 control=list(optimizer="nlminb", rel.tol=1e-8))
 summary(mod_dur2)
 
 
@@ -1692,13 +1692,12 @@ tab_sex_dispersal_type
 ## Full model
 
 ```{r multi-moderator-regression model}
-# use "ML" for model selection
+# used "maximum likelihood" for model selection
 
 #######################
 # Multi-variable models
 #######################
 
-# we need - to
 mod_full <- rma.mv(yi = yi, 
                V = VCV,
               mod = ~ 1 + sex +
@@ -1772,9 +1771,7 @@ funnel(mod1,
 ## Egger regression: uni-moderator
 
 ```{r Egger regression}
-# write conditional statement here
-
-# if each group n is avaiable - assume n/2
+# if each group n is available - assume n/2
 dat$effectN <- ifelse(is.na(dat$n_group_1), (dat$n/2)*2/dat$n,  
                       (dat$n_group_1 * dat$n_group_2) / (dat$n_group_1 + dat$n_group_2))
   
