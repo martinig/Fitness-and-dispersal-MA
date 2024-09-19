@@ -1415,7 +1415,7 @@ orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", 
 
 # the interaction between 2 categorical variables are the same as creating a new variable with 2 categories combined so we use that approach 
 
-dat$sex_species_class <- paste(dat$sex, dat$species_class ,sep = "_")
+dat$sex_species_class <- as.factor(paste(dat$sex, dat$species_class ,sep = "_"))
 
 mod_sex_species_class <- rma.mv(yi = yi, 
                V = VCV,
@@ -1461,7 +1461,7 @@ tab_sex_species_class
 
 ```{r sex x whose fitness}
 
-dat$sex_whose_fitness <- paste(dat$sex, dat$whose_fitness ,sep = "_")
+dat$sex_whose_fitness <- as.factor(paste(dat$sex, dat$whose_fitness ,sep = "_"))
 
 mod_sex_whose_fitness <- rma.mv(yi = yi, 
                V = VCV,
@@ -1509,7 +1509,7 @@ tab_sex_whose_fitness
 
 ```{r sex x fitness}
 
-dat$sex_fitness_higher_level <- paste(dat$sex, dat$fitness_higher_level ,sep = "_")
+dat$sex_fitness_higher_level <- as.factor(paste(dat$sex, dat$fitness_higher_level ,sep = "_"))
 
 mod_sex_fitness <- rma.mv(yi = yi, 
                V = VCV,
@@ -1557,7 +1557,7 @@ tab_sex_fitness
 
 ```{r sex x dispersal type}
 
-dat$sex_dispersal_type <- paste(dat$sex, dat$dispersal_type ,sep = "_")
+dat$sex_dispersal_type <- as.factor(paste(dat$sex, dat$dispersal_type ,sep = "_"))
 
 mod_sex_dispersal_type <- rma.mv(yi = yi, 
                V = VCV,
