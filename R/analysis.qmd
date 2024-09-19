@@ -511,12 +511,14 @@ folded_v <-function(mean, variance){
   fold_v
 } 
 
-
 ```
 
 ### Preparing final dataset
 
 ```{r final dataset}
+#| include: false
+#| 
+
 # adding effect sizes to dataset
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                          dat$variance_group_1, dat$variance_group_2, 
@@ -573,6 +575,12 @@ VCVa <- vcalc(vi = dat$vi_abs, cluster = dat$shared_group, rho = 0.5)
 
 # this should be in the method section
 VCVa <- nearPD(VCVa)$mat
+
+
+# marking all character strings in dat into factor
+
+dat <- dat %>%
+  mutate(across(where(is.character), as.factor))
 
 
 ```
@@ -1175,25 +1183,6 @@ bubble_plot(mod_dur,
 
 
 ```{r}
-#| eval: false
-
-tab_dur <- all_models(mod_dur,  mod = "ln_study_duration", type = "normal")
-
-# saving tab_dur as RDS
-saveRDS(tab_dur, here("Rdata", "tab_dur.RDS"))
-        
-```
-
-**Table S12.** Add text.
-
-```{r}
-tab_dur <-readRDS(here("Rdata", "tab_dur.RDS"))
-
-tab_dur
-```
-
-
-```{r}
 # absolute value analysis
 mod_dur_abs <- rma.mv(yi = yi_abs,
                 V = VCVa,
@@ -1220,78 +1209,6 @@ bubble_plot(mod_dur_abs,
                        g = TRUE)
 ```
 
-
-```{r}
-#| eval: false
-
-tab_dur_abs <- all_models(mod_dur_abs,  mod = "ln_study_duration", type = "normal")
-
-# saving tab_dur_abs as RDS
-saveRDS(tab_dur_abs, here("Rdata", "tab_dur_abs.RDS"))
-        
-```
-
-**Table S12.** Add text.
-
-```{r}
-tab_dur_abs <-readRDS(here("Rdata", "tab_dur_abs.RDS"))
-
-tab_dur_abs
-```
-
-### Comparing normal model to heteroscedastic model
-
-```{r}
-
-# homo
-mod_dur1 <- rma.mv(yi = yi, 
-                V = VCV,
-                mod = ~ study_duration,
-                data = dat, 
-                random = list(
-                  ~ 1 | effectID,
-                  ~ 1 | paperID,
-                  ~ 1 | species_cleaned),
-                test = "t",
-                method = "ML",
-                sparse = TRUE)
-summary(mod_dur1)
-r2_ml(mod_dur1)
-
-# hetero
-mod_dur2 <- rma.mv(yi = yi, 
-                 V = VCV,
-                 mod = ~ study_duration,
-                 data = dat, 
-                 random = list(
-                   ~ study_duration | effectID,
-                   ~ 1 | paperID,
-                   ~ 1 | species_cleaned),
-                 struct = "DIAG",
-                 method = "ML",
-                 test = "t",
-                 sparse = TRUE,
-                 control=list(optimizer="nlminb", rel.tol=1e-8))
-summary(mod_dur2)
-
-
-# they are significantly different
-anova(mod_dur1, mod_dur2)
-```
-
-```{r}
-#| fig-cap: "**Figure S15.** Add text."
-
-# homo
-#orchard_plot(mod_dur1, mod = "study_duration", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-```
-
-```{r}
-#| fig-cap: "**Figure S16.** Add text."
-
-# hetero
-#orchard_plot(mod_dur2, mod = "study_duration", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
-```
 
 ## Selection bias
 
