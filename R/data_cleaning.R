@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited September 5, 2024 by A. R. Martinig
+#last edited October 8, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -109,20 +109,20 @@ head(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #675 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #202 studies			
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
-length(unique(df$species_cleaned)) #146
+nrow(df) #681 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #203 studies			
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #147 species		
+length(unique(df$species_cleaned)) #147
 
 df %>% as_tibble() %>% count(species_class) %>% nrow() #6 taxonomic classes		
 table(df$species_class)
 
 table(df$fitness_higher_level)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #202 total
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #202 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #203 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #203 total
 
-table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #204 total 
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #205 total 
 #because some studies include both natural and semi-natural conditions
 
 
@@ -131,8 +131,8 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 ####################################
 
 #extracted data
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #600 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #182 studies
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #606 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -152,11 +152,11 @@ df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 #sanity checks - species sample sizes
 ####################################
 
-df %>% as_tibble() %>% count(speciesID) %>% nrow() #149 species		
-df %>% as_tibble() %>% count(common_name) %>% nrow() #149 species		
-df %>% as_tibble() %>% count(species) %>% nrow() #149 species		
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #146 species		
-length(unique(df$species_cleaned)) #146
+df %>% as_tibble() %>% count(speciesID) %>% nrow() #150 species		
+df %>% as_tibble() %>% count(common_name) %>% nrow() #150 species		
+df %>% as_tibble() %>% count(species) %>% nrow() #150 species		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #147 species		
+length(unique(df$species_cleaned)) #147
 
 #there were some mismatches across columns, so here is how I checked this (instead of checking manually)
 
@@ -173,7 +173,7 @@ distinct(aa) |>
 
 distinct(aa) |>
   filter(.by = species_cleaned, n() > 1) %>% arrange(species_cleaned) 
-#in this case, the non-zero stuff here is ok. we explicitly made these changes 
+#in this case, the non-zero stuff here is ok. I explicitly made these changes 
 
 
 ####################################
