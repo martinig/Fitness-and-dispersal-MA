@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited October 8, 2024 by A. R. Martinig
+#last edited October 25, 2024 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -64,7 +64,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
     		fitness_metric %in% c("offspring survival to yearling", "offspring survival to independence", "offspring survival to age 4", "survival of offspring to yearling", "offspring survived two years", "offspring survived summer",  "offspring survival (father)", "offspring survival (mother)", "son longevity (father)", "son longevity (mother)", "number of surviving offspring per year", "number of recruits per birth", "n of juveniles alive in late summer per individual", "number of yearlings at emigration", "number of offspring recruited", "n of yearling daughters", "number of recruits per nest", "number of recruits", "number of daughters reaching sexual maturity", "at least one pup recruited", "total number of recruits", "total recruits across lifetime", "number of offspring surviving to subadult",  "number of offspring surviving", "lifetime reproductive success (total recruits)", "daughters longevity (mother)", "daughters longevity (father)", "number of offspring surviving to 30 days after leaving nest", "proportion of offspring surviving to 15 years old", "offspring survival to 7 days", "offspring survival to 30 days", "relative number of recruits", "reproductive success (yearlings raised in first year)", "offspring recruitment probability") ~ "offspring survival", 
     	
     		#how old an individual is when they first have offspring - including how old an individual is when they reach sexual maturity
-    		    fitness_metric %in% c("age at first reproduction", "age at maturity")  ~ "age at first reproduction",  
+    		    fitness_metric %in% c("age at first reproduction", "age at maturity", "year of first nest")  ~ "age at first reproduction",  
 
 			#Time between first and last reproductive attempt OR number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime) - grouped these together
     		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  
@@ -109,20 +109,20 @@ head(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #681 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #203 studies			
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #147 species		
-length(unique(df$species_cleaned)) #147
+nrow(df) #683 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #204 studies			
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
+length(unique(df$species_cleaned)) #148
 
 df %>% as_tibble() %>% count(species_class) %>% nrow() #6 taxonomic classes		
 table(df$species_class)
 
 table(df$fitness_higher_level)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #203 total
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #203 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #204 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #204 total
 
-table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #205 total 
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #206 total 
 #because some studies include both natural and semi-natural conditions
 
 
@@ -131,18 +131,18 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 ####################################
 
 #extracted data
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #182 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #606 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #183 studies
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #608 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
 #cross checked data
-df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #181 studies #45 papers (need to do 20 % of total papers, so crosscheck at least 40)
+df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow() #45 papers (need to do 20 % of total papers, so crosscheck at least 40)
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #13 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #30 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #14 studies
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #32 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -152,11 +152,11 @@ df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 #sanity checks - species sample sizes
 ####################################
 
-df %>% as_tibble() %>% count(speciesID) %>% nrow() #150 species		
-df %>% as_tibble() %>% count(common_name) %>% nrow() #150 species		
-df %>% as_tibble() %>% count(species) %>% nrow() #150 species		
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #147 species		
-length(unique(df$species_cleaned)) #147
+df %>% as_tibble() %>% count(speciesID) %>% nrow() #151 species		
+df %>% as_tibble() %>% count(common_name) %>% nrow() #151 species		
+df %>% as_tibble() %>% count(species) %>% nrow() #151 species		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
+length(unique(df$species_cleaned)) #148
 
 #there were some mismatches across columns, so here is how I checked this (instead of checking manually)
 

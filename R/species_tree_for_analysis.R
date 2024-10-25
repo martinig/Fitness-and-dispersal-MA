@@ -1,6 +1,6 @@
 #code to creat a taxonomic tree
 #written by M. Lagisz and A. R. Martinig
-#last edited October 8, 2024 by A. R. Martinig
+#last edited October 25, 2024 by A. R. Martinig
 
 
 # Specify the URL of your Google Sheet
@@ -16,14 +16,14 @@ Species_info <- read_sheet(url) %>%
   select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type")) 
 
 
-length(unique(Species_info$species_cleaned)) #147
-Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #147 species		
+length(unique(Species_info$species_cleaned)) #148
+Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
 unique(Species_info$species_cleaned) #needs cleaning 
 table(Species_info$species_cleaned)
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) 
 
-length(unique(Species_info$species_cleaned)) #147
+length(unique(Species_info$species_cleaned)) #148
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine
 names(taxa)
@@ -59,7 +59,7 @@ sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned
 sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 147 names are matching - all fixed 
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
-str(mytree) #292 tips
+str(mytree) #294 tips
 
 
 ####################################
