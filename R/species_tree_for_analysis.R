@@ -69,7 +69,7 @@ str(mytree) #294 tips
 write.tree(mytree, here("data", "species_tree.csv"))
 
 
-#write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
+write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
 # mytree <- read.tree(file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #if you need to read the tree
 
 
