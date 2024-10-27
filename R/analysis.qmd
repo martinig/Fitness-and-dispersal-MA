@@ -556,7 +556,6 @@ dat$vi_abs <- folded_v(dat$yi, dat$vi)
 # sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))
 
 # creating a correlation matrix from a tree
-
 tree <- compute.brlen(tree)
 cor_tree <- vcv(tree,corr=T) 
 # creating a VCV for sampling error variances 
@@ -578,7 +577,6 @@ VCVa <- nearPD(VCVa)$mat
 
 
 # marking all character strings in dat into factor
-
 dat <- dat %>%
   mutate(across(where(is.character), as.factor))
 
