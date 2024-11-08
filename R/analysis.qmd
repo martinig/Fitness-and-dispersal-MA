@@ -561,7 +561,7 @@ cor_tree <- vcv(tree,corr=T)
 # creating a VCV for sampling error variances 
 # we assure shared groups will have r = 0.5
 # it is fine if these are not positive definite but changing this
-VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = effectID, rho = 0.5)
 
 #is.positive.definite(as.matrix(VCV), tol=1e-8)
 # focing the matrix to be positive definite
@@ -570,10 +570,7 @@ VCV <- nearPD(VCV)$mat
 
 # VCV for aboslute values
 
-VCVa <- vcalc(vi = dat$vi_abs, cluster = dat$shared_group, rho = 0.5)
-
-# this should be in the method section
-VCVa <- nearPD(VCVa)$mat
+VCVa <- vcalc(vi = dat$vi_abs, cluster = dat$shared_group, obs = effectID, rho = 0.5)
 
 
 # marking all character strings in dat into factor
