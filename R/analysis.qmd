@@ -402,8 +402,8 @@ all_models <- function(model, mod = " ", type = "normal") {
   run_rma1 <- function(name) {
       
     # variance covarinace matrix for sampling errors
-    VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
-    VCV1 <- nearPD(VCV1)$mat
+    VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
+    #VCV1 <- nearPD(VCV1)$mat
     
       
     rma.mv(yi, V = VCV1,
@@ -421,8 +421,8 @@ all_models <- function(model, mod = " ", type = "normal") {
     run_rma2 <- function(name) {
     
             # variance covarinace matrix for sampling errors
-            VCVa <- vcalc(vi = dat2$vi_abs, cluster = dat$shared_group, rho = 0.5)
-            VCVa <- nearPD(VCVa)$mat
+            VCVa <- vcalc(vi = dat2$vi_abs, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
+            #VCVa <- nearPD(VCVa)$mat
                
                rma.mv(abs_yi2, V = VCVa,
                mods = ~relevel(dat2[[mod]], ref = name),
@@ -439,8 +439,8 @@ all_models <- function(model, mod = " ", type = "normal") {
     run_rma3 <- function(name) {
       
               # variance covarinace matrix for sampling errors
-                VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, rho = 0.5)
-                VCV1 <- nearPD(VCV1)$mat
+                VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
+                #VCV1 <- nearPD(VCV1)$mat
                
                 rma.mv(yi, V = VCV1,
                    mods = ~relevel(dat2[[mod]], ref = name),
@@ -561,16 +561,16 @@ cor_tree <- vcv(tree,corr=T)
 # creating a VCV for sampling error variances 
 # we assure shared groups will have r = 0.5
 # it is fine if these are not positive definite but changing this
-VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = effectID, rho = 0.5)
+VCV <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs =  dat$effectID, rho = 0.5)
 
 #is.positive.definite(as.matrix(VCV), tol=1e-8)
 # focing the matrix to be positive definite
 # this should be in the method section
-VCV <- nearPD(VCV)$mat
+#VCV <- nearPD(VCV)$mat
 
 # VCV for aboslute values
 
-VCVa <- vcalc(vi = dat$vi_abs, cluster = dat$shared_group, obs = effectID, rho = 0.5)
+VCVa <- vcalc(vi = dat$vi_abs, cluster = dat$shared_group, obs =  dat$effectID, rho = 0.5)
 
 
 # marking all character strings in dat into factor
@@ -1818,7 +1818,7 @@ for (i in 1:length(levels(dat$leave_out))) {
   temp_dat <- dat %>%
     filter(leave_out != levels(dat$leave_out)[i])
   
-  VCV_leaveout <- vcalc(vi = temp_dat$vi, cluster = temp_dat$shared_group, rho = 0.5)
+  VCV_leaveout <- vcalc(vi = temp_dat$vi, cluster = temp_dat$shared_group, obs = temp_dat$effectID, rho = 0.5)
   
   LeaveOneOut_effectsize[[i]] <-  rma.mv(yi = yi,
                                          V = VCV_leaveout, 
@@ -1879,6 +1879,85 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 #| fig-cap: "**Figure S31.** Add text."
 
 leaveoneout
+```
+
+## Leave-1species-out (sensitivity analysis)
+
+```{r leave-1species-out}
+#| eval: false
+
+dat <- dat %>%
+  mutate(leave_out = species_cleaned)
+
+dat$leave_out <- as.factor(dat$leave_out)
+
+
+LeaveOneOut_effectsize <- list()
+for (i in 1:length(levels(dat$leave_out))) {
+  temp_dat <- dat %>%
+    filter(leave_out != levels(dat$leave_out)[i])
+  
+  VCV_leaveout <- vcalc(vi = temp_dat$vi, cluster = temp_dat$shared_group, obs = temp_dat$effectID, rho = 0.5)
+  
+  LeaveOneOut_effectsize[[i]] <-  rma.mv(yi = yi,
+                                         V = VCV_leaveout, 
+                                         random = list(
+                                           ~ 1 | effectID,
+                                           ~ 1 | paperID,
+                                           ~ 1 | species_cleaned),
+                                         test = "t",
+                                         sparse = TRUE,
+                                         data = temp_dat[temp_dat$leave_out != levels(temp_dat$leave_out)[i], ])
+}
+
+# writing function for extracting est, ci.lb, and ci.ub from all models
+est.func <- function(model) {
+  df <- data.frame(est = model$b, lower = model$ci.lb, upper = model$ci.ub)
+  return(df)
+}
+
+# using dplyr to form data frame
+MA_oneout1 <- lapply(LeaveOneOut_effectsize,function(x) est.func(x)) %>%
+  bind_rows %>%
+  mutate(left_out = levels(dat$leave_out))
+
+
+# telling ggplot to stop reordering factors
+MA_oneout1$left_out <- as.factor(MA_oneout$left_out)
+MA_oneout1$left_out <- factor(MA_oneout1$left_out, levels = MA_oneout1$left_out)
+
+# saving the runs
+saveRDS(MA_oneout1, here("Rdata", "MA_oneout1.RDS"))
+
+
+```
+
+```{r}
+#| fig-height: 16
+
+MA_oneout1 <- readRDS(here("Rdata", "MA_oneout1.RDS"))
+
+# plotting
+leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1) +
+
+  geom_hline(yintercept = mod1$ci.lb, lty = 3, lwd = 0.75, colour = "black") +
+  geom_hline(yintercept = mod1$b, lty = 1, lwd = 0.75, colour = "black") + 
+  geom_hline(yintercept = mod1$ci.ub,
+             lty = 3, lwd = 0.75, colour = "black") + 
+  geom_pointrange(aes(x = left_out, y = est,
+                      ymin = lower, ymax = upper)) + 
+  xlab("Study left out") + 
+  ylab("Zr (effect size), 95% CI") +
+  coord_flip() + 
+  theme(panel.grid.minor = element_blank()) + theme_bw() + theme(panel.grid.major = element_blank()) +
+  theme(panel.grid.minor.x = element_blank()) + theme(axis.text.y = element_text(size = 6))
+
+```
+
+```{r}
+#| fig-cap: "**Figure S32.** Add text."
+
+leaveoneout1
 ```
 
 <!-- ![](./figures/sensitivity analysis plot.png) -->
