@@ -1910,11 +1910,11 @@ for (i in 1:length(levels(dat$leave_out))) {
                                          data = temp_dat[temp_dat$leave_out != levels(temp_dat$leave_out)[i], ])
 }
 
-# writing function for extracting est, ci.lb, and ci.ub from all models
-est.func <- function(model) {
-  df <- data.frame(est = model$b, lower = model$ci.lb, upper = model$ci.ub)
-  return(df)
-}
+# # writing function for extracting est, ci.lb, and ci.ub from all models
+# est.func <- function(model) {
+#   df <- data.frame(est = model$b, lower = model$ci.lb, upper = model$ci.ub)
+#   return(df)
+# }
 
 # using dplyr to form data frame
 MA_oneout1 <- lapply(LeaveOneOut_effectsize,function(x) est.func(x)) %>%
@@ -1923,7 +1923,7 @@ MA_oneout1 <- lapply(LeaveOneOut_effectsize,function(x) est.func(x)) %>%
 
 
 # telling ggplot to stop reordering factors
-MA_oneout1$left_out <- as.factor(MA_oneout$left_out)
+MA_oneout1$left_out <- as.factor(MA_oneout1$left_out)
 MA_oneout1$left_out <- factor(MA_oneout1$left_out, levels = MA_oneout1$left_out)
 
 # saving the runs
@@ -1946,7 +1946,7 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
              lty = 3, lwd = 0.75, colour = "black") + 
   geom_pointrange(aes(x = left_out, y = est,
                       ymin = lower, ymax = upper)) + 
-  xlab("Study left out") + 
+  xlab("Species left out") + 
   ylab("Zr (effect size), 95% CI") +
   coord_flip() + 
   theme(panel.grid.minor = element_blank()) + theme_bw() + theme(panel.grid.major = element_blank()) +
