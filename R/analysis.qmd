@@ -1802,7 +1802,7 @@ bubble_plot(mod_comb,
 
 ```
 
-## Leave-1study-out (sensitivity analysis)
+## Leave-1-study-out (sensitivity analysis)
 
 ```{r leave-1study-out}
 #| eval: false
@@ -1881,7 +1881,7 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 leaveoneout
 ```
 
-## Leave-1species-out (sensitivity analysis)
+## Leave-1-species-out (sensitivity analysis)
 
 ```{r leave-1species-out}
 #| eval: false
