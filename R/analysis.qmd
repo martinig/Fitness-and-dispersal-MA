@@ -1804,7 +1804,7 @@ bubble_plot(mod_comb,
 
 ## Leave-1-study-out (sensitivity analysis)
 
-```{r leave-1study-out}
+```{r leave-1study-ouxt}
 #| eval: false
 
 dat <- dat %>%
