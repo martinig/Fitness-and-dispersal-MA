@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited January 23, 2025 by A. R. Martinig
+#last edited January 30, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -88,6 +88,8 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "descendant", "focal"))) %>%
   	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments)) 
   			
+#CHECK THE STR() and for spaces with variables
+
 table(df$function_needed)	
 table(df$effect_size)	
 table(df$effect_size_details)	
@@ -110,8 +112,8 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #700 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #206 studies			
+nrow(df) #688 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #205 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
 length(unique(df$species_cleaned)) #148
 

@@ -1807,8 +1807,22 @@ round(r2_ml(mod_comb)*100, 2)
 
 ```
 
+
 ```{r}
-#| fig-cap: "**Figure S28.** Combined effect of sample size and publication year on effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S28.** Combined effect of sample size and publication year on effect size (plotting sample size only). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+
+# combined sample size and year
+bubble_plot(mod_comb,
+            mod = "sqeffectN",
+            group = "paperID",
+            xlab = "sqrt(Effective N)",
+            ylab = "Effect Size: Zr",
+            g = TRUE)
+
+```
+
+```{r}
+#| fig-cap: "**Figure S29.** Combined effect of sample size and publication year on effect size (plotting publication year only). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # combined sample size and year
 bubble_plot(mod_comb,
@@ -1894,7 +1908,7 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 ```
 
 ```{r}
-#| fig-cap: "**Figure S29.** Leave one study out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
+#| fig-cap: "**Figure S30.** Leave one study out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout
 ```
@@ -1973,7 +1987,7 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
 ```
 
 ```{r}
-#| fig-cap: "**Figure S30.** Leave one species out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
+#| fig-cap: "**Figure S31.** Leave one species out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout1
 ```
