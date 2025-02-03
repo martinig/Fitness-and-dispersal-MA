@@ -30,7 +30,6 @@ select<-dplyr::select
 # Read in dataframe
 df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
   filter(
-    !reference=="Saatoglu et al. 2025",
   	!composite_variable=="Y",
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
@@ -111,7 +110,7 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #700 effect sizes
+nrow(df) #694 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #206 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
 length(unique(df$species_cleaned)) #148
