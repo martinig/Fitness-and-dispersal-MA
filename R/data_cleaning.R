@@ -30,7 +30,8 @@ select<-dplyr::select
 # Read in dataframe
 df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
   filter(
-		!composite_variable=="Y",
+    !reference=="Saatoglu et al. 2025",
+  	!composite_variable=="Y",
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
   separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%	
