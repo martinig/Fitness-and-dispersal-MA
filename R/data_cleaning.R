@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited January 30, 2025 by A. R. Martinig
+#last edited February 3, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -30,8 +30,6 @@ select<-dplyr::select
 # Read in dataframe
 df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
   filter(
-    !reference=="Saatoglu et al. 2025",
-    #!reference=="Dykstra et al. 2019",
 		!composite_variable=="Y",
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
@@ -112,8 +110,8 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #688 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #205 studies			
+nrow(df) #700 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #206 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
 length(unique(df$species_cleaned)) #148
 
@@ -122,10 +120,10 @@ table(df$species_class)
 
 table(df$fitness_higher_level)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #204 total
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #204 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #206 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #206 total
 
-table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #206 total 
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #208 total 
 #because some studies include both natural and semi-natural conditions
 
 
@@ -135,7 +133,7 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 
 #extracted data
 df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #185 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #608 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #625 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -144,8 +142,8 @@ df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow()
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #14 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #32 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #15 studies
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #37 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -227,6 +225,7 @@ above4_1
 #Engh et al. 2002 -> had to convert SE to SD
 #Cotto et al. 2015 -> They measured fitness as reproductive effort (realized value relative to what would be expected given body size).
 #Green & Hatchwell 2018 -> authors calculated this and sent us the mean and SD 
+#Saatoglu et al. 2025 -> authors calculated this and sent us the mean and SD 
 #we checked all of these and concluded they are ok
 
 below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
