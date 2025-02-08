@@ -404,7 +404,6 @@ all_models <- function(model, mod = " ", type = "normal") {
     # variance covarinace matrix for sampling errors
     VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
     #VCV1 <- nearPD(VCV1)$mat
-    
       
     rma.mv(yi, V = VCV1,
                    mods = ~relevel(dat2[[mod]], ref = name),
@@ -1175,23 +1174,6 @@ bubble_plot(mod_dur,
 ```
 
 ```{r}
-#| eval: false
-
-tab_dur <- all_models(mod_dur,  mod = "ln_study_duration", type = "normal")
-
-# saving tab_gen as RDS
-saveRDS(tab_dur, here("Rdata", "tab_dur.RDS"))
-        
-```
-**Table S12.** Mean estimate of study duration (log years) with its 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
-```{r}
-tab_dur <-readRDS(here("Rdata", "tab_dur.RDS"))
-
-tab_dur
-```
-
-
-```{r}
 # absolute value analysis
 mod_dur_abs <- rma.mv(yi = yi_abs,
                 V = VCVa,
@@ -1217,24 +1199,6 @@ bubble_plot(mod_dur_abs,
                 ylab = "Effect Size: Zr",
                        g = TRUE)
 ```
-
-
-```{r}
-#| eval: false
-
-tab_dur_abs <- all_models(mod_dur_abs,  mod = "ln_study_duration", type = "normal")
-
-# saving tab_gen as RDS
-saveRDS(tab_dur_abs, here("Rdata", "tab_dur_abs.RDS"))
-        
-```
-**Table S13.** Mean estimate of study duration (log years) from absolute value analysis with its 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
-```{r}
-tab_dur_abs <-readRDS(here("Rdata", "tab_dur_abs.RDS"))
-
-tab_dur_abs
-```
-
 
 ## Selection bias
 
