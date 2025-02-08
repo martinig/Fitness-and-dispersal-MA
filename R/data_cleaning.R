@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited October 25, 2024 by A. R. Martinig
+#last edited February 3, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -30,7 +30,7 @@ select<-dplyr::select
 # Read in dataframe
 df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”folder name”, “data.csv”)) → keeping these separate means you don’t have to rewrite your pathway or change anything when you switch between apple and PC
   filter(
-		!composite_variable=="Y",
+  	!composite_variable=="Y",
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
   separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%	
@@ -70,8 +70,7 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
     		    fitness_metric %in% c("number of years breeding", "number of breeding events", "number of breeding attempts", "lifetime breeding effort (number of breeding attempts as a proportion of an individual's lifespan)", "n of cluthes per year", "number of clutches")  ~ "reproductive lifespan and/or attempts",  
     		    
     		#time between birth and death or a set point (defined by authors)
-   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	
-
+   				fitness_metric %in% c("survival winter", "survival to yearling", "survival to maturity", "survival spring", "survival autumn", "survival annual", "survival beyond 663 days", "survival to 298 days", "survival to 298 to 663 days", "survival 1st to 2nd year", "lifespan", "age at death", "longevity", "survival to reproductive maturity (overwinter)", "survival to following year", "survival to following spring", "survival to age 3", "survival to 35 days old", "survival summer", "survival rate", "survival >1 year", "survival (shooting season)", "survival (monthly)", "monthly survival", "successfully settling", "recruitment probability", "recruitment", "lifetime survival") ~ "survival", 	
    			
    			#offspring that go on to reproduce themselves #includes offspring number of reproductive attempts (i.e., number of breeding attempts (litters, clutches, etc.) an individual has over their lifetime)
     			fitness_metric %in% c("offspring successfully bred at least once", "number of offspring that bred", "offspring lifetime reproductive success", "son lifetime reproductive success (father)", "son lifetime reproductive success (mother)", "daughter lifetime reproductive success (mother)", "daughter lifetime reproductive success (father)", "daughter number of breeding attempts (mother)", "daughter number of breeding attempts (father)", "daughter litter size (mother)", "daughter litter size (father)", "total number of offspring that survived to breed") ~ "offspring reproduction", 
@@ -87,6 +86,8 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
   		whose_fitness=as.factor(ifelse(fitness_metric_clean %in% c("offspring survival", "offspring reproduction"), "descendant", "focal"))) %>%
   	select(-c(title, DOI, journal, composite_variable, effect_size_p_value, data_source, comments)) 
   			
+#CHECK THE STR() and for spaces with variables
+
 table(df$function_needed)	
 table(df$effect_size)	
 table(df$effect_size_details)	
@@ -103,14 +104,14 @@ table(df$age_class_clean)
 
 hist(df$publication_year, breaks=50)
 
-head(df)
+tail(df)
 	
 ####################################
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #683 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #204 studies			
+nrow(df) #694 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #206 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
 length(unique(df$species_cleaned)) #148
 
@@ -119,10 +120,10 @@ table(df$species_class)
 
 table(df$fitness_higher_level)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #204 total
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #204 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #206 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #206 total
 
-table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #206 total 
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #208 total 
 #because some studies include both natural and semi-natural conditions
 
 
@@ -131,8 +132,8 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 ####################################
 
 #extracted data
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #183 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #608 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #185 studies
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #625 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -141,8 +142,8 @@ df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow()
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #14 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #32 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #15 studies
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #37 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -224,6 +225,7 @@ above4_1
 #Engh et al. 2002 -> had to convert SE to SD
 #Cotto et al. 2015 -> They measured fitness as reproductive effort (realized value relative to what would be expected given body size).
 #Green & Hatchwell 2018 -> authors calculated this and sent us the mean and SD 
+#Saatoglu et al. 2025 -> authors calculated this and sent us the mean and SD 
 #we checked all of these and concluded they are ok
 
 below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
