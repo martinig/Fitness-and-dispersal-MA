@@ -110,7 +110,7 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #694 effect sizes
+nrow(df) #696 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #206 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
 length(unique(df$species_cleaned)) #148
