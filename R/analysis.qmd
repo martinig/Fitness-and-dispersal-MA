@@ -49,6 +49,13 @@ Things to do for April
 ### Load packages
 
 ```{r load packages}
+#force install pacman and orchaRd
+
+#install.packages("pacman")
+#pacman::p_load(devtools, tidyverse, metafor, patchwork, R.rsp, emmeans)
+#devtools::install_github("daniel1noble/orchaRd", force = TRUE)
+
+#load all other packages
 pacman::p_load(tidyverse, # tidy family and related pacakges below
                kableExtra, # nice tables
                MuMIn,  # multi-model inference
@@ -62,7 +69,7 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
                here,         # making reading files easy
                orchaRd, # plotting orchard plots
                matrixcalc # matrix calculations
-               # more too add
+               # more to add
 )
 
 eval(metafor:::.MuMIn)
