@@ -1,5 +1,5 @@
 ---
-title: "**Does philopatry pay? Meta-analysis reveals little empirical support for dispersal being costly. **"
+title: "**Challenging assumptions: meta-analysis reveals dispersal costs are not universal.**"
 subtitle: "**Supplmentary Material**"
 author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S. Nakagawa"
 date: "`r Sys.Date()`"
@@ -39,7 +39,6 @@ execute:
 Things to do for April
 
 1.  Rerun all the models
-2.  Put figures at the end
 3.  Add some text so the reader can understand
 4.  Go through code and add more annotations
 5.  Ask questions about things you do not understand
@@ -64,12 +63,13 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
                pander,   # nice tables
                metafor,  # package for meta-analysis
                ape,      # phylogenetic analysis
+               ggtree,
+               ggstance,
                MuMIn,  # multi-model inference
                patchwork,   # putting ggplots together - you need to install via devtool
                here,         # making reading files easy
                orchaRd, # plotting orchard plots
                matrixcalc # matrix calculations
-               # more to add
 )
 
 eval(metafor:::.MuMIn)

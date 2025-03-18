@@ -275,7 +275,7 @@ Two steps:
 
 2. Plot tree and add species-level effect size estimates.
 
-These two steps can be done by phylo_model(), which can be fund at the following code chunk.
+These two steps can be done by phylo_model(), which can be found at the following code chunk.
 
 ```{r}
 # function to estimate species-level effect sizes
