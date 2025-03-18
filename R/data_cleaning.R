@@ -133,7 +133,7 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 
 #extracted data
 df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #185 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #625 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #621 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
