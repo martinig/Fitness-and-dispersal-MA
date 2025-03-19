@@ -1597,6 +1597,8 @@ tab_sex_dispersal_type <-readRDS(here("Rdata", "tab_sex_dispersal_type.RDS"))
 tab_sex_dispersal_type
 ```
 
+:::
+
 ## Species-level models
 
 There are two steps, which can be done using phylo_model().
@@ -1689,6 +1691,9 @@ p3 <- p2 +
   ) +
   theme_tree2()
 
+```
+
+```{r}
 # adjust widths of the plot facets as necessary, if it improves visualization 
 #| fig-cap: "**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32)."
 
@@ -1796,7 +1801,9 @@ small <- bubble_plot(mod_egger,
                      xlab = "sqrt(Effective N)",
                      ylab = "Effect Size: Zr",
                      g = TRUE)
+```
 
+```{r}
 #| fig-cap: "**Figure S26.** Relationship between sample size and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 small
@@ -2046,12 +2053,12 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
 leaveoneout1
 ```
 
+<!-- ![](./figures/sensitivity analysis plot.png) -->
+
 ## Precision
 ```{r precision}
 
-#| fig-cap: "**Figure S32.** Relationship between standardized residuals and precision (inverse of SE)."
-
-funnel(mod1, 
+precision_plot<-funnel(mod1, 
        yaxis="seinv",
        # = "rstudent",
        xlab = "Standarized residuals",
@@ -2060,6 +2067,14 @@ funnel(mod1,
        xlim = c(-10,15),
        digits=c(0,1)
 )
+
+```
+
+```{r}
+
+#| fig-cap: "**Figure S32.** Relationship between standardized residuals and precision (inverse of SE)."
+
+precision_plot
 
 ```
 
