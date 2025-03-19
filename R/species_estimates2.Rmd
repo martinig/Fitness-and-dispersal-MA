@@ -362,6 +362,6 @@ p3 <- p2 +
 
 
 # adjust widths of the plot facets as necessary, if it improve visualization 
-facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
+facet_widths(p3, c(Tree = 0.4, `Effect size` = 0.5))
 ```
 

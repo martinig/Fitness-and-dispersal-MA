@@ -1597,6 +1597,103 @@ tab_sex_dispersal_type <-readRDS(here("Rdata", "tab_sex_dispersal_type.RDS"))
 tab_sex_dispersal_type
 ```
 
+## Species-level models
+
+There are two steps, which can be done using phylo_model().
+
+### Estimate species-level effect sizes.
+
+```{r species-level effect sizes}
+# function to estimate species-level effect sizes
+phylo_model <- function(data = dat, tree, correlation = 0.5) {
+  
+  # accounting for within-species correlation
+  Vm <- vcalc(vi = data$vi, cluster = data$shared_group, obs = data$effectID, rho = correlation)
+  mod <- rma.mv(yi = yi, 
+              V = Vm,
+              mod = ~ 1,
+              data = data,
+              random = list(
+                            ~ 1 | effectID,
+                            ~ 1 | paperID,
+                            ~ 1 | phylogeny),
+              #R= list(phylogeny = cor_tree),
+              test = "t",
+              sparse = TRUE)
+  
+  
+  # get random effects
+  # dat3 <- dat2[c("phylogeny", "yi", "vi")]
+  REs <- ranef(mod)$phylogeny
+  
+  # calculate means and CIs
+  dat <- data.frame(phylogeny = rownames(REs),
+                    estimate = mod$beta[1] + REs$intrcpt,
+                    se = sqrt((mod$se[1])^2 + (REs$se)^2)) %>%
+    mutate(lb = estimate - se * qnorm(1 - 0.05/2), 
+           ub = estimate + se * qnorm(1 - 0.05/2)) %>%
+    arrange(phylogeny)
+  # get species class data
+  species_class <- dplyr::distinct(data, phylogeny, .keep_all = TRUE) %>%
+    dplyr::select(species_class, phylogeny)
+  
+  # extract tip labels from the tree and merge with species class
+  tip.label <- data.frame(phylogeny = tree$tip.label)  # extract tip label
+  species_class2 <- left_join(tip.label, species_class, by = "phylogeny")
+  
+  return(list(data = dat, class = species_class2))  # return processed data and species class
+}
+
+# estimate species-level effect sizes
+# you can specify your own correlation coefficient via `correlation`. For illustration purpose, I used 0.5.
+result <- phylo_model(data = dat, tree = tree, correlation = 0.5)
+
+# find the significant species
+result$data <- result$data %>%
+  mutate(
+    p_value = 2 * (1 - pnorm(abs(estimate / se))),
+    significance = ifelse(p_value < 0.05, "Significant", "NonSignificant")
+  )
+result$data <- result$data %>%
+  mutate(significance_label = ifelse(p_value < 0.05, "*", NA))
+```
+
+### Plot tree and add species-level effect size estimates
+
+```{r plot tree with species}
+# plot tree
+p1 <- ggtree(tree, layout = "rectangular", cex = 0.3)
+
+p2 <- p1 %<+% result$class + geom_tiplab(aes(color = species_class), size = 3, align = T, offset = 0.05) + geom_tippoint(aes(color = species_class)) + guides(color = "none")
+
+p3 <- p2 + 
+  geom_facet(
+    panel = "Effect size", 
+    data = result$data, 
+    geom = ggstance::geom_pointrangeh,
+    mapping = aes(x = estimate, xmin = lb, xmax = ub, color = species_class)
+  ) +
+  geom_facet(
+    panel = "Effect size",
+    data = result$data,
+    geom = geom_text,
+    mapping = aes(x = lb, label = significance_label), 
+    hjust = 1.5, size = 3, color = "red"              # adjust position of star *
+  ) +
+  geom_facet(
+    panel = "Effect size",
+    data = result$data, 
+    geom = geom_vline,
+    mapping = aes(xintercept = 0),                    
+    linetype = "dashed", color = "gray"
+  ) +
+  theme_tree2()
+
+# adjust widths of the plot facets as necessary, if it improves visualization 
+#| fig-cap: "**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32)."
+
+facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
+```
 
 :::
 
@@ -1661,26 +1758,12 @@ importance <- sw(candidates)
 
 importance
 ```
+
 :::
 
 ## Publication bias
 
 ::: panel-tabset
-```{r publication bias}
-
-#| fig-cap: "**Figure S25.** TEXT. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
-
-funnel(mod1, 
-       yaxis="seinv",
-       # = "rstudent",
-       xlab = "Standarized residuals",
-       ylab = "Precision (inverse of SE)",
-       ylim = c(0.001, 16),
-       xlim = c(-10,15),
-       digits=c(0,1)
-)
-
-```
 
 ## Egger regression: uni-moderator
 
@@ -1963,7 +2046,23 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
 leaveoneout1
 ```
 
-<!-- ![](./figures/sensitivity analysis plot.png) -->
+## Precision
+```{r precision}
+
+#| fig-cap: "**Figure S32.** Relationship between standardized residuals and precision (inverse of SE)."
+
+funnel(mod1, 
+       yaxis="seinv",
+       # = "rstudent",
+       xlab = "Standarized residuals",
+       ylab = "Precision (inverse of SE)",
+       ylim = c(0.001, 16),
+       xlim = c(-10,15),
+       digits=c(0,1)
+)
+
+```
+
 :::
 
 ## R Session Information
