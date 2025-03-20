@@ -1693,7 +1693,7 @@ p3 <- p2 +
 
 ```
 
-```{r}
+```{r, fig.width=20, fig.height=30}
 # adjust widths of the plot facets as necessary, if it improves visualization 
 #| fig-cap: "**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32)."
 
@@ -1897,7 +1897,7 @@ bubble_plot(mod_comb,
 
 ## Leave one study out (sensitivity analysis)
 
-```{r leave-1study-ouxt}
+```{r leave-1study-out}
 #| eval: false
 
 dat <- dat %>%
@@ -1968,7 +1968,7 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 
 ```
 
-```{r}
+```{r, fig.width=20, fig.height=30}
 #| fig-cap: "**Figure S30.** Leave one study out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout
@@ -2047,7 +2047,7 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
 
 ```
 
-```{r}
+```{r, fig.width=20, fig.height=30}
 #| fig-cap: "**Figure S31.** Leave one species out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout1
