@@ -69,7 +69,8 @@ pacman::p_load(tidyverse, # tidy family and related pacakges below
                patchwork,   # putting ggplots together - you need to install via devtool
                here,         # making reading files easy
                orchaRd, # plotting orchard plots
-               matrixcalc # matrix calculations
+               matrixcalc, # matrix calculations
+               cowplot #multipanel plots
 )
 
 eval(metafor:::.MuMIn)
@@ -909,6 +910,7 @@ r2_ml(mod_phase)
 
 ```{r}
 #| fig-cap: "**Figure S6.** Mean fitness effect of prospection and settlement dispersal phases. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+
 orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
 
@@ -948,6 +950,7 @@ r2_ml(mod_sex)
 
 ```{r}
 #| fig-cap: "**Figure S7.** Mean fitness effect of females, males, or both sexes grouped. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+
 orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 
 ```
@@ -1062,7 +1065,7 @@ r2_ml(mod_fit1)
 #| fig-cap: "**Figure S10.** Mean fitness effect of different fitness components (survival, reproduction, and indirect fitness). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 
-orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 ```
 
 ```{r}
