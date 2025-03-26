@@ -48,7 +48,7 @@ map <- ggplot() +
   geom_map(
     data = world_map, map = world_map,
     aes(map_id = region),
-    color = "black", fill = "grey90") +
+    color = "grey20", fill = "grey90") +
   expand_limits(x = world_map$long, y = world_map$lat) +
   coord_map("moll") +
   geom_point(
@@ -63,6 +63,7 @@ map
 map  + theme(legend.justification=c(0,-1)) +  theme(plot.margin = unit(c(-4, -1, -5, 0), "cm"))
 
 #export image as 800x700
+
 
 #other ways to export the map plots
 ggsave(map, filename = "./output/figures/fig-preds.png", width = 7.8, height = 10.1)
