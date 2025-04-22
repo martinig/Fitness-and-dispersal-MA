@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited February 3, 2025 by A. R. Martinig
+#last edited April 22, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -57,8 +57,8 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 		            sex %in% c("M") ~ "Male",
 		            TRUE ~ sex)),
 		fitness_main_focus=as.factor(
-		  case_when(fitness_main_focus %in% c("Y") ~ "Yes",
-		            fitness_main_focus %in% c("N") ~ "No",
+		  case_when(fitness_main_focus %in% c("Y") ~ "Selective",
+		            fitness_main_focus %in% c("N") ~ "Non-selective",
 		            TRUE ~ fitness_main_focus)),		
 		age_class_clean=as.factor(
     	case_when(age_class %in% c("A", "YA", "Y") ~ "adult",
@@ -115,6 +115,8 @@ table(df$year)
 table(df$publication_year)
 table(df$age_class)
 table(df$age_class_clean)
+table(test$fitness_main_focus)
+
 
 hist(df$publication_year, breaks=50)
 
