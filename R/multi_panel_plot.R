@@ -1,4 +1,4 @@
-#getting all the plots pretty for a final publication
+#getting all the plots pretty for the final publication
 
 plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", 
                            trunk.size = 1.2,
@@ -7,6 +7,7 @@ plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID",
                            angle = 90, 
                            legend.pos ="none",
                            k.pos="none") + 
+  scale_x_discrete(labels=c("Intrcpt"="Overall")) +
   scale_fill_manual(values = c("darkgrey"))+
   scale_colour_manual(values = c("darkgrey"))+
     theme(
@@ -18,11 +19,11 @@ plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID",
     panel.background = element_blank(),
     axis.title.x = element_text(size = 12), 
     axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 12, colour = "black"), 
-    axis.text.y = element_text(size = 12, colour = "black", hjust=0.95), 
+    axis.text.x = element_text(size = 12, colour = "black", hjust=0.95), 
+    axis.text.y = element_text(size = 12, colour = "black"), 
     legend.title = element_text(size = 12, colour = "black"), 
     legend.text = element_text(size = 11, colour = "black"))
-
+#export at 300x250
 
 
 plot_species_class<-orchard_plot(mod_class, 

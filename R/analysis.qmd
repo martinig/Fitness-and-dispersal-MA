@@ -2074,11 +2074,9 @@ precision_plot<-funnel(mod1,
 ```
 
 ```{r}
-
 #| fig-cap: "**Figure S32.** Relationship between standardized residuals and precision (inverse of SE)."
 
 precision_plot
-
 ```
 
 :::
