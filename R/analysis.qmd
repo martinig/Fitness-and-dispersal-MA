@@ -2060,6 +2060,7 @@ leaveoneout1
 
 ## Precision
 ```{r precision}
+#| fig-height: 16
 
 precision_plot<-funnel(mod1, 
        yaxis="seinv",
@@ -2068,8 +2069,7 @@ precision_plot<-funnel(mod1,
        ylab = "Precision (inverse of SE)",
        ylim = c(0.001, 16),
        xlim = c(-10,15),
-       digits=c(0,1)
-)
+       digits=c(0,1))
 
 ```
 
