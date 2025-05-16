@@ -36,13 +36,6 @@ execute:
   #cache: true
 ---
 
-Things to do for April
-
-1.  Rerun all the models
-3.  Add some text so the reader can understand
-4.  Go through code and add more annotations
-5.  Ask questions about things you do not understand
-
 ## Setting up
 
 ### Load packages
