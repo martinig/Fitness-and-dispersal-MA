@@ -2070,10 +2070,8 @@ precision_plot<-funnel(mod1,
        ylim = c(0.001, 16),
        xlim = c(-10,15),
        digits=c(0,1))
-
-#| fig-cap: "**Figure S32.** Relationship between standardized residuals and precision (inverse of SE)."
-
 ```
+**Figure S32.** Relationship between standardized residuals and precision (inverse of SE).
 
 :::
 
