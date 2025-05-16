@@ -1,5 +1,5 @@
 ---
-title: "**Challenging assumptions: meta-analysis reveals dispersal costs are not universal.**"
+title: "**Animal dispersal costs are not universal**"
 subtitle: "**Supplmentary Material**"
 author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S. Nakagawa"
 date: "`r Sys.Date()`"
@@ -2071,12 +2071,8 @@ precision_plot<-funnel(mod1,
        xlim = c(-10,15),
        digits=c(0,1))
 
-```
-
-```{r}
 #| fig-cap: "**Figure S32.** Relationship between standardized residuals and precision (inverse of SE)."
 
-precision_plot
 ```
 
 :::
