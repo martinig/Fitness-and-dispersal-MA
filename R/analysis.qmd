@@ -1696,8 +1696,6 @@ p3 <- p2 +
 facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
 ```
 
-:::
-
 ## Multi-moderator-regression model
 
 ::: panel-tabset
