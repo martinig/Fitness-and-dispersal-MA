@@ -677,6 +677,7 @@ round(i2_ml(mod1),2)
 #| fig-cap: "**Figure S1.** Overall meta-analytic mean effect size (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE)."
 
 reduced_intercept<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+reduced_intercept
 ```
 
 ```{r}
