@@ -3,7 +3,7 @@ title: "**Animal dispersal costs are not universal**"
 subtitle: "**Supplmentary Material**"
 author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S. Nakagawa"
 date: "`r Sys.Date()`"
-format:
+format:      
   html:
     toc: true
     toc-location: left
@@ -1098,7 +1098,7 @@ r2_ml(mod_fit2)
 ```{r}
 #| fig-cap: "**Figure S11.** Mean fitness effect of different fitness components at a finer resolution. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 15)
 
 # table not created for this (not meaningful for some levels)
 
@@ -1691,11 +1691,12 @@ p3 <- p2 +
 ```
 
 ```{r, fig.width=20, fig.height=30}
-# adjust widths of the plot facets as necessary, if it improves visualization 
-#| fig-cap: "**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32)."
+# adjust widths of the plot facets as necessary to improve visualization 
 
 facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
 ```
+
+**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
 
 ## Multi-moderator-regression model
 
