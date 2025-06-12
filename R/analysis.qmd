@@ -1098,7 +1098,7 @@ r2_ml(mod_fit2)
 ```{r}
 #| fig-cap: "**Figure S11.** Mean fitness effect of different fitness components at a finer resolution. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 15)
+orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
 
 # table not created for this (not meaningful for some levels)
 
