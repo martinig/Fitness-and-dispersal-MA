@@ -519,6 +519,15 @@ folded_v <-function(mean, variance){
 #| include: false
 #| 
 
+###
+#FOR NOW deleting line 704###
+###
+###
+###
+
+dat <- dat[-704, ]
+
+
 # adding effect sizes to dataset
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                          dat$variance_group_1, dat$variance_group_2, 
@@ -968,7 +977,7 @@ tab_sex
 
 ## Life history stage
 
-### Higher life history grouping
+### Broad level
 
 ```{r life history stage}
 mod_age1 <- rma.mv(yi = yi,
@@ -1007,7 +1016,7 @@ tab_age1 <-readRDS(here("Rdata", "tab_age1.RDS"))
 tab_age1
 ```
 
-### Finer life stage grouping
+### Finer level
 
 ```{r}
 
@@ -1038,7 +1047,7 @@ orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "pap
 
 ## Fitness metric
 
-### Higher level
+### Broad level
 
 ```{r fitness metric}
 mod_fit1 <- rma.mv(yi = yi, 
@@ -1144,6 +1153,46 @@ tab_gen <-readRDS(here("Rdata", "tab_gen.RDS"))
 tab_gen
 ```
 
+## Condition-dependent dispersal
+
+```{r disperser quality}
+mod_quality <- rma.mv(yi = yi, 
+                V = VCV,
+               mod = ~ disperser_quality_overall_direction - 1,
+               data = dat, 
+               random = list(
+                 ~ 1 | effectID,
+                 ~ 1 | paperID,
+                 ~ 1 | species_cleaned),
+               test = "t",
+               sparse = TRUE)
+summary(mod_quality)
+r2_ml(mod_quality)
+```
+
+```{r}
+#| fig-cap: "**Figure S13.** Mean fitness effect of dispersers assessed quality (no difference, mixed results, lower quality, and better quality) relative to non-dispersers. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+
+orchard_plot(mod_quality, mod = "disperser_quality_overall_direction", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, , angle = 0)
+
+```
+
+```{r}
+#| eval: false
+
+tab_quality <- all_models(mod_quality,  mod = "disperser_quality_overall_direction", type = "normal")
+
+# saving tab_quality as RDS
+saveRDS(tab_quality, here("Rdata", "tab_quality.RDS"))
+        
+```
+**Table S12.** Mean fitness effect of dispersers assessed quality (no difference, mixed results, lower quality, and better quality) relative to non-dispersers with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+```{r}
+tab_quality <-readRDS(here("Rdata", "tab_quality.RDS"))
+
+tab_quality
+```
+
 ## Study duration
 
 ### Normal analysis
@@ -1167,7 +1216,7 @@ r2_ml(mod_dur)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S13.** Mean fitness effect of study duration (log years). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S14.** Mean fitness effect of study duration (log years). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 bubble_plot(mod_dur,
                 mod = "ln_study_duration",
@@ -1194,7 +1243,7 @@ r2_ml(mod_dur_abs)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S14.** Mean fitness effect of study duration (log years) from absolute value analysis. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S15.** Mean fitness effect of study duration (log years) from absolute value analysis. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
  
 bubble_plot(mod_dur_abs,
                 mod = "ln_study_duration",
@@ -1225,7 +1274,7 @@ r2_ml(mod_focus)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S15.** Mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S16.** Mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 
@@ -1241,7 +1290,7 @@ saveRDS(tab_focus, here("Rdata", "tab_focus.RDS"))
         
 ```
 
-**Table S14.** Mean estimates of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+**Table S13.** Mean estimates of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_focus <-readRDS(here("Rdata", "tab_focus.RDS"))
@@ -1290,14 +1339,14 @@ anova(mod_focus1, mod_focus2)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S16.** Maximum likelihood model of mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S17.** Maximum likelihood model of mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # homo
 orchard_plot(mod_focus1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S17.** Heteroscedastic maximum likelihood model of mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S18.** Heteroscedastic maximum likelihood model of mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # hetero
 orchard_plot(mod_focus2, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
@@ -1324,7 +1373,7 @@ r2_ml(mod_confirm)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S18.** Mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S19.** Mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 ```
@@ -1338,7 +1387,7 @@ tab_confirm <- all_models(mod_confirm,  mod = "confirmation_bias", type = "norma
 saveRDS(tab_confirm, here("Rdata", "tab_confirm.RDS"))
         
 ```
-**Table S15.** Mean estimates of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+**Table S14.** Mean estimates of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 ```{r}
 tab_confirm <-readRDS(here("Rdata", "tab_confirm.RDS"))
 
@@ -1385,14 +1434,14 @@ anova(mod_confirm1, mod_confirm2)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S19.** Maximum likelihood model of mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S20.** Maximum likelihood model of mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # homo
 orchard_plot(mod_confirm1, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S20.** Heteroscedastic maximum likelihood model of mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S21.** Heteroscedastic maximum likelihood model of mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # hetero
 orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
@@ -1427,7 +1476,7 @@ r2_ml(mod_sex_species_class)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S21.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S22.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_species_class, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 ```
@@ -1442,7 +1491,7 @@ saveRDS(tab_sex_species_class, here("Rdata", "tab_sex_species_class.RDS"))
         
 ```
 
-**Table S16.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and taxonomic classes with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+**Table S15.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and taxonomic classes with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_sex_species_class <-readRDS(here("Rdata", "tab_sex_species_class.RDS"))
@@ -1473,7 +1522,7 @@ r2_ml(mod_sex_whose_fitness)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S22.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and focal individuals (non-dispersers and dispersers) and their descendants. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S23.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and focal individuals (non-dispersers and dispersers) and their descendants. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_whose_fitness, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -1490,7 +1539,7 @@ saveRDS(tab_sex_whose_fitness, here("Rdata", "tab_sex_whose_fitness.RDS"))
         
 ```
 
-**Table S17.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and focal individuals (non-dispersers and dispersers) and their descendants with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+**Table S16.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and focal individuals (non-dispersers and dispersers) and their descendants with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_sex_whose_fitness <-readRDS(here("Rdata", "tab_sex_whose_fitness.RDS"))
@@ -1521,7 +1570,7 @@ r2_ml(mod_sex_fitness)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S23.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and different fitness components (survival, reproduction, and indirect fitness). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S24.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and different fitness components (survival, reproduction, and indirect fitness). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_fitness, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
 
@@ -1538,7 +1587,7 @@ saveRDS(tab_sex_fitness, here("Rdata", "tab_sex_fitness.RDS"))
         
 ```
 
-**Table S18.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and different fitness components (survival, reproduction, and indirect fitness) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+**Table S17.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and different fitness components (survival, reproduction, and indirect fitness) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_sex_fitness <-readRDS(here("Rdata", "tab_sex_fitness.RDS"))
@@ -1569,7 +1618,7 @@ r2_ml(mod_sex_dispersal_type)
 ```
 
 ```{r}
-#| fig-cap: "**Figure S24.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and natal and breeding dispersal (or both dispersal types combined). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S25.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and natal and breeding dispersal (or both dispersal types combined). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_dispersal_type, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 45)
 
@@ -1586,7 +1635,7 @@ saveRDS(tab_sex_dispersal_type, here("Rdata", "tab_sex_dispersal_type.RDS"))
         
 ```
 
-**Table S19.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and natal and breeding dispersal (or both dispersal types grouped) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
+**Table S18.** Mean estimates for the interaction between sex (females, males, or both sexes grouped) and natal and breeding dispersal (or both dispersal types grouped) with their 95% confidence intervals (lower and upper CI) and 95% prediction intervals (lower and upper PR) are presented along with p-value (pval).
 
 ```{r}
 tab_sex_dispersal_type <-readRDS(here("Rdata", "tab_sex_dispersal_type.RDS"))
@@ -1696,7 +1745,7 @@ p3 <- p2 +
 facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
 ```
 
-**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
+**Figure S26.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
 
 ## Multi-moderator-regression model
 
@@ -1800,7 +1849,7 @@ small <- bubble_plot(mod_egger,
 ```
 
 ```{r}
-#| fig-cap: "**Figure S26.** Relationship between sample size and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S27.** Relationship between sample size and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 small
 ```
@@ -1835,7 +1884,7 @@ decline <- bubble_plot(mod_dec,
 ```
 
 ```{r}
-#| fig-cap: "**Figure S27.** Relationship between publication year and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S28.** Relationship between publication year and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 decline 
 ```
@@ -1866,7 +1915,7 @@ round(r2_ml(mod_comb)*100, 2)
 
 
 ```{r}
-#| fig-cap: "**Figure S28.** Combined effect of sample size and publication year on effect size (plotting sample size only). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S29.** Combined effect of sample size and publication year on effect size (plotting sample size only). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # combined sample size and year
 bubble_plot(mod_comb,
@@ -1879,7 +1928,7 @@ bubble_plot(mod_comb,
 ```
 
 ```{r}
-#| fig-cap: "**Figure S29.** Combined effect of sample size and publication year on effect size (plotting publication year only). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
+#| fig-cap: "**Figure S30.** Combined effect of sample size and publication year on effect size (plotting publication year only). We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 # combined sample size and year
 bubble_plot(mod_comb,
@@ -1965,7 +2014,7 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 ```
 
 ```{r, fig.width=20, fig.height=30}
-#| fig-cap: "**Figure S30.** Leave one study out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
+#| fig-cap: "**Figure S31.** Leave one study out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout
 ```
@@ -2044,7 +2093,7 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
 ```
 
 ```{r, fig.width=20, fig.height=30}
-#| fig-cap: "**Figure S31.** Leave one species out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
+#| fig-cap: "**Figure S32.** Leave one species out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout1
 ```
@@ -2064,7 +2113,7 @@ precision_plot<-funnel(mod1,
        xlim = c(-10,15),
        digits=c(0,1))
 ```
-**Figure S32.** Relationship between standardized residuals and precision (inverse of SE).
+**Figure S34.** Relationship between standardized residuals and precision (inverse of SE).
 
 :::
 
