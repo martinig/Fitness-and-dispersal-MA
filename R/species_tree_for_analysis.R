@@ -1,7 +1,10 @@
 #code to creat a taxonomic tree
 #written by M. Lagisz and A. R. Martinig
-#last edited October 25, 2024 by A. R. Martinig
+#last edited October 31, 2025 by A. R. Martinig
 
+#install.packages("googlesheets4")
+#library(googlesheets4)
+#gs4_auth()
 
 # Specify the URL of your Google Sheet
 url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtFm2e0BZ5WBkE/edit#gid=1046848762"
@@ -16,14 +19,14 @@ Species_info <- read_sheet(url) %>%
   select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type")) 
 
 
-length(unique(Species_info$species_cleaned)) #148
-Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
+length(unique(Species_info$species_cleaned)) #149
+Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #149 species		
 unique(Species_info$species_cleaned) #needs cleaning 
 table(Species_info$species_cleaned)
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) 
 
-length(unique(Species_info$species_cleaned)) #148
+length(unique(Species_info$species_cleaned)) #149
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine
 names(taxa)
@@ -56,10 +59,10 @@ sort(setdiff(unique(Species_info$species_cleaned), as.character(mytree$tip.label
 sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## names from tip.label not matching in animal column
 
 #check matching records again
-sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 147 names are matching - all fixed 
+sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 149 names are matching - all fixed 
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
-str(mytree) #294 tips
+str(mytree) #296 tips
 
 
 ####################################
@@ -68,9 +71,8 @@ str(mytree) #294 tips
 
 write.tree(mytree, here("data", "species_tree.csv"))
 
-
-write.tree(mytree, file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
-# mytree <- read.tree(file = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/data/species_tree.tre") #if you need to read the tree
+write.tree(mytree, file = "~/Documents/Files/Manuscripts/Martinig et al. 2025 (meta analysis)/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
+# mytree <- read.tree(file = "~/Documents/Files/Manuscripts/Martinig et al. 2025 (meta analysis)/Fitness-and-dispersal-MA/data/species_tree.tre") #if you need to read the tree
 
 
 head(Species_info)

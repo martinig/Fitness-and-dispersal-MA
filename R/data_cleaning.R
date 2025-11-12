@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited April 22, 2025 by A. R. Martinig
+#last edited November 11, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -60,6 +60,12 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
 		  case_when(fitness_main_focus %in% c("Y") ~ "Selective",
 		            fitness_main_focus %in% c("N") ~ "Non-selective",
 		            TRUE ~ fitness_main_focus)),		
+		disperser_quality_overall_direction=as.factor(
+		  case_when(disperser_quality_direction %in% c("Heavier", "Higher", "Larger", "Larger and Higher") ~ "Better quality",
+		            disperser_quality_direction %in% c("Lighter", "Lower", "Smaller") ~ "Lower quality",
+		            disperser_quality_direction %in% c("Context-dependant") ~ "Mixed results",
+		            disperser_quality_direction %in% c("No difference") ~ "No difference",
+		            TRUE ~ disperser_quality_direction)),		
 		age_class_clean=as.factor(
     	case_when(age_class %in% c("A", "YA", "Y") ~ "adult",
     		age_class %in% c("JYA", "JA", "JY") ~ "mix",
@@ -115,8 +121,10 @@ table(df$year)
 table(df$publication_year)
 table(df$age_class)
 table(df$age_class_clean)
-table(test$fitness_main_focus)
-
+table(df$fitness_main_focus)
+table(df$disperser_quality_reported)
+table(df$disperser_quality_direction)
+table(df$disperser_quality_overall_direction)
 
 hist(df$publication_year, breaks=50)
 
@@ -126,20 +134,20 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #696 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #206 studies			
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
-length(unique(df$species_cleaned)) #148
+nrow(df) #716 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #209 studies			
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #149 species		
+length(unique(df$species_cleaned)) #149
 
 df %>% as_tibble() %>% count(species_class) %>% nrow() #6 taxonomic classes		
 table(df$species_class)
 
 table(df$fitness_higher_level)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #206 total
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #206 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #209 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #209 total
 
-table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #208 total 
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #211 total 
 #because some studies include both natural and semi-natural conditions
 
 
@@ -148,8 +156,8 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 ####################################
 
 #extracted data
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #185 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #621 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #188 studies
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #641 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -158,8 +166,8 @@ df %>% filter(cross_checked=="SN") %>% as_tibble() %>% count(paperID) %>% nrow()
 df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #15 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #37 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #16 studies
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #39 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -169,11 +177,11 @@ df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 #sanity checks - species sample sizes
 ####################################
 
-df %>% as_tibble() %>% count(speciesID) %>% nrow() #151 species		
-df %>% as_tibble() %>% count(common_name) %>% nrow() #151 species		
-df %>% as_tibble() %>% count(species) %>% nrow() #151 species		
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #148 species		
-length(unique(df$species_cleaned)) #148
+df %>% as_tibble() %>% count(speciesID) %>% nrow() #152 species		
+df %>% as_tibble() %>% count(common_name) %>% nrow() #152 species		
+df %>% as_tibble() %>% count(species) %>% nrow() #152 species		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #149 species		
+length(unique(df$species_cleaned)) #149
 
 #there were some mismatches across columns, so here is how I checked this (instead of checking manually)
 
@@ -241,7 +249,8 @@ above4_1
 #Engh et al. 2002 -> had to convert SE to SD
 #Cotto et al. 2015 -> They measured fitness as reproductive effort (realized value relative to what would be expected given body size).
 #Green & Hatchwell 2018 -> authors calculated this and sent us the mean and SD 
-#Saatoglu et al. 2025 -> authors calculated this and sent us the mean and SD 
+#Saatoglu et al. 2025 -> authors calculated this and sent us the mean and SD
+#Crain et al. 2025 -> I calculcated this using their raw data, they have some outliers in their data
 #we checked all of these and concluded they are ok
 
 below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)

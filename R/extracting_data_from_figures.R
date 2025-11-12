@@ -1,6 +1,6 @@
 #devtools::install_github("daniel1noble/metaDigitise")
 library(metaDigitise)
-library(dplyr)
+library(dplyr), for
 
 data <- metaDigitise(dir = "~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Extracting data from figures/")
 

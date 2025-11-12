@@ -1,6 +1,6 @@
 #code to create my phylogenetic plot
 #code written by P. Pottier and A. R. Martinig
-#last edited July 19, 2024 by A. R. Martinig
+#last edited October 31, 2025 by A. R. Martinig
 
 
 #basic plots that do work
@@ -111,7 +111,7 @@ p4
 #0 = 1, 1=2.718282, 2=7.389056, 3=20.08554, 4=54.59815, 5=148.4132
 
 
-ggsave("~/Documents/Files/Post-docs/UNSW 2022-2024/Aim 1/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")
+ggsave("~/Documents/Files/Manuscripts/Martinig et al. 2025 (meta analysis)/Fitness-and-dispersal-MA/figures/phylogenetic plots/phylo plot.pdf")
 #export image as 800x700
 
 
