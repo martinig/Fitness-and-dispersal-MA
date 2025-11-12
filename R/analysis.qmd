@@ -519,15 +519,6 @@ folded_v <-function(mean, variance){
 #| include: false
 #| 
 
-###
-#FOR NOW deleting line 704###
-###
-###
-###
-
-dat <- dat[-704, ]
-
-
 # adding effect sizes to dataset
 effect2 <- pmap_dfr(list(dat$mean_group_1, dat$mean_group_2, 
                          dat$variance_group_1, dat$variance_group_2, 
@@ -1478,7 +1469,7 @@ r2_ml(mod_sex_species_class)
 ```{r}
 #| fig-cap: "**Figure S22.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-orchard_plot(mod_sex_species_class, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+orchard_plot(mod_sex_species_class, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
 ```
 
 ```{r}
@@ -1524,7 +1515,7 @@ r2_ml(mod_sex_whose_fitness)
 ```{r}
 #| fig-cap: "**Figure S23.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and focal individuals (non-dispersers and dispersers) and their descendants. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-orchard_plot(mod_sex_whose_fitness, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+orchard_plot(mod_sex_whose_fitness, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
 
 ```
 
@@ -1572,7 +1563,7 @@ r2_ml(mod_sex_fitness)
 ```{r}
 #| fig-cap: "**Figure S24.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and different fitness components (survival, reproduction, and indirect fitness). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-orchard_plot(mod_sex_fitness, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+orchard_plot(mod_sex_fitness, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
 
 ```
 
@@ -1620,7 +1611,7 @@ r2_ml(mod_sex_dispersal_type)
 ```{r}
 #| fig-cap: "**Figure S25.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and natal and breeding dispersal (or both dispersal types combined). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-orchard_plot(mod_sex_dispersal_type, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 45)
+orchard_plot(mod_sex_dispersal_type, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 0)
 
 ```
 
