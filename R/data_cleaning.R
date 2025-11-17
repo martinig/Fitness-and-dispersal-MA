@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited November 11, 2025 by A. R. Martinig
+#last edited November 12, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -122,7 +122,7 @@ table(df$publication_year)
 table(df$age_class)
 table(df$age_class_clean)
 table(df$fitness_main_focus)
-table(df$disperser_quality_reported)
+table((df%>%group_by(paperID)%>%filter(row_number()==1))$disperser_quality_reported)
 table(df$disperser_quality_direction)
 table(df$disperser_quality_overall_direction)
 
