@@ -48,7 +48,7 @@ execute:
 #devtools::install_github("daniel1noble/orchaRd", force = TRUE)
 
 #load all other packages
-pacman::p_load(tidyverse, # tidy family and related pacakges below
+pacman::p_load(tidyverse, # tidy family and related packages below
                kableExtra, # nice tables
                MuMIn,  # multi-model inference
                emmeans, # post-hoc tests
