@@ -1,6 +1,6 @@
 #code to creat a taxonomic tree
 #written by M. Lagisz and A. R. Martinig
-#last edited October 31, 2025 by A. R. Martinig
+#last edited November 27, 2025 by A. R. Martinig
 
 #install.packages("googlesheets4")
 #library(googlesheets4)
@@ -16,17 +16,18 @@ Species_info <- read_sheet(url) %>%
 		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
+  filter(-paperID(p212)) %>%
   select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type")) 
 
 
-length(unique(Species_info$species_cleaned)) #149
-Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #149 species		
+length(unique(Species_info$species_cleaned)) #150
+Species_info %>% as_tibble() %>% count(species_cleaned) %>% nrow() #150 species		
 unique(Species_info$species_cleaned) #needs cleaning 
 table(Species_info$species_cleaned)
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) 
 
-length(unique(Species_info$species_cleaned)) #149
+length(unique(Species_info$species_cleaned)) #150
 
 taxa <- tnrs_match_names(unique(Species_info$species_cleaned)) #runs fine
 names(taxa)

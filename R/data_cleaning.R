@@ -1,6 +1,6 @@
 #code to prepare the data for analysis
 #written by A. R. Martinig
-#last edited November 12, 2025 by A. R. Martinig
+#last edited November 27, 2025 by A. R. Martinig
 
 #Delete previous information stored 
 rm(list=ls(all=T))
@@ -32,7 +32,9 @@ df <- read.csv(here("data", "Aim 1 - Aim 1.csv")) %>% #read.csv (title=here(”f
   filter(
   	!composite_variable=="Y",
 		!n_group_1 %in% c(0, 1), 
-		!n_group_2 %in% c(0, 1)) %>%
+		!n_group_2 %in% c(0, 1),
+		!(reference=="Fuirst et al. 2023"&fitness_metric=="indirect fitness")
+		) %>%
   separate(lat_lon, into = c("lat", "lon"), sep = ", ", convert = TRUE) %>%	
   separate(year, into = c("start_year", "end_year"), sep = "-", fill = "right", convert=TRUE) %>%	
 	mutate_if(is.character, as.factor) %>%
@@ -134,20 +136,20 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #716 effect sizes
-df %>% as_tibble() %>% count(paperID) %>% nrow() #209 studies			
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #149 species		
-length(unique(df$species_cleaned)) #149
+nrow(df) #718 effect sizes
+df %>% as_tibble() %>% count(paperID) %>% nrow() #210 studies			
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #150 species		
+length(unique(df$species_cleaned)) #150
 
 df %>% as_tibble() %>% count(species_class) %>% nrow() #6 taxonomic classes		
 table(df$species_class)
 
 table(df$fitness_higher_level)
 
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #209 total
-table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #209 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$fitness_main_focus) #210 total
+table((df %>% group_by(paperID) %>% filter (row_number()==1))$confirmation_bias) #210 total
 
-table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #211 total 
+table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_type) #212 total 
 #because some studies include both natural and semi-natural conditions
 
 
@@ -156,8 +158,8 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 ####################################
 
 #extracted data
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #188 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #641 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #189 studies
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #643 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -177,11 +179,11 @@ df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 #sanity checks - species sample sizes
 ####################################
 
-df %>% as_tibble() %>% count(speciesID) %>% nrow() #152 species		
-df %>% as_tibble() %>% count(common_name) %>% nrow() #152 species		
-df %>% as_tibble() %>% count(species) %>% nrow() #152 species		
-df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #149 species		
-length(unique(df$species_cleaned)) #149
+df %>% as_tibble() %>% count(speciesID) %>% nrow() #153 species		
+df %>% as_tibble() %>% count(common_name) %>% nrow() #153 species		
+df %>% as_tibble() %>% count(species) %>% nrow() #153 species		
+df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #150 species		
+length(unique(df$species_cleaned)) #150
 
 #there were some mismatches across columns, so here is how I checked this (instead of checking manually)
 
@@ -256,9 +258,8 @@ above4_1
 below0_1<-df_means%>%filter(ratio_1<0) %>% select(reference, paperID, subsetID, speciesID, common_name, fitness_metric, age_class, sex, n, group_1, group_2, n_group_1, n_group_2, mean_group_1, mean_group_2, mean_units, type_of_variance, variance_group_1, variance_group_2, ratio_1, ratio_2)
 below0_1
 #studies flagged:
-#Cotto et al. 2015
-#we concluded this is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
-
+#Cotto et al. 2015 -> we concluded this is OK. They measured fitness as reproductive effort (realized value relative to what would be expected given body size). It allows for negative values.
+#Reynolds et al. 2025 -> data comes from a figure that was highly transformed before I extracted data from it
 
 #group 2
 hist(df_means$ratio_2) #values above 4 or below zero should be investigated
