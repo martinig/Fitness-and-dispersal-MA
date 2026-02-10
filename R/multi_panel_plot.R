@@ -1,15 +1,15 @@
 #getting all the plots pretty for the final publication
 
 plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 1.2,
+                           trunk.size = 5,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 90, 
                            legend.pos ="none",
                            k.pos="none") + 
   scale_x_discrete(labels=c("Intrcpt"="Overall")) +
-  scale_fill_manual(values = c("darkgrey"))+
-  scale_colour_manual(values = c("darkgrey"))+
+  scale_fill_manual(values = c("#BC5A45"))+
+  scale_colour_manual(values = c("#BC5A45"))+
     theme(
     legend.direction = "vertical",
     axis.line = element_line(colour = "black"),
@@ -28,7 +28,7 @@ plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID",
 
 plot_species_class<-orchard_plot(mod_class, 
     mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", 
-    trunk.size = 1.2,
+    trunk.size = 5,
     branch.size = 1.5,
     alpha = 0.2,    
     angle = 0, 
@@ -53,7 +53,7 @@ plot_species_class<-orchard_plot(mod_class,
 
 
 plot_mod_fit<-orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 1.2,
+                           trunk.size = 5,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 0, 
@@ -75,7 +75,7 @@ plot_mod_fit<-orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effec
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_sex<-orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 1.2,
+                           trunk.size = 5,
                            branch.size = 1.5,
                            alpha = 0.2, 
                            angle = 0, 
@@ -98,7 +98,7 @@ plot_mod_sex<-orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_age<-orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 1.2,
+                           trunk.size = 5,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 0, 
@@ -124,7 +124,7 @@ plot_mod_age<-orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Siz
 
 
 plot_mod_phase<-orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", 
-                             trunk.size = 1.2,
+                             trunk.size = 5,
                              branch.size = 1.5,
                              alpha = 0.2, 
                              angle = 0, 
@@ -149,7 +149,7 @@ plot_mod_phase<-orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect 
 
 plot_mod_disp<-orchard_plot(mod_disp, 
                             mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", 
-                            trunk.size = 1.2,
+                            trunk.size = 5,
                             branch.size = 1.5,
                             alpha = 0.2, 
                             angle = 0, 
@@ -172,7 +172,7 @@ plot_mod_disp<-orchard_plot(mod_disp,
 
 
 plot_mod_gen<-orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 1.2,
+                           trunk.size = 5,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 0, 
@@ -215,7 +215,7 @@ plot_mod_dur<-bubble_plot(mod_dur, mod = "ln_study_duration", group = "paperID",
 
 plot_mod_type<-orchard_plot(mod_type, 
                             mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", 
-                            trunk.size = 1.2,
+                            trunk.size = 5,
                             branch.size = 1.5,
                             alpha = 0.2,      
                             angle = 0, 
@@ -239,7 +239,7 @@ plot_mod_type<-orchard_plot(mod_type,
 
 plot_mod_design<-orchard_plot(mod_design, 
                               mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", 
-                              trunk.size = 1.2,
+                              trunk.size = 5,
                               branch.size = 1.5,
                               alpha = 0.2, 
                               angle = 0, 
@@ -261,7 +261,7 @@ plot_mod_design<-orchard_plot(mod_design,
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_focus<-orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", 
-                             trunk.size = 1.2,
+                             trunk.size = 5,
                              branch.size = 1.5,
                              alpha = 0.2,    
                              angle = 0, 
@@ -283,7 +283,7 @@ plot_mod_focus<-orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effe
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_confirm<-orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", 
-                               trunk.size = 1.2,
+                               trunk.size = 5,
                                branch.size = 1.5,
                                alpha = 0.2, 
                                angle = 0, 
@@ -305,47 +305,24 @@ plot_mod_confirm<-orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "E
     legend.text = element_text(size = 11, colour = "black"))
 
 
-
-#figure 1, biological context
-plot_grid(plot_species_class, plot_mod_fit, 
+#figure 2, biological context
+plot_grid(plot_overall, plot_species_class, plot_mod_fit, 
           plot_mod_sex, plot_mod_age, 
-          labels= "AUTO", label_x=0.1, label_y=1,
-          rel_heights=c(1.6, 1), ncol=2, align = "v", axis = 'l')
-#export 600x500
+          labels= "AUTO", label_x=0, label_y=1,
+          rel_heights=c(1), ncol=1, align = "v", axis = 'l')
+#export PDF US Letter portrait
 
-#figure 2, behavioural and environmental context
-plot_grid(plot_mod_phase, plot_mod_disp,
-          plot_mod_gen, plot_mod_dur,  
-          labels= "AUTO", label_x=0.1, label_y=1,
-          rel_heights=c(1, 1), ncol=2, align = "v", axis = 'l')
-#export 600x500
+#figure 3 (left side)
+plot_grid(plot_mod_phase, plot_mod_gen,
+          plot_mod_type, plot_mod_focus,  
+          labels=c("A","C","E","G"), label_x=0, label_y=1,
+          rel_heights=c(1, 1), ncol=1, align = "v", axis = 'l')
+#export PDF US Letter portrait
 
-#figure 3, methodological/analytical dimensions
-plot_grid(plot_mod_type, plot_mod_design,
-          plot_mod_focus, plot_mod_confirm, 
-          labels= "AUTO", label_x=0.1, label_y=1,
-          rel_heights=c(1, 1), ncol=2, align = "v", axis = 'l')
-#export 600x500
+#figure 3 (right side)
+plot_grid(plot_mod_disp, plot_mod_dur,
+          plot_mod_design, plot_mod_confirm, 
+          labels= c("B", "D","F", "H"), label_x=0, label_y=1,
+          rel_heights=c(1, 1), ncol=1, align = "v", axis = 'l')
+#export PDF US Letter portrait
 
-#figure 2 and 3 together, behavioural and environmental context
-plot_grid(plot_mod_disp, plot_mod_phase,
-          plot_mod_gen, plot_mod_dur,
-          plot_mod_type, plot_mod_design,
-          plot_mod_focus, plot_mod_confirm, 
-          labels= "AUTO", label_x=0.1, label_y=1,
-          ncol=2, align = "v", axis = 'l')
-#export 600x800
-
-
-
-#plot without overall effect, but with study duration
-plot_grid(plot_species_class, plot_mod_fit, 
-  plot_mod_sex, plot_mod_age, 
-  plot_mod_disp, plot_mod_phase,
-  plot_mod_type, plot_mod_design,
-  plot_mod_gen, plot_mod_dur, 
-  plot_mod_focus, plot_mod_confirm, 
-  labels= "AUTO", label_x=0.1, label_y=1,
-  rel_heights=c(1.6, 1, 1, 1, 1, 1), ncol=2, nrow=6, align = "v", axis = 'l')
-
-#export 800 x 1000
