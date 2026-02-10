@@ -1,7 +1,8 @@
-#code to creat a taxonomic tree
+#code to create a taxonomic tree
 #written by M. Lagisz and A. R. Martinig
-#last edited November 27, 2025 by A. R. Martinig
+#last edited Feb 10, 2026 by A. R. Martinig
 
+#run data_cleaning.R first
 #install.packages("googlesheets4")
 #library(googlesheets4)
 #gs4_auth()
@@ -13,10 +14,8 @@ url <- "https://docs.google.com/spreadsheets/d/1ZWQUCG5wuLIPJbhYfRW_rvFVb4qFiWtF
 Species_info <- read_sheet(url) %>%
 	filter(
 		!composite_variable=="Y", 
-		!obsID=="TBD", 
 		!n_group_1 %in% c(0, 1), 
 		!n_group_2 %in% c(0, 1)) %>%
-  filter(-paperID(p212)) %>%
   select(c("reference", "paperID", "common_name", "species_cleaned", "dispersal_type")) 
 
 
@@ -63,7 +62,7 @@ sort(setdiff(as.character(mytree$tip.label), unique(Species_info$species_cleaned
 sort(intersect(as.character(mytree$tip.label), unique(Species_info$species_cleaned))) ## 149 names are matching - all fixed 
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
-str(mytree) #296 tips
+str(mytree) #298 tips
 
 
 ####################################
@@ -72,7 +71,7 @@ str(mytree) #296 tips
 
 write.tree(mytree, here("data", "species_tree.csv"))
 
-write.tree(mytree, file = "~/Documents/Files/Manuscripts/Martinig et al. 2025 (meta analysis)/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
+write.tree(mytree, file = "~/Documents/Files/Manuscripts/Martinig et al. 2026 (meta analysis)/Fitness-and-dispersal-MA/data/species_tree.tre") #save the tree 
 # mytree <- read.tree(file = "~/Documents/Files/Manuscripts/Martinig et al. 2025 (meta analysis)/Fitness-and-dispersal-MA/data/species_tree.tre") #if you need to read the tree
 
 

@@ -78,7 +78,7 @@ dat <- read.csv(here("data", "clean_data.csv"))
 #dim(dat)
 #head(dat)
 
-#the phylogenetic tree
+#the phylogenetic tree (always make sure you have run your species_tree script if you made any changes to the data)
 tree <- read.tree(here("data", "species_tree.tre"))
 
 ```
