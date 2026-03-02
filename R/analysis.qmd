@@ -761,7 +761,7 @@ tab_class <-readRDS(here("Rdata", "tab_class.RDS"))
 tab_class
 ```
 
-## Study type
+## Study design
 
 ```{r study type}
 mod_type <- rma.mv(yi = yi,  
@@ -806,7 +806,7 @@ tab_type
 
 ```
 
-## Study design
+## Comparison type
 
 ```{r study design}
 mod_design <- rma.mv(yi = yi, V = VCV,
@@ -1696,7 +1696,7 @@ p3 <- p2 +
 facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
 ```
 
-**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.42, 95% CIs: 0.16 to 0.68) and negative for brown jays (Cyanocorax morio; Zr = -0.30, 95% CIs: -0.58 to -0.01), Tasmanian nativehens (Gallinula mortierii; Zr = -0.34, 95% CIs: -0.60 to X), and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
+**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.27; 95% CI: 0.05 to 0.50) and negative for Tasmanian nativehens (Gallinula mortierii; Zr = -0.23; 95% CI: -0.45 to -0.001) and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
 
 ## Multi-moderator-regression model
 

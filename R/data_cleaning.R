@@ -119,11 +119,13 @@ table(df$effect_size_df)
 table(df$fitness_metric)
 table(df$fitness_metric_clean)
 table(df$fitness_higher_level)
-table(df$year)
+table(df$start_year)
+table(df$end_year)
 table(df$publication_year)
 table(df$age_class)
 table(df$age_class_clean)
 table(df$fitness_main_focus)
+table((df%>%group_by(paperID)%>%filter(row_number()==1))$confirmation_bias)
 table((df%>%group_by(paperID)%>%filter(row_number()==1))$disperser_quality_reported)
 table(df$disperser_quality_direction)
 table(df$disperser_quality_overall_direction)
@@ -136,7 +138,7 @@ tail(df)
 #summary stats - sample sizes
 ####################################
 
-nrow(df) #718 effect sizes
+nrow(df) #717 effect sizes
 df %>% as_tibble() %>% count(paperID) %>% nrow() #210 studies			
 df %>% as_tibble() %>% count(species_cleaned) %>% nrow() #150 species		
 length(unique(df$species_cleaned)) #150
@@ -159,7 +161,7 @@ table((df %>% group_by(paperID, study_type) %>% filter (row_number()==1))$study_
 
 #extracted data
 df %>% filter(obsID =="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #189 studies
-df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #643 effect sizes
+df %>% filter(obsID =="ARM") %>% as_tibble() %>% nrow() #642 effect sizes
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies
 df %>% filter(obsID =="SLPB") %>% as_tibble() %>% nrow() #75 effect sizes
 
@@ -169,7 +171,7 @@ df %>% filter(cross_checked=="SN") %>% as_tibble() %>% nrow() #217 effect sizes
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% count(paperID) %>% nrow() #24 studies 
 df %>% filter(cross_checked=="ML") %>% as_tibble() %>% nrow() #75 effect sizes
 df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% count(paperID) %>% nrow() #16 studies
-df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #39 effect sizes
+df %>% filter(cross_checked=="SLPB") %>% as_tibble() %>% nrow() #38 effect sizes
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% count(paperID) %>% nrow() #21 studies 
 df %>% filter(cross_checked=="ARM") %>% as_tibble() %>% nrow() #75 effect sizes
 
