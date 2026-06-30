@@ -1,5 +1,5 @@
 ---
-title: "**Animal dispersal costs are not universal**"
+title: "**Animal dispersal costs are not universal: a meta-analysis**"
 subtitle: "**Supplmentary Material**"
 author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S. Nakagawa"
 date: "`r Sys.Date()`"
