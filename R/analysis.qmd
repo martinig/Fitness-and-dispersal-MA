@@ -1,5 +1,5 @@
 ---
-title: "**Animal dispersal costs are not universal: a meta-analysis**"
+title: "**Animal dispersal costs are not universal: a global meta-analysis**"
 subtitle: "**Supplmentary Material**"
 author: "Martinig, A. R., S. L. P. Burk, Y. Yang, M. Lagisz, and S. Nakagawa"
 date: "`r Sys.Date()`"
@@ -424,7 +424,7 @@ all_models <- function(model, mod = " ", type = "normal") {
             VCVa <- vcalc(vi = dat2$vi_abs, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
             #VCVa <- nearPD(VCVa)$mat
                
-               rma.mv(abs_yi2, V = VCVa,
+               rma.mv(yi_abs, V = VCVa,
                mods = ~relevel(dat2[[mod]], ref = name),
                       random = list(
                             ~ 1 | effectID,
