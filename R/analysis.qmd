@@ -588,7 +588,7 @@ dat <- dat %>%
 #### With all five random effects
 
 ```{r phylogenetic multilevel models}
-#| eval: false
+#| eval: true
 #| 
 # takes a while to run
 mod <- rma.mv(yi = yi, 
