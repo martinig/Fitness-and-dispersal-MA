@@ -128,8 +128,8 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
     m2 <- m2/100
     s1 <- 1/sqrt(8)
     s2 <- 1/sqrt(8)
-    m1 <- asin(sqrt(m1/100))
-    m2 <- asin(sqrt(m2/100))
+    m1 <- asin(sqrt(m1))
+    m2 <- asin(sqrt(m2))
     s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )
     j <- 1 - (3 / (4*n - 9))
     d <- ((m2 - m1) / s_pool) * j
@@ -148,8 +148,8 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
     sd2 <- sd2/100
     s1 <- 1/sqrt(sd1^2/(4*m1*(1-m1)))
     s2 <- 1/sqrt(sd2^2/(4*m2*(1-m2)))
-    m1 <- asin(sqrt(m1/100))
-    m2 <- asin(sqrt(m2/100))
+    m1 <- asin(sqrt(m1))
+    m2 <- asin(sqrt(m2))
     s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )
     j <- 1 - (3 / (4*n - 9))
     d <- ((m2 - m1) / s_pool) * j
@@ -397,7 +397,7 @@ all_models <- function(model, mod = " ", type = "normal") {
   # getting the level names out
   level_names <- levels(factor(model$data[[mod]]))
   dat2 <- model$data
-  mod <- mod
+  #mod <- mod
 
   # creating a function to run models
   run_rma1 <- function(name) {
@@ -501,12 +501,12 @@ folded_mu <-function(mean, variance){
 } 
 
 # folded variance
+# Compute the expected value of |Zr| (the absolute effect size). When you fold a normal distribution around zero (take the absolute value), the new mean shifts away from zero. This function returns that shifted mean, used for the "absolute value analysis" where we analyze the magnitude of dispersal effects regardless of direction.
 folded_v <-function(mean, variance){
   mu <- mean
   sigma <- sqrt(variance)
   fold_mu <- sigma*sqrt(2/pi)*exp((-mu^2)/(2*sigma^2)) + mu*(1 - 2*pnorm(-mu/sigma))
   fold_se <- sqrt(mu^2 + sigma^2 - fold_mu^2)
-  # adding se to make bigger mean
   fold_v <-fold_se^2
   fold_v
 } 
