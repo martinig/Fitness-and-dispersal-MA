@@ -69,6 +69,15 @@ pacman::p_load(tidyverse, # tidy family and related packages below
 eval(metafor:::.MuMIn)
 ```
 
+### Create output folder for saved figures
+
+```{r create figures folder}
+# All supplementary figures and tables are saved to figures/github figures/
+# with filenames that match their caption labels (e.g. Figure S23 -> s23.jpeg).
+fig_dir <- here("figures", "github figures")
+if (!dir.exists(fig_dir)) dir.create(fig_dir, recursive = TRUE)
+```
+
 ### Load data: paper and tree data
 
 ```{r load data}
@@ -678,6 +687,7 @@ round(i2_ml(mod1),2)
 
 reduced_intercept<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
 reduced_intercept
+ggsave(file.path(fig_dir, "s1.jpeg"), reduced_intercept, width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -740,6 +750,7 @@ r2_ml(mod_class)
 #| fig-cap: "**Figure S2.** Mean fitness effect of different taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+ggsave(file.path(fig_dir, "s2.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -784,6 +795,7 @@ r2_ml(mod_type)
 #| fig-cap: "**Figure S3.** Mean fitness effect of natural and semi-natural study types. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+ggsave(file.path(fig_dir, "s3.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -826,6 +838,7 @@ r2_ml(mod_design)
 #| fig-cap: "**Figure S4.** Mean fitness effect of gradient and contrast study designs. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+ggsave(file.path(fig_dir, "s4.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -866,6 +879,7 @@ r2_ml(mod_disp)
 #| fig-cap: "**Figure S5.** Mean fitness effect of natal and breeding dispersal (or both dispersal types grouped). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_disp, mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+ggsave(file.path(fig_dir, "s5.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -906,6 +920,7 @@ r2_ml(mod_phase)
 #| fig-cap: "**Figure S6.** Mean fitness effect of prospection and settlement dispersal phases. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 45)
+ggsave(file.path(fig_dir, "s6.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -946,6 +961,7 @@ r2_ml(mod_sex)
 #| fig-cap: "**Figure S7.** Mean fitness effect of females, males, or both sexes grouped. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+ggsave(file.path(fig_dir, "s7.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -989,6 +1005,7 @@ r2_ml(mod_age1)
 #| fig-cap: "**Figure S8.** Mean fitness effect of life history stage (adult, juvenile, or mixed). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+ggsave(file.path(fig_dir, "s8.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -1031,6 +1048,7 @@ r2_ml(mod_age2)
 #| fig-cap: "**Figure S9.** Mean fitness effect of life history stage at the level of precision reported (A: adult, Y: yearling, J: juvenile). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_age2, mod = "age_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+ggsave(file.path(fig_dir, "s9.jpeg"), width = 6, height = 6, dpi = 300)
 
 # table not created for this (not meaningful for some levels)
 
@@ -1060,6 +1078,7 @@ r2_ml(mod_fit1)
 
 
 orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+ggsave(file.path(fig_dir, "s10.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -1099,6 +1118,7 @@ r2_ml(mod_fit2)
 #| fig-cap: "**Figure S11.** Mean fitness effect of different fitness components at a finer resolution. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_fit2, mod = "fitness_metric_clean", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
+ggsave(file.path(fig_dir, "s11.jpeg"), width = 8, height = 8, dpi = 300)
 
 # table not created for this (not meaningful for some levels)
 
@@ -1125,6 +1145,7 @@ r2_ml(mod_gen)
 #| fig-cap: "**Figure S12.** Mean fitness effect of focal individuals (non-dispersers and dispersers) and their descendants. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4)
+ggsave(file.path(fig_dir, "s12.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -1175,6 +1196,7 @@ bubble_plot(mod_dur,
                 xlab = "Study duration",
                 ylab = "Effect Size: Zr",
                        g = TRUE)
+ggsave(file.path(fig_dir, "s13.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -1202,6 +1224,7 @@ bubble_plot(mod_dur_abs,
                 xlab = "Study duration",
                 ylab = "Effect Size: Zr",
                        g = TRUE)
+ggsave(file.path(fig_dir, "s14.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ## Selection bias
@@ -1228,6 +1251,7 @@ r2_ml(mod_focus)
 #| fig-cap: "**Figure S15.** Mean fitness effect of whether studies showed any selection bias (i.e., studies explicitly interested in the fitness effects of dispersal; Y: yes; N: no). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+ggsave(file.path(fig_dir, "s15.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -1294,6 +1318,7 @@ anova(mod_focus1, mod_focus2)
 
 # homo
 orchard_plot(mod_focus1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+ggsave(file.path(fig_dir, "s16.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -1301,6 +1326,7 @@ orchard_plot(mod_focus1, mod = "fitness_main_focus", xlab = "Effect Size: Zr", g
 
 # hetero
 orchard_plot(mod_focus2, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+ggsave(file.path(fig_dir, "s17.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ## Confirmation bias
@@ -1327,6 +1353,7 @@ r2_ml(mod_confirm)
 #| fig-cap: "**Figure S18.** Mean fitness effect of whether studies showed any confirmation bias (i.e., studies that stated an assumption about how dispersal affects fitness; Benefit: assumed a fitness benefit; Cost: assumed a fitness cost; Mixed: assumed fitness costs and benefits; Neutral: no assumption made). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+ggsave(file.path(fig_dir, "s18.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -1389,6 +1416,7 @@ anova(mod_confirm1, mod_confirm2)
 
 # homo
 orchard_plot(mod_confirm1, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+ggsave(file.path(fig_dir, "s19.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 ```{r}
@@ -1396,6 +1424,7 @@ orchard_plot(mod_confirm1, mod = "confirmation_bias", xlab = "Effect Size: Zr", 
 
 # hetero
 orchard_plot(mod_confirm2, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 90)
+ggsave(file.path(fig_dir, "s20.jpeg"), width = 6, height = 6, dpi = 300)
 ```
 
 :::
@@ -1430,6 +1459,7 @@ r2_ml(mod_sex_species_class)
 #| fig-cap: "**Figure S21.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and taxonomic classes. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_species_class, mod = "sex_species_class", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
+ggsave(file.path(fig_dir, "s21.jpeg"), width = 8, height = 8, dpi = 300)
 ```
 
 ```{r}
@@ -1448,6 +1478,9 @@ saveRDS(tab_sex_species_class, here("Rdata", "tab_sex_species_class.RDS"))
 tab_sex_species_class <-readRDS(here("Rdata", "tab_sex_species_class.RDS"))
 
 tab_sex_species_class
+
+# Save Table S14 as an image (kableExtra HTML table -> PNG via webshot)
+kableExtra::save_kable(tab_sex_species_class, file = file.path(fig_dir, "table s14.png"), zoom = 2)
 ```
 
 
@@ -1476,6 +1509,7 @@ r2_ml(mod_sex_whose_fitness)
 #| fig-cap: "**Figure S22.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and focal individuals (non-dispersers and dispersers) and their descendants. We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_whose_fitness, mod = "sex_whose_fitness", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
+ggsave(file.path(fig_dir, "s22.jpeg"), width = 8, height = 8, dpi = 300)
 
 ```
 
@@ -1524,6 +1558,7 @@ r2_ml(mod_sex_fitness)
 #| fig-cap: "**Figure S23.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and different fitness components (survival, reproduction, and indirect fitness). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_fitness, mod = "sex_fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, angle = 0)
+ggsave(file.path(fig_dir, "s23.jpeg"), width = 8, height = 8, dpi = 300)
 
 ```
 
@@ -1572,6 +1607,7 @@ r2_ml(mod_sex_dispersal_type)
 #| fig-cap: "**Figure S24.** Mean fitness effect for the interaction between sex (females, males, or both sexes grouped) and natal and breeding dispersal (or both dispersal types combined). We present mean effect sizes (Zr) along with 95% confidence (thicker bar) and prediction (thinner bars) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 orchard_plot(mod_sex_dispersal_type, mod = "sex_dispersal_type", xlab = "Effect Size: Zr", group = "paperID", branch.size = 4, trunk.size = 0.5, angle = 0)
+ggsave(file.path(fig_dir, "s24.jpeg"), width = 8, height = 8, dpi = 300)
 
 ```
 
@@ -1693,7 +1729,9 @@ p3 <- p2 +
 ```{r, fig.width=20, fig.height=30}
 # adjust widths of the plot facets as necessary to improve visualization 
 
-facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
+figS25 <- facet_widths(p3, c(Tree = 0.6, `Effect size` = 0.4))
+figS25
+ggsave(file.path(fig_dir, "s25.jpeg"), figS25, width = 8, height = 12, dpi = 300)
 ```
 
 **Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.27; 95% CI: 0.05 to 0.50) and negative for Tasmanian nativehens (Gallinula mortierii; Zr = -0.23; 95% CI: -0.45 to -0.001) and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
@@ -1803,6 +1841,7 @@ small <- bubble_plot(mod_egger,
 #| fig-cap: "**Figure S26.** Relationship between sample size and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
 small
+ggsave(file.path(fig_dir, "s26.jpeg"), small, width = 6, height = 6, dpi = 300)
 ```
 
 ## Decline effect: uni-moderator
@@ -1837,7 +1876,8 @@ decline <- bubble_plot(mod_dec,
 ```{r}
 #| fig-cap: "**Figure S27.** Relationship between publication year and effect size. We present mean effect sizes (Zr) along with 95% confidence (thicker dotted lines) and prediction (thinner dotted lines) intervals are depicted along with individual data points (circles) scaled by precision (1/SE). We include k = number of effect sizes (number of studies)."
 
-decline 
+decline
+ggsave(file.path(fig_dir, "s27.jpeg"), decline, width = 6, height = 6, dpi = 300)
 ```
 
 ## Combined analysis
@@ -1875,6 +1915,7 @@ bubble_plot(mod_comb,
             xlab = "sqrt(Effective N)",
             ylab = "Effect Size: Zr",
             g = TRUE)
+ggsave(file.path(fig_dir, "s28.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -1888,6 +1929,7 @@ bubble_plot(mod_comb,
             xlab = "Publication year",
             ylab = "Effect Size: Zr",
             g = TRUE)
+ggsave(file.path(fig_dir, "s29.jpeg"), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -1968,6 +2010,7 @@ leaveoneout <- ggplot(MA_oneout) + geom_hline(yintercept = 0, lty = 2, lwd = 1) 
 #| fig-cap: "**Figure S30.** Leave one study out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout
+ggsave(file.path(fig_dir, "s30.jpeg"), leaveoneout, width = 10, height = 15, dpi = 300)
 ```
 
 ## Leave one species out (sensitivity analysis)
@@ -2047,6 +2090,7 @@ leaveoneout1 <- ggplot(MA_oneout1) + geom_hline(yintercept = 0, lty = 2, lwd = 1
 #| fig-cap: "**Figure S31.** Leave one species out (sensitivity analysis). We present mean effect sizes (Zr) along with 95% confidence intervals."
 
 leaveoneout1
+ggsave(file.path(fig_dir, "s31.jpeg"), leaveoneout1, width = 10, height = 15, dpi = 300)
 ```
 
 <!-- ![](./figures/sensitivity analysis plot.png) -->
@@ -2055,7 +2099,8 @@ leaveoneout1
 ```{r precision}
 #| fig-height: 16
 
-precision_plot<-funnel(mod1, 
+# Display inline in the HTML
+funnel(mod1,
        yaxis="seinv",
        # = "rstudent",
        xlab = "Standarized residuals",
@@ -2063,6 +2108,18 @@ precision_plot<-funnel(mod1,
        ylim = c(0.001, 16),
        xlim = c(-10,15),
        digits=c(0,1))
+
+# Save Fig S32 to file. funnel() is base-R graphics, so it needs an explicit
+# device (last_plot()/ggsave do not apply); we redraw it inside a jpeg device.
+jpeg(file.path(fig_dir, "s32.jpeg"), width = 6, height = 8, units = "in", res = 300)
+funnel(mod1,
+       yaxis="seinv",
+       xlab = "Standarized residuals",
+       ylab = "Precision (inverse of SE)",
+       ylim = c(0.001, 16),
+       xlim = c(-10,15),
+       digits=c(0,1))
+dev.off()
 ```
 **Figure S32.** Relationship between standardized residuals and precision (inverse of SE).
 
