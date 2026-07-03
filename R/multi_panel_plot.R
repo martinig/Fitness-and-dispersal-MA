@@ -1,7 +1,7 @@
 #getting all the plots pretty for the final publication
 
 plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 5,
+                           trunk.size = 1,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 90, 
@@ -28,7 +28,7 @@ plot_overall<-orchard_plot(mod1, xlab = "Effect Size: Zr", group = "paperID",
 
 plot_species_class<-orchard_plot(mod_class, 
     mod = "species_class", xlab = "Effect Size: Zr", group = "paperID", 
-    trunk.size = 5,
+    trunk.size = 1,
     branch.size = 1.5,
     alpha = 0.2,    
     angle = 0, 
@@ -53,7 +53,7 @@ plot_species_class<-orchard_plot(mod_class,
 
 
 plot_mod_fit<-orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 5,
+                           trunk.size = 1,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 0, 
@@ -75,7 +75,7 @@ plot_mod_fit<-orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effec
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_sex<-orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 5,
+                           trunk.size = 1,
                            branch.size = 1.5,
                            alpha = 0.2, 
                            angle = 0, 
@@ -98,7 +98,7 @@ plot_mod_sex<-orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_age<-orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 5,
+                           trunk.size = 1,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 0, 
@@ -124,7 +124,7 @@ plot_mod_age<-orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Siz
 
 
 plot_mod_phase<-orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect Size: Zr", group = "paperID", 
-                             trunk.size = 5,
+                             trunk.size = 1,
                              branch.size = 1.5,
                              alpha = 0.2, 
                              angle = 0, 
@@ -149,7 +149,7 @@ plot_mod_phase<-orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect 
 
 plot_mod_disp<-orchard_plot(mod_disp, 
                             mod = "dispersal_type", xlab = "Effect Size: Zr", group = "paperID", 
-                            trunk.size = 5,
+                            trunk.size = 1,
                             branch.size = 1.5,
                             alpha = 0.2, 
                             angle = 0, 
@@ -172,7 +172,7 @@ plot_mod_disp<-orchard_plot(mod_disp,
 
 
 plot_mod_gen<-orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "paperID", 
-                           trunk.size = 5,
+                           trunk.size = 1,
                            branch.size = 1.5,
                            alpha = 0.2,
                            angle = 0, 
@@ -215,7 +215,7 @@ plot_mod_dur<-bubble_plot(mod_dur, mod = "ln_study_duration", group = "paperID",
 
 plot_mod_type<-orchard_plot(mod_type, 
                             mod = "study_type", xlab = "Effect Size: Zr", group = "paperID", 
-                            trunk.size = 5,
+                            trunk.size = 1,
                             branch.size = 1.5,
                             alpha = 0.2,      
                             angle = 0, 
@@ -239,7 +239,7 @@ plot_mod_type<-orchard_plot(mod_type,
 
 plot_mod_design<-orchard_plot(mod_design, 
                               mod = "study_design", xlab = "Effect Size: Zr", group = "paperID", 
-                              trunk.size = 5,
+                              trunk.size = 1,
                               branch.size = 1.5,
                               alpha = 0.2, 
                               angle = 0, 
@@ -261,7 +261,7 @@ plot_mod_design<-orchard_plot(mod_design,
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_focus<-orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", group = "paperID", 
-                             trunk.size = 5,
+                             trunk.size = 1,
                              branch.size = 1.5,
                              alpha = 0.2,    
                              angle = 0, 
@@ -283,7 +283,7 @@ plot_mod_focus<-orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effe
     legend.text = element_text(size = 11, colour = "black"))
 
 plot_mod_confirm<-orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", group = "paperID", 
-                               trunk.size = 5,
+                               trunk.size = 1,
                                branch.size = 1.5,
                                alpha = 0.2, 
                                angle = 0, 

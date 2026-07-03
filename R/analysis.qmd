@@ -744,7 +744,7 @@ orchard_plot(mod_class, mod = "species_class", xlab = "Effect Size: Zr", group =
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_class <- all_models(mod_class,  mod = "species_class", type = "normal")
 
@@ -788,7 +788,7 @@ orchard_plot(mod_type, mod = "study_type", xlab = "Effect Size: Zr", group = "pa
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_type <- all_models(mod_type,  mod = "study_type", type = "normal")
 
@@ -829,7 +829,7 @@ orchard_plot(mod_design, mod = "study_design", xlab = "Effect Size: Zr", group =
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_design <- all_models(mod_design,  mod = "study_design", type = "normal")
 
@@ -869,7 +869,7 @@ orchard_plot(mod_disp, mod = "dispersal_type", xlab = "Effect Size: Zr", group =
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_disp <- all_models(mod_disp,  mod = "dispersal_type", type = "normal")
 
@@ -909,7 +909,7 @@ orchard_plot(mod_phase, mod = "dispersal_phase", xlab = "Effect Size: Zr", group
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_phase <- all_models(mod_phase,  mod = "dispersal_phase", type = "normal")
 
@@ -950,7 +950,7 @@ orchard_plot(mod_sex, mod = "sex", xlab = "Effect Size: Zr", group = "paperID", 
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_sex <- all_models(mod_sex,  mod = "sex", type = "normal")
 
@@ -992,7 +992,7 @@ orchard_plot(mod_age1, mod = "age_class_clean", xlab = "Effect Size: Zr", group 
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_age1 <- all_models(mod_age1,  mod = "age_class_clean", type = "normal")
 
@@ -1063,7 +1063,7 @@ orchard_plot(mod_fit1, mod = "fitness_higher_level", xlab = "Effect Size: Zr", g
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_fit1 <- all_models(mod_fit1,  mod = "fitness_higher_level", type = "normal")
 
@@ -1129,7 +1129,7 @@ orchard_plot(mod_gen, mod = "whose_fitness", xlab = "Effect Size: Zr", group = "
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_gen <- all_models(mod_gen,  mod = "whose_fitness", type = "normal")
 
@@ -1232,7 +1232,7 @@ orchard_plot(mod_focus, mod = "fitness_main_focus", xlab = "Effect Size: Zr", gr
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_focus <- all_models(mod_focus,  mod = "fitness_main_focus", type = "normal")
 
@@ -1330,7 +1330,7 @@ orchard_plot(mod_confirm, mod = "confirmation_bias", xlab = "Effect Size: Zr", g
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_confirm <- all_models(mod_confirm,  mod = "confirmation_bias", type = "normal")
 
@@ -1433,7 +1433,7 @@ orchard_plot(mod_sex_species_class, mod = "sex_species_class", xlab = "Effect Si
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_sex_species_class <- all_models(mod_sex_species_class,  mod = "sex_species_class", type = "normal")
 
@@ -1481,7 +1481,7 @@ orchard_plot(mod_sex_whose_fitness, mod = "sex_whose_fitness", xlab = "Effect Si
 
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_sex_whose_fitness <- all_models(mod_sex_whose_fitness,  mod = "sex_whose_fitness", type = "normal")
 
@@ -1529,7 +1529,7 @@ orchard_plot(mod_sex_fitness, mod = "sex_fitness_higher_level", xlab = "Effect S
 
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_sex_fitness <- all_models(mod_sex_fitness,  mod = "sex_fitness_higher_level", type = "normal")
 
@@ -1577,7 +1577,7 @@ orchard_plot(mod_sex_dispersal_type, mod = "sex_dispersal_type", xlab = "Effect 
 
 
 ```{r}
-#| eval: false
+#| eval: true
 
 tab_sex_dispersal_type <- all_models(mod_sex_dispersal_type,  mod = "sex_dispersal_type", type = "normal")
 
@@ -1732,7 +1732,7 @@ round(r2_ml(mod_full)*100, 2)
 ## Multi-model inference
 
 ```{r}
-#| eval: false
+#| eval: true
 
 # multi-model selection
 candidates <- dredge(mod_full, trace = 2)
@@ -1894,7 +1894,7 @@ bubble_plot(mod_comb,
 ## Leave one study out (sensitivity analysis)
 
 ```{r leave-1study-out}
-#| eval: false
+#| eval: true
 
 dat <- dat %>%
   mutate(leave_out = reference)
@@ -1973,7 +1973,7 @@ leaveoneout
 ## Leave one species out (sensitivity analysis)
 
 ```{r leave-1species-out}
-#| eval: false
+#| eval: true
 
 dat <- dat %>%
   mutate(leave_out = species_cleaned)
