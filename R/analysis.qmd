@@ -597,7 +597,7 @@ dat <- dat %>%
 #### With all five random effects
 
 ```{r phylogenetic multilevel models}
-#| eval: true
+#| eval: false
 #| 
 # takes a while to run
 mod <- rma.mv(yi = yi, 
@@ -1936,7 +1936,7 @@ ggsave(file.path(fig_dir, "s29.jpeg"), width = 6, height = 6, dpi = 300)
 ## Leave one study out (sensitivity analysis)
 
 ```{r leave-1study-out}
-#| eval: true
+#| eval: false
 
 dat <- dat %>%
   mutate(leave_out = reference)
@@ -2016,7 +2016,7 @@ ggsave(file.path(fig_dir, "s30.jpeg"), leaveoneout, width = 10, height = 15, dpi
 ## Leave one species out (sensitivity analysis)
 
 ```{r leave-1species-out}
-#| eval: true
+#| eval: false
 
 dat <- dat %>%
   mutate(leave_out = species_cleaned)
