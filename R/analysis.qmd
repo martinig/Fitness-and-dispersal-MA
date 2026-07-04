@@ -1734,7 +1734,7 @@ figS25
 ggsave(file.path(fig_dir, "s25.jpeg"), figS25, width = 8, height = 12, dpi = 300)
 ```
 
-**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). Significant relationships are indicated with a red asterisk. Dispersal was positive for ruffed grouse (Bonasa umbellus; Zr = 0.27; 95% CI: 0.05 to 0.50) and negative for Tasmanian nativehens (Gallinula mortierii; Zr = -0.23; 95% CI: -0.45 to -0.001) and cougars (Puma concolor; Zr = -0.61, 95% CIs: -0.90 to -0.32).
+**Figure S25.** Phylogenetic tree (left panel) and species-level effect size estimates (right panel). No individual species showed a statistically significant deviation from the overall neutral effect of dispersal on fitness.
 
 ## Multi-moderator-regression model
 
@@ -1748,7 +1748,10 @@ ggsave(file.path(fig_dir, "s25.jpeg"), figS25, width = 8, height = 12, dpi = 300
 # Multi-variable models
 #######################
 
-mod_full <- rma.mv(yi = yi, 
+# Use females as the reference level for sex so the sex coefficient is the female–male comparison, rather than each sex relative to the combined "Both" category. 
+dat$sex <- relevel(factor(dat$sex), ref = "Female")
+
+mod_full <- rma.mv(yi = yi,
                V = VCV,
               mod = ~ 1 + sex +
                 age_class_clean + whose_fitness + 
