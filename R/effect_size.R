@@ -92,8 +92,8 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
     q <- n2/n # prop for n2
     s1 <- 1/sqrt(sd1^2/(4*m1*(1-m1)))
     s2 <- 1/sqrt(sd2^2/(4*m2*(1-m2)))
-    m1 <- asin(sqrt(m1/100))
-    m2 <- asin(sqrt(m2/100))
+    m1 <- asin(sqrt(m1))
+    m2 <- asin(sqrt(m2))
     s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )
     j <- 1 - (3 / (4*n - 9))
     d <- ((m2 - m1) / s_pool) * j

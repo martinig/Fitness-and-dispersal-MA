@@ -67,6 +67,9 @@ pacman::p_load(tidyverse, # tidy family and related packages below
 )
 
 eval(metafor:::.MuMIn)
+
+# Set seed for reproducibility (any stochastic optimizer / bootstrap step)
+set.seed(2026)
 ```
 
 ### Create output folder for saved figures
@@ -83,9 +86,6 @@ if (!dir.exists(fig_dir)) dir.create(fig_dir, recursive = TRUE)
 ```{r load data}
 #the dataset with effect sizes
 dat <- read.csv(here("data", "clean_data.csv"))
-
-#dim(dat)
-#head(dat)
 
 #the phylogenetic tree (always make sure you have run your species_tree script if you made any changes to the data)
 tree <- read.tree(here("data", "species_tree.tre"))
@@ -189,8 +189,8 @@ effect_size <- function(m1, m2, sd1, sd2, n1, n2, n, # 12 arguments
     q <- n2/n # prop for n2
     s1 <- 1/sqrt(sd1^2/(4*m1*(1-m1)))
     s2 <- 1/sqrt(sd2^2/(4*m2*(1-m2)))
-    m1 <- asin(sqrt(m1/100))
-    m2 <- asin(sqrt(m2/100))
+    m1 <- asin(sqrt(m1))
+    m2 <- asin(sqrt(m2))
     s_pool <- sqrt( ((n1-1)*s1^2 + (n2-1)*s2^2) / (n - 2) )
     j <- 1 - (3 / (4*n - 9))
     d <- ((m2 - m1) / s_pool) * j
@@ -406,13 +406,12 @@ all_models <- function(model, mod = " ", type = "normal") {
   # getting the level names out
   level_names <- levels(factor(model$data[[mod]]))
   dat2 <- model$data
-  #mod <- mod
 
   # creating a function to run models
   run_rma1 <- function(name) {
-      
-    # variance covarinace matrix for sampling errors
-    VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
+
+    # variance covariance matrix for sampling errors
+    VCV1 <- vcalc(vi = dat2$vi, cluster = dat2$shared_group, obs = dat2$effectID, rho = 0.5)
     #VCV1 <- nearPD(VCV1)$mat
       
     rma.mv(yi, V = VCV1,
@@ -429,8 +428,8 @@ all_models <- function(model, mod = " ", type = "normal") {
 
     run_rma2 <- function(name) {
     
-            # variance covarinace matrix for sampling errors
-            VCVa <- vcalc(vi = dat2$vi_abs, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
+            # variance covariance matrix for sampling errors
+            VCVa <- vcalc(vi = dat2$vi_abs, cluster = dat2$shared_group, obs = dat2$effectID, rho = 0.5)
             #VCVa <- nearPD(VCVa)$mat
                
                rma.mv(yi_abs, V = VCVa,
@@ -446,9 +445,9 @@ all_models <- function(model, mod = " ", type = "normal") {
     }
     
     run_rma3 <- function(name) {
-      
-              # variance covarinace matrix for sampling errors
-                VCV1 <- vcalc(vi = dat$vi, cluster = dat$shared_group, obs = dat$effectID, rho = 0.5)
+
+              # variance covariance matrix for sampling errors
+                VCV1 <- vcalc(vi = dat2$vi, cluster = dat2$shared_group, obs = dat2$effectID, rho = 0.5)
                 #VCV1 <- nearPD(VCV1)$mat
                
                 rma.mv(yi, V = VCV1,
@@ -553,17 +552,6 @@ dat$yi_abs <- folded_mu(dat$yi, dat$vi)
 dat$vi_abs <- folded_v(dat$yi, dat$vi)
 
 
-# checking species names match between tree and dataset
-
-# match(unique(dat$phylogeny), tree$tip.label)
-# match(tree$tip.label, unique(dat$phylogeny))
-# 
-# intersect(unique(dat$phylogeny), tree$tip.label)
-# setdiff(unique(dat$phylogeny), tree$tip.label)
-# # 
-# match(unique(dat$phylogeny), tree$tip.label)
-# sum(is.na(match(unique(dat$phylogeny), tree$tip.label)))
-
 # creating a correlation matrix from a tree
 tree <- compute.brlen(tree)
 cor_tree <- vcv(tree,corr=T) 
@@ -597,7 +585,7 @@ dat <- dat %>%
 #### With all five random effects
 
 ```{r phylogenetic multilevel models}
-#| eval: false
+#| eval: true
 #| 
 # takes a while to run
 mod <- rma.mv(yi = yi, 
@@ -1939,7 +1927,7 @@ ggsave(file.path(fig_dir, "s29.jpeg"), width = 6, height = 6, dpi = 300)
 ## Leave one study out (sensitivity analysis)
 
 ```{r leave-1study-out}
-#| eval: false
+#| eval: true
 
 dat <- dat %>%
   mutate(leave_out = reference)
@@ -2019,7 +2007,7 @@ ggsave(file.path(fig_dir, "s30.jpeg"), leaveoneout, width = 10, height = 15, dpi
 ## Leave one species out (sensitivity analysis)
 
 ```{r leave-1species-out}
-#| eval: false
+#| eval: true
 
 dat <- dat %>%
   mutate(leave_out = species_cleaned)
@@ -2044,12 +2032,6 @@ for (i in 1:length(levels(dat$leave_out))) {
                                          sparse = TRUE,
                                          data = temp_dat[temp_dat$leave_out != levels(temp_dat$leave_out)[i], ])
 }
-
-# # writing function for extracting est, ci.lb, and ci.ub from all models
-# est.func <- function(model) {
-#   df <- data.frame(est = model$b, lower = model$ci.lb, upper = model$ci.ub)
-#   return(df)
-# }
 
 # using dplyr to form data frame
 MA_oneout1 <- lapply(LeaveOneOut_effectsize,function(x) est.func(x)) %>%
